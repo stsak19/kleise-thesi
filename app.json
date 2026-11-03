@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Κλείσε Θέση",
+    "slug": "kleise-thesi",
+    "scheme": "kleisethesi",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "gr.kleisethesi.app",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "gr.kleisethesi.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#111111"
+      }
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "extra": {
+      "supabaseUrl": "https://tfuuleuzsahipzgtbuuo.supabase.co",
+      "supabaseAnonKey": "sb_publishable_BqtkyQMEECwCuqpf2JRyGA_7QUEIbFh"
+    },
+    "web": {
+      "output": "single",
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png",
+      "name": "Κλείσε Θέση"
+    },
+    "experiments": {
+      "baseUrl": "/kleise-thesi"
+    }
+  }
+}
