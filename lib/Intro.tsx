@@ -21,36 +21,8 @@ export function useIntroSeen(): [boolean | null, () => void] {
   return [seen, () => { setSeen(true); AsyncStorage.setItem(KEY, '1').catch(() => {}); }];
 }
 
-const loop = (v: Animated.Value, ms: number) =>
-  Animated.loop(Animated.timing(v, { toValue: 1, duration: ms, easing: Easing.linear, useNativeDriver: ND }));
-const wave = (v: Animated.Value, ms: number) =>
-  Animated.loop(Animated.sequence([
-    Animated.timing(v, { toValue: 1, duration: ms, easing: Easing.inOut(Easing.sin), useNativeDriver: ND }),
-    Animated.timing(v, { toValue: 0, duration: ms, easing: Easing.inOut(Easing.sin), useNativeDriver: ND }),
-  ]));
-
-/* Χρωματιστές «φούσκες» που κινούνται αργά στο φόντο. */
-function Blobs({ w, h }: { w: number; h: number }) {
-  const a = useRef(new Animated.Value(0)).current, b = useRef(new Animated.Value(0)).current;
-  useEffect(() => { const x = wave(a, 4000), y = wave(b, 5500); x.start(); y.start(); return () => { x.stop(); y.stop(); }; }, []);
-  const blob = (v: Animated.Value, size: number, top: number, left: number, dx: number, dy: number, color: string) => (
-    <Animated.View pointerEvents="none" style={{
-      position: 'absolute', top, left, width: size, height: size, borderRadius: size / 2, backgroundColor: color, opacity: 0.14,
-      transform: [
-        { translateX: v.interpolate({ inputRange: [0, 1], outputRange: [0, dx] }) },
-        { translateY: v.interpolate({ inputRange: [0, 1], outputRange: [0, dy] }) },
-        { scale: v.interpolate({ inputRange: [0, 1], outputRange: [1, 1.25] }) },
-      ] }} />
-  );
-  return <>
-    {blob(a, w * 0.9, -w * 0.3, -w * 0.3, 40, 60, C.accent)}
-    {blob(b, w * 0.7, h * 0.55, w * 0.5, -50, -40, C.btn)}
-    {blob(a, w * 0.4, h * 0.35, -w * 0.15, 30, -30, C.accent)}
-  </>;
-}
-
 export default function Intro({ onDone }: { onDone: () => void }) {
-  const { width: W, height: H } = useWindowDimensions();
+  const { width: W } = useWindowDimensions();
   const [i, setI] = useState(0);
   const x = useRef(new Animated.Value(0)).current;         // θέση του swipe (σε px)
   const txt = useRef(new Animated.Value(1)).current;       // είσοδος κειμένου
@@ -70,7 +42,6 @@ export default function Intro({ onDone }: { onDone: () => void }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg, overflow: 'hidden' }}>
-      <Blobs w={W} h={H} />
       <View style={{ alignItems: 'flex-end', minHeight: 24, paddingHorizontal: 24, paddingTop: 24 }}>
         {!last && <Pressable onPress={onDone}><Text style={{ color: C.mute, fontWeight: '600' }}>Παράλειψη</Text></Pressable>}
       </View>

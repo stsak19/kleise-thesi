@@ -20,16 +20,6 @@ function useClock(active: boolean, ms: number) {
   return t;
 }
 
-/* Δάχτυλο που κινείται σε σημεία (x,y) σε χρόνους ts και «πατάει» στους χρόνους taps. */
-function Finger({ t, ts, xs, ys, taps }: { t: V; ts: number[]; xs: number[]; ys: number[]; taps: number[] }) {
-  const pi: number[] = [0], po: number[] = [1];
-  taps.forEach((p) => { pi.push(p - 0.03, p, p + 0.03); po.push(1, 0.78, 1); });
-  pi.push(1); po.push(1);
-  return <Animated.Text style={{ position: 'absolute', left: 0, top: 0, fontSize: 36, zIndex: 20,
-    opacity: k(t, [0, 0.03, 0.9, 0.97], [0, 1, 1, 0]),
-    transform: [{ translateX: k(t, ts, xs) }, { translateY: k(t, ts, ys) }, { scale: t.interpolate({ inputRange: pi, outputRange: po }) }] }}>👆</Animated.Text>;
-}
-
 const Badge = ({ t, at, text, top }: { t: V; at: number; text: string; top: number }) => (
   <Animated.View style={{ position: 'absolute', top, alignSelf: 'center', backgroundColor: C.ok, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 16, zIndex: 30,
     opacity: k(t, [at, at + 0.04, 0.9, 0.95], [0, 1, 1, 0]),
@@ -69,7 +59,6 @@ export function SceneBook({ active }: { active: boolean }) {
           </View>
         );
       })}
-      <Finger t={t} ts={[0, 0.15, 0.38, 0.6, 1]} xs={[230, 230, 170, 170, 230]} ys={[230, 230, RY + RH + 8 + 18, RY + RH + 8 + 18, 230]} taps={[0.42]} />
       <Badge t={t} at={0.55} text="🎉 Κλείστηκε!" top={10} />
     </Frame>
   );
@@ -148,9 +137,6 @@ export function SceneCalendar({ active }: { active: boolean }) {
             opacity: k(t, [0.62, 0.66, 0.9, 0.95], [0, 1, 1, 0]) }}><Text style={{ color: C.onAccent, fontWeight: '800' }}>{h}</Text></Animated.View>}
         </Animated.View>
       ))}
-      <Finger t={t} ts={[0, 0.08, 0.2, 0.32, 0.5, 0.62, 1]}
-        xs={[240, 240, dx(pick) - 6, dx(pick) - 6, tx(2) - 6, tx(2) - 6, 240]}
-        ys={[240, 240, dy(pick) + 2, dy(pick) + 2, TY + 14, TY + 14, 240]} taps={[0.21, 0.63]} />
       <Badge t={t} at={0.7} text="✅ Πεμ 14/11 · 18:00" top={H - 36} />
     </Frame>
   );
