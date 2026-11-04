@@ -6,11 +6,14 @@ import { View } from 'react-native';
 import { C } from '../lib/ui';
 import { isDark, loadTheme, onTheme } from '../lib/theme';
 import ColorEditor from '../lib/ColorEditor';
+import Intro, { useIntroSeen } from '../lib/Intro';
 
 function Gate() {
   const { session, ready } = useAuth();
   const seg = useSegments();
-  if (!ready) return null;
+  const [introSeen, setIntroSeen] = useIntroSeen();
+  if (!ready || introSeen === null) return null;
+  if (!introSeen) return <Intro onDone={setIntroSeen} />;
   if (!session && seg[0] !== 'login') return <Redirect href="/login" />;
   if (session && seg[0] === 'login') return <Redirect href="/" />;
   return (

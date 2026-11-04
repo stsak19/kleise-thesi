@@ -10,17 +10,15 @@ export default function Home() {
   const router = useRouter();
   const [cat, setCat] = useState<string | null>(null);
   const [q, setQ] = useState('');
-  const [city, setCity] = useState('');
   const [list, setList] = useState<Biz[]>([]);
 
   const load = useCallback(async () => {
     let query = sb.from('businesses').select('id,name,category,city,address').eq('is_published', true).order('name').limit(100);
     if (cat) query = query.eq('category', cat);
-    if (city.trim()) query = query.ilike('city', `%${city.trim()}%`);
     if (q.trim()) query = query.ilike('name', `%${q.trim()}%`);
     const { data } = await query;
     setList((data as Biz[]) ?? []);
-  }, [cat, city, q]);
+  }, [cat, q]);
   useEffect(() => { const t = setTimeout(load, 250); return () => clearTimeout(t); }, [load]);
 
   return (
@@ -32,7 +30,6 @@ export default function Home() {
           <Btn kind="ghost" title="👤" onPress={() => router.push('/profile')} />
         </View>
         <Input placeholder="Αναζήτηση ονόματος" value={q} onChangeText={setQ} />
-        <Input placeholder="Πόλη (π.χ. Αθήνα, Θεσσαλονίκη)" value={city} onChangeText={setCity} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
           {CATEGORIES.map((c) => (
             <Pressable key={c.key} onPress={() => setCat(cat === c.key ? null : c.key)}
