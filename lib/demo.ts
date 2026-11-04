@@ -146,6 +146,7 @@ function filters(u: URL) {
     else if (op === 'neq') out.push((r) => String(r[k]) !== val);
     else if (op === 'ilike') { const re = new RegExp('^' + val.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/[%*]/g, '.*') + '$', 'i'); out.push((r) => re.test(String(r[k] ?? ''))); }
     else if (op === 'is') out.push((r) => (val === 'null' ? r[k] == null : String(r[k]) === val));
+    else if (op === 'in') { const set = val.replace(/^\(|\)$/g, '').split(',').map((x) => x.replace(/^"|"$/g, '')); out.push((r) => set.includes(String(r[k]))); }
   });
   return (r: any) => out.every((f) => f(r));
 }
