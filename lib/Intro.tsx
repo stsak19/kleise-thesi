@@ -2,17 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Btn, C } from './ui';
+import { SCENES } from './IntroScenes';
 
 /* Ξενάγηση με κίνηση που εμφανίζεται μόνο την πρώτη φορά που ανοίγει η εφαρμογή.
-   Swipe ή κουμπιά για αλλαγή βήματος· κάθε βήμα έχει δικά του αιωρούμενα εικονίδια. */
+   Swipe ή κουμπιά για αλλαγή βήματος· κάθε βήμα έχει δικό του κινούμενο «φιλμάκι» (lib/IntroScenes.tsx). */
 const KEY = 'intro.seen.v1';
 const ND = Platform.OS !== 'web';
 const STEPS = [
-  { emoji: '📅', orbit: ['💪', '💇', '💅', '🧘'], title: 'Καλώς ήρθες στο SpotOn', text: 'Κλείνεις ραντεβού σε γυμναστήρια, κομμωτήρια, νυχάδικα και ό,τι άλλο χρειάζεσαι — χωρίς τηλέφωνα.' },
-  { emoji: '🔎', orbit: ['🏋️', '💈', '✨', '🦷'], title: 'Βρες αυτό που θέλεις', text: 'Ψάξε με όνομα ή διάλεξε κατηγορία για να δεις τις επιχειρήσεις κοντά σου.' },
-  { emoji: '🕒', orbit: ['✅', '⏰', '📍', '🙋'], title: 'Διάλεξε μέρα και ώρα', text: 'Βλέπεις τις ελεύθερες θέσεις live και κλείνεις με ένα πάτημα. Αν είναι γεμάτο, μπαίνεις σε λίστα ενδιαφέροντος.' },
-  { emoji: '🔔', orbit: ['📲', '💬', '📆', '⭐'], title: 'Όλα σε ένα σημείο', text: 'Στο «Οι κρατήσεις μου» βλέπεις τα ραντεβού σου, τις ειδοποιήσεις και μπορείς να ακυρώσεις.' },
-  { emoji: '🏪', orbit: ['📈', '🗓️', '👥', '💶'], title: 'Έχεις επιχείρηση;', text: 'Από το «Επιχείρηση» στήνεις υπηρεσίες, ωράριο και θέσεις, και βλέπεις τις κρατήσεις σου.' },
+  { title: 'Καλώς ήρθες στο SpotOn', text: 'Κλείνεις θέση σε γυμναστήρια, κομμωτήρια, νυχάδικα και ό,τι άλλο χρειάζεσαι — με ένα πάτημα, χωρίς τηλέφωνα.' },
+  { title: 'Βρες αυτό που θέλεις', text: 'Ψάξε με όνομα ή διάλεξε κατηγορία και βρες αμέσως την επιχείρηση που σου ταιριάζει.' },
+  { title: 'Διάλεξε μέρα και ώρα', text: 'Βλέπεις τις ελεύθερες θέσεις live και κλείνεις με ένα πάτημα. Αν είναι γεμάτο, μπαίνεις σε λίστα ενδιαφέροντος.' },
+  { title: 'Όλα σε ένα σημείο', text: 'Όλες οι κρατήσεις σου μαζί, με υπενθυμίσεις πριν το ραντεβού — και ακύρωση με ένα πάτημα.' },
 ];
 
 export function useIntroSeen(): [boolean | null, () => void] {
@@ -49,51 +49,6 @@ function Blobs({ w, h }: { w: number; h: number }) {
   </>;
 }
 
-/* Το κεντρικό εικονίδιο: αναπηδά, «αναπνέει» με παλμό και έχει 4 εικονίδια σε τροχιά. */
-function Hero({ step, active }: { step: (typeof STEPS)[number]; active: boolean }) {
-  const pop = useRef(new Animated.Value(0)).current;
-  const bob = useRef(new Animated.Value(0)).current;
-  const spin = useRef(new Animated.Value(0)).current;
-  const pulse = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const ls = [wave(bob, 1400), loop(spin, 9000), loop(pulse, 1800)]; ls.forEach((l) => l.start());
-    return () => ls.forEach((l) => l.stop());
-  }, []);
-  useEffect(() => {
-    if (!active) return;
-    pop.setValue(0);
-    Animated.spring(pop, { toValue: 1, friction: 4, tension: 60, useNativeDriver: ND }).start();
-  }, [active]);
-  const R = 95;
-  return (
-    <View style={{ width: 240, height: 240, alignItems: 'center', justifyContent: 'center' }}>
-      {[0, 0.5].map((off) => {
-        const p = Animated.modulo(Animated.add(pulse, off), 1);
-        return <Animated.View key={off} style={{ position: 'absolute', width: 130, height: 130, borderRadius: 65, borderWidth: 3, borderColor: C.accent,
-          opacity: p.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0] }),
-          transform: [{ scale: p.interpolate({ inputRange: [0, 1], outputRange: [1, 1.8] }) }] }} />;
-      })}
-      <Animated.View style={{ position: 'absolute', width: 240, height: 240,
-        transform: [{ rotate: spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
-        {step.orbit.map((e, k) => {
-          const ang = (k / step.orbit.length) * Math.PI * 2;
-          return <Animated.Text key={k} style={{ position: 'absolute', fontSize: 28, left: 120 + R * Math.cos(ang) - 17, top: 120 + R * Math.sin(ang) - 17,
-            transform: [{ rotate: spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '-360deg'] }) }, { scale: pop }] }}>{e}</Animated.Text>;
-        })}
-      </Animated.View>
-      <Animated.View style={{ width: 130, height: 130, borderRadius: 65, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center',
-        shadowColor: C.accent, shadowOpacity: 0.35, shadowRadius: 24, shadowOffset: { width: 0, height: 8 }, elevation: 8,
-        transform: [
-          { translateY: bob.interpolate({ inputRange: [0, 1], outputRange: [-8, 8] }) },
-          { scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) },
-          { rotate: pop.interpolate({ inputRange: [0, 1], outputRange: ['-25deg', '0deg'] }) },
-        ] }}>
-        <Text style={{ fontSize: 62 }}>{step.emoji}</Text>
-      </Animated.View>
-    </View>
-  );
-}
-
 export default function Intro({ onDone }: { onDone: () => void }) {
   const { width: W, height: H } = useWindowDimensions();
   const [i, setI] = useState(0);
@@ -125,14 +80,14 @@ export default function Intro({ onDone }: { onDone: () => void }) {
         {STEPS.map((st, k) => {
           const r = [(k - 1) * W, k * W, (k + 1) * W];
           return (
-            <View key={k} style={{ width: W, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, gap: 18 }}>
+            <View key={k} style={{ width: W, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, gap: 22 }}>
               <Animated.View style={{
                 opacity: x.interpolate({ inputRange: r, outputRange: [0, 1, 0], extrapolate: 'clamp' }),
                 transform: [
                   { translateX: x.interpolate({ inputRange: r, outputRange: [W * 0.4, 0, -W * 0.4], extrapolate: 'clamp' }) },
                   { scale: x.interpolate({ inputRange: r, outputRange: [0.6, 1, 0.6], extrapolate: 'clamp' }) },
                 ] }}>
-                <Hero step={st} active={k === i} />
+                {(() => { const Scene = SCENES[k]; return <Scene active={k === i} />; })()}
               </Animated.View>
               <Animated.View style={{ alignItems: 'center', gap: 10,
                 opacity: k === i ? txt : 0,
