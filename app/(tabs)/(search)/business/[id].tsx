@@ -1,6 +1,6 @@
 import { say, promptText } from '../../../../lib/alert';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { rpc, sb } from '../../../../lib/supabase';
 import { Btn, C, Card, DAYS, H, T, catLabel, fmtDay, iso, s } from '../../../../lib/ui';
@@ -91,9 +91,16 @@ export default function Business() {
   return (
     <ScrollView style={s.screen} contentContainerStyle={s.pad}>
       <Stack.Screen options={{ title: biz.name }} />
-      <View style={{ backgroundColor: brand, borderRadius: 20, padding: 18, gap: 4 }}>
-        <Text style={{ color: '#fff', fontSize: 24, fontWeight: '800' }}>{biz.name}</Text>
-        <Text style={{ color: '#fff', opacity: 0.9 }}>{catLabel(biz.category)} · {biz.city}</Text>
+      <View style={{ backgroundColor: brand, borderRadius: 20, overflow: 'hidden' }}>
+        {!!biz.cover_url && <Image source={{ uri: biz.cover_url }} style={{ width: '100%', height: 160 }} resizeMode="cover" />}
+        <View style={{ padding: 18, gap: 4, flexDirection: 'row', alignItems: 'center' }}>
+          {!!biz.logo_url && <Image source={{ uri: biz.logo_url }} style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 3, borderColor: '#fff', marginRight: 12,
+            marginTop: biz.cover_url ? -46 : 0, backgroundColor: '#fff' }} />}
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text style={{ color: '#fff', fontSize: 24, fontWeight: '800' }}>{biz.name}</Text>
+            <Text style={{ color: '#fff', opacity: 0.9 }}>{catLabel(biz.category)} · {biz.city}</Text>
+          </View>
+        </View>
       </View>
       {!!(biz.address || biz.phone) && <T mute>{biz.address ? `📍 ${biz.address}` : ''}{biz.address && biz.phone ? ' · ' : ''}{biz.phone ? `☎ ${biz.phone}` : ''}</T>}
       {!!biz.description && <T>{biz.description}</T>}

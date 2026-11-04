@@ -19,7 +19,15 @@
       }
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Το SpotOn χρειάζεται πρόσβαση στις φωτογραφίες για το λογότυπο και το εξώφυλλο του καταστήματός σου.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "extra": {
       "supabaseUrl": "https://tfuuleuzsahipzgtbuuo.supabase.co",

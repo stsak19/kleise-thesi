@@ -35,6 +35,7 @@ create table businesses (
   phone text,
   description text,
   logo_url text,
+  cover_url text, -- φωτογραφία εξωφύλλου
   brand_color text check (brand_color is null or brand_color ~ '^#[0-9a-fA-F]{6}$'), -- χρώμα καταστήματος
   -- ρυθμίσεις κρατήσεων (αντίστοιχα του settings του γυμναστηρίου)
   max_days_ahead int not null default 14 check (max_days_ahead between 0 and 90),
@@ -62,6 +63,7 @@ create index on services (business_id);
 create table opening_hours (
   id bigserial primary key,
   business_id uuid not null references businesses on delete cascade,
+  service_id uuid references services on delete cascade, -- null = γενικό ωράριο· αλλιώς μόνο γι' αυτή την υπηρεσία
   weekday smallint not null check (weekday between 0 and 6),
   opens time not null,
   closes time not null check (closes > opens)
@@ -212,19 +214,21 @@ select cron.schedule('package-expiry','*/5 * * * *','select expire_packages()');
 -- Διαθεσιμότητα ημέρας για μια υπηρεσία: λίστα ωρών με ελεύθερες θέσεις
 create function day_availability(p_service uuid, p_date date) returns table(slot_time time, capacity int, taken int, free int)
 language plpgsql stable security definer set search_path=public as $$
-declare s services; b businesses;
+declare s services; b businesses; own boolean;
 begin
   select * into s from services where id=p_service and active;
   if not found then return; end if;
   select * into b from businesses where id=s.business_id;
   if p_date < current_date or p_date > current_date + b.max_days_ahead then return; end if;
   if exists(select 1 from day_overrides where business_id=b.id and date=p_date and closed) then return; end if;
+  own := exists(select 1 from opening_hours where service_id=s.id);
   return query
     with slots as (
-      select gs::time as t from opening_hours h,
+      select distinct gs::time as t from opening_hours h,
         generate_series(p_date + h.opens, p_date + h.closes - make_interval(mins=>s.duration_min),
                         make_interval(mins=>s.duration_min)) gs
       where h.business_id=b.id and h.weekday=extract(dow from p_date)
+        and (case when own then h.service_id=s.id else h.service_id is null end)
     )
     select t, slot_capacity(s.id,p_date,t), slot_taken(s.id,p_date,t),
            greatest(slot_capacity(s.id,p_date,t)-slot_taken(s.id,p_date,t),0)
