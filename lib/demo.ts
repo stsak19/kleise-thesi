@@ -39,7 +39,14 @@ const db: Record<string, any[]> = {
     biz('b-fit', 'FitZone Gym', 'gym', 'Αθήνα', 'Πατησίων 45', '#1fa971', 'Ομαδικά προγράμματα όλη μέρα. Έως 12 άτομα ανά τμήμα.'),
     biz('b-niki', 'Nails by Νίκη', 'nails', 'Πάτρα', 'Μαιζώνος 22', '#ec4899', 'Μανικιούρ, πεντικιούρ και ημιμόνιμα.'),
     biz('b-barber', 'Old Town Barber', 'barber', 'Θεσσαλονίκη', 'Αγ. Σοφίας 3', '#16161a', 'Κλασικό κούρεμα και ξύρισμα με ζεστή πετσέτα.'),
-    biz('b-zen', 'Zen Pilates Studio', 'pilates_yoga', 'Αθήνα', 'Κηφισίας 120', '#a855f7', 'Reformer pilates σε μικρά γκρουπ.'),
+    biz('b-zen', 'Zen Pilates Studio', 'pilates_yoga', 'Αθήνα', 'Κηφισίας 120', '#a855f7', 'Reformer pilates σε μικρά γκρουπ.', { uses_credits: true }),
+    biz('b-pt', 'Κώστας Personal Training', 'personal_training', 'Θήβα', 'Επαμεινώνδα 8', '#f97316', 'Ατομικές προπονήσεις με πρόγραμμα στα μέτρα σου.', { requires_approval: true }),
+    biz('b-glow', 'Glow Αισθητική', 'beauty', 'Λάρισα', 'Κύπρου 14', '#d946ef', 'Καθαρισμός προσώπου, αποτρίχωση, περιποίηση.'),
+    biz('b-spa', 'Aqua Spa', 'massage_spa', 'Χαλκίδα', 'Αβάντων 5', '#14b8a6', 'Χαλαρωτικό και θεραπευτικό μασάζ.'),
+    biz('b-physio', 'PhysioCare', 'physio', 'Αθήνα', 'Λ. Αλεξάνδρας 70', '#0ea5e9', 'Φυσικοθεραπεία και αποκατάσταση τραυματισμών.'),
+    biz('b-dr', 'Ιατρείο Δρ. Παπαδόπουλου', 'medical', 'Θεσσαλονίκη', 'Εγνατίας 100', '#6366f1', 'Παθολόγος. Ραντεβού για εξέταση και συνταγές.'),
+    biz('b-dent', 'Smile Οδοντιατρείο', 'dental', 'Ηράκλειο', '25ης Αυγούστου 30', '#22c55e', 'Έλεγχος, καθαρισμός, σφραγίσματα.'),
+    biz('b-ink', 'Black Ink Tattoo', 'tattoo', 'Αθήνα', 'Ασκληπιού 17', '#334155', 'Custom σχέδια και fine line tattoo.'),
   ],
   services: [
     { id: 's-cut', business_id: 'b-eleni', name: 'Κούρεμα', duration_min: 30, price_cents: 1500, capacity: 1, active: true },
@@ -50,6 +57,15 @@ const db: Record<string, any[]> = {
     { id: 's-pedi', business_id: 'b-niki', name: 'Πεντικιούρ', duration_min: 60, price_cents: 2500, capacity: 1, active: true },
     { id: 's-barb', business_id: 'b-barber', name: 'Κούρεμα + γένια', duration_min: 45, price_cents: 1800, capacity: 1, active: true },
     { id: 's-ref', business_id: 'b-zen', name: 'Reformer', duration_min: 50, price_cents: 1500, capacity: 6, active: true },
+    { id: 's-yoga', business_id: 'b-zen', name: 'Yoga', duration_min: 60, price_cents: 1200, capacity: 10, active: true },
+    { id: 's-pt', business_id: 'b-pt', name: 'Ατομική προπόνηση', duration_min: 60, price_cents: 3000, capacity: 1, active: true },
+    { id: 's-face', business_id: 'b-glow', name: 'Καθαρισμός προσώπου', duration_min: 60, price_cents: 3500, capacity: 1, active: true },
+    { id: 's-wax', business_id: 'b-glow', name: 'Αποτρίχωση', duration_min: 30, price_cents: 1500, capacity: 1, active: true },
+    { id: 's-mass', business_id: 'b-spa', name: 'Μασάζ σώματος', duration_min: 60, price_cents: 4500, capacity: 1, active: true },
+    { id: 's-phy', business_id: 'b-physio', name: 'Συνεδρία φυσικοθεραπείας', duration_min: 45, price_cents: 3000, capacity: 1, active: true },
+    { id: 's-exam', business_id: 'b-dr', name: 'Εξέταση', duration_min: 20, price_cents: 4000, capacity: 1, active: true },
+    { id: 's-clean', business_id: 'b-dent', name: 'Καθαρισμός δοντιών', duration_min: 40, price_cents: 5000, capacity: 1, active: true },
+    { id: 's-tat', business_id: 'b-ink', name: 'Μικρό tattoo', duration_min: 120, price_cents: 8000, capacity: 1, active: true },
   ],
   opening_hours: [] as any[],
   bookings: [] as any[],
@@ -68,15 +84,45 @@ hours('b-fit', [1, 2, 3, 4, 5], [['07:00', '22:00']]); hours('b-fit', [6], [['09
 hours('b-niki', [1, 2, 3, 4, 5, 6], [['10:00', '20:00']]);
 hours('b-barber', [1, 2, 3, 4, 5, 6], [['09:00', '21:00']]);
 hours('b-zen', [1, 2, 3, 4, 5], [['08:00', '13:00'], ['17:00', '21:00']]);
+hours('b-pt', [1, 2, 3, 4, 5, 6], [['07:00', '12:00'], ['16:00', '21:00']]);
+hours('b-glow', [2, 3, 4, 5, 6], [['10:00', '19:00']]);
+hours('b-spa', [0, 1, 2, 3, 4, 5, 6], [['11:00', '21:00']]);
+hours('b-physio', [1, 2, 3, 4, 5], [['08:00', '15:00'], ['17:00', '20:00']]);
+hours('b-dr', [1, 2, 3, 4, 5], [['09:00', '13:00'], ['18:00', '20:00']]);
+hours('b-dent', [1, 2, 3, 4, 5], [['09:00', '15:00']]);
+hours('b-ink', [2, 3, 4, 5, 6], [['12:00', '20:00']]);
 const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 const svc = (id: string) => db.services.find((s) => s.id === id);
 const bz = (id: string) => db.businesses.find((b) => b.id === id);
-const addBooking = (service_id: string, date: string, time: string, user_id = DEMO_UID) =>
-  db.bookings.push({ id: uid(), business_id: svc(service_id).business_id, service_id, user_id, date, time: time + ':00', status: 'booked', created_at: new Date().toISOString() });
+const addBooking = (service_id: string, date: string, time: string, user_id = DEMO_UID, status = 'booked') =>
+  db.bookings.push({ id: uid(), business_id: svc(service_id).business_id, service_id, user_id, date, time: time + ':00', status, created_at: new Date().toISOString() });
+const CLIENTS: Record<string, { name: string; phone: string }> = {};
+['Μαρία Παπαδάκη', 'Γιώργος Κωνσταντίνου', 'Ελένη Δημητρίου', 'Νίκος Αλεξίου', 'Σοφία Μιχαήλ', 'Κατερίνα Λάμπρου', 'Δημήτρης Ρήγας', 'Άννα Βλάχου']
+  .forEach((name, i) => { CLIENTS['c' + i] = { name, phone: '69' + String(41234567 + i * 1111111).slice(0, 8) }; });
 // μερικές κρατήσεις ώστε να φαίνονται γεμάτες ώρες και η λίστα «Οι κρατήσεις μου»
 for (let i = 1; i <= 14; i++) { addBooking('s-cut', plus(i), '18:00', 'other'); addBooking('s-cut', plus(i), '10:30', 'other'); }
 for (let i = 0; i <= 14; i++) for (let k = 0; k < 12; k++) addBooking('s-cross', plus(i), '19:00', 'other' + k);
 addBooking('s-cut', plus(2), '11:00'); addBooking('s-cross', plus(3), '09:00'); addBooking('s-mani', plus(5), '12:00');
+// Πρόγραμμα ιδιοκτήτη (Κομμωτήριο Ελένη): σήμερα και τις επόμενες μέρες, με πελάτες που ήρθαν/δεν ήρθαν
+for (let d = -2; d <= 6; d++) ['09:00', '09:30', '11:30', '12:30', '17:00', '17:30', '19:00', '20:00'].forEach((t, i) => {
+  if ((d + i) % 3 === 0) return;
+  addBooking('s-cut', plus(d), t, 'c' + ((i + d + 8) % 8), d < 0 ? (i % 4 === 0 ? 'no_show' : 'attended') : d === 0 && i < 2 ? 'attended' : 'booked');
+});
+addBooking('s-color', plus(1), '10:00', 'c4'); addBooking('s-color', plus(3), '13:00', 'c6');
+// Ιστορικό του demo χρήστη
+addBooking('s-barb', plus(-20), '18:00', DEMO_UID, 'attended'); addBooking('s-ref', plus(-12), '09:00', DEMO_UID, 'attended');
+addBooking('s-mass', plus(-7), '19:00', DEMO_UID, 'cancelled'); addBooking('s-exam', plus(-4), '10:00', DEMO_UID, 'no_show');
+addBooking('s-ref', plus(1), '17:50', DEMO_UID); addBooking('s-phy', plus(4), '18:30', DEMO_UID);
+// Λίστα ενδιαφέροντος: η γεμάτη ώρα του Cross Training
+db.waitlist.push({ id: 'w1', service_id: 's-cross', user_id: DEMO_UID, date: plus(2), time: '19:00:00' });
+// Ειδοποιήσεις
+const ago = (h: number) => new Date(Date.now() - h * 3600e3).toISOString();
+db.notifications.push(
+  { id: 'n2', user_id: DEMO_UID, title: 'Υπενθύμιση ⏰', body: 'Αύριο έχεις Reformer στο Zen Pilates Studio στις 17:50.', read: false, created_at: ago(2) },
+  { id: 'n3', user_id: DEMO_UID, title: 'Ελευθερώθηκε θέση 🎉', body: 'Σου κλείστηκε αυτόματα Spinning στο FitZone Gym.', read: true, created_at: ago(30) },
+  { id: 'n4', user_id: DEMO_UID, title: 'Η κράτηση ακυρώθηκε', body: 'Ακύρωσες το μασάζ στο Aqua Spa.', read: true, created_at: ago(170) });
+db.memberships.push({ business_id: 'b-zen', user_id: DEMO_UID, status: 'approved', credits: 6, expires: plus(18) },
+  { business_id: 'b-pt', user_id: DEMO_UID, status: 'pending', credits: 0, expires: null });
 
 /* ---------- «βάση»: διαθεσιμότητα και RPC ---------- */
 const hm = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
@@ -100,6 +146,8 @@ function availability(service_id: string, date: string) {
   });
 }
 
+// Νέοι πελάτες που περιμένουν έγκριση στο Κομμωτήριο Ελένη
+let pending = [{ user_id: 'p1', name: 'Βασίλης Νικολάου', phone: '6977123456' }, { user_id: 'p2', name: 'Χριστίνα Ιωάννου', phone: '6944987654' }];
 const RPC: Record<string, (a: any) => any> = {
   day_availability: (a) => availability(a.p_service, a.p_date),
   create_booking: (a) => {
@@ -124,15 +172,16 @@ const RPC: Record<string, (a: any) => any> = {
     waitlist: db.waitlist.filter((w) => w.user_id === DEMO_UID).map((w) => {
       const s = svc(w.service_id); return { id: w.id, date: w.date, time: w.time.slice(0, 5), service: s.name, service_id: s.id, business: bz(s.business_id).name };
     }),
-    memberships: [],
+    memberships: db.memberships.filter((m) => m.user_id === DEMO_UID).map((m) => ({ ...m, business: bz(m.business_id).name })),
   }),
   owner_day: (a) => db.bookings.filter((b) => b.business_id === a.p_business && b.date === a.p_date && b.status !== 'cancelled')
     .sort((x, y) => x.time.localeCompare(y.time)).map((b) => ({
       id: b.id, time: b.time.slice(0, 5), status: b.status, service: svc(b.service_id).name, user_id: b.user_id,
-      client: b.user_id === DEMO_UID ? 'Demo Χρήστης' : ['Μαρία Π.', 'Γιώργος Κ.', 'Ελένη Δ.', 'Νίκος Α.'][b.id.charCodeAt(0) % 4], phone: '69########' })),
-  owner_pending: () => [],
+      client: b.user_id === DEMO_UID ? 'Demo Χρήστης' : CLIENTS[b.user_id]?.name ?? ['Μαρία Π.', 'Γιώργος Κ.', 'Ελένη Δ.', 'Νίκος Α.'][b.id.charCodeAt(0) % 4],
+      phone: CLIENTS[b.user_id]?.phone ?? '6900000000' })),
+  owner_pending: (a) => (a.p_business === 'b-eleni' ? pending : []),
   owner_set_status: (a) => { const b = db.bookings.find((x) => x.id === a.p_booking); if (b) b.status = a.p_status; return { ok: true }; },
-  owner_set_member: () => ({ ok: true }),
+  owner_set_member: (a) => { pending = pending.filter((p) => p.user_id !== a.p_user); return { ok: true }; },
   owner_renew: () => ({ ok: true }),
 };
 
