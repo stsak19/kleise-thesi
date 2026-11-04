@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { C } from '../lib/ui';
 import { isDark, loadTheme, onTheme } from '../lib/theme';
-import ColorEditor from '../lib/ColorEditor';
 import Intro, { useIntroSeen } from '../lib/Intro';
 
 function Gate() {
@@ -32,7 +31,6 @@ export default function Root() {
     <AuthProvider>
       <StatusBar style={isDark() ? 'light' : 'dark'} />
       <View key={v} style={{ flex: 1, backgroundColor: C.bg }}><Gate /></View>
-      <ColorEditor />
     </AuthProvider>
   );
 }
