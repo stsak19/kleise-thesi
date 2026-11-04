@@ -89,7 +89,7 @@ export default function Home() {
     <FlatList style={s.screen} data={list} keyExtractor={(b) => b.id} contentContainerStyle={[s.pad, { paddingTop: 0, gap: 16 }]}
       ListHeaderComponent={head} keyboardShouldPersistTaps="handled"
       ListEmptyComponent={loaded ? <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα ή άλλη κατηγορία."
-        action={cat || q ? 'Καθαρισμός φίλτρων' : undefined} onAction={() => { setCat(null); setQ(''); }} /> : null}
+        action={cat || q ? 'Καθαρισμός φίλτρων' : undefined} onAction={() => { setCat(null); setQ(''); }} /> : undefined}
       renderItem={({ item }) => <BizCard b={item} onPress={() => router.push(`/business/${item.id}`)} />} />
   );
 }
