@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { sb } from '../lib/supabase';
-import { Btn, C, CATEGORIES, Card, Input, catLabel, s, T } from '../lib/ui';
+import { sb } from '../../../lib/supabase';
+import { Btn, C, CATEGORIES, Card, Input, catLabel, s, T } from '../../../lib/ui';
 
-type Biz = { id: string; name: string; category: string; city: string; address: string | null };
+type Biz = { id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null };
 
 export default function Home() {
   const router = useRouter();
@@ -13,7 +13,7 @@ export default function Home() {
   const [list, setList] = useState<Biz[]>([]);
 
   const load = useCallback(async () => {
-    let query = sb.from('businesses').select('id,name,category,city,address').eq('is_published', true).order('name').limit(100);
+    let query = sb.from('businesses').select('*').eq('is_published', true).order('name').limit(100);
     if (cat) query = query.eq('category', cat);
     if (q.trim()) query = query.ilike('name', `%${q.trim()}%`);
     const { data } = await query;
@@ -24,12 +24,7 @@ export default function Home() {
   return (
     <View style={s.screen}>
       <View style={[s.pad, { paddingBottom: 0 }]}>
-        <View style={s.row}>
-          <Btn kind="ghost" title="Οι κρατήσεις μου" onPress={() => router.push('/bookings')} style={{ flex: 1 }} />
-          <Btn kind="ghost" title="Επιχείρηση" onPress={() => router.push('/owner')} />
-          <Btn kind="ghost" title="👤" onPress={() => router.push('/profile')} />
-        </View>
-        <Input placeholder="Αναζήτηση ονόματος" value={q} onChangeText={setQ} />
+        <Input placeholder="🔎 Αναζήτηση καταστήματος" value={q} onChangeText={setQ} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
           {CATEGORIES.map((c) => (
             <Pressable key={c.key} onPress={() => setCat(cat === c.key ? null : c.key)}
@@ -43,7 +38,7 @@ export default function Home() {
         ListEmptyComponent={<T mute>Δεν βρέθηκαν επιχειρήσεις.</T>}
         renderItem={({ item }) => (
           <Link href={`/business/${item.id}`} asChild>
-            <Pressable><Card>
+            <Pressable><Card style={{ borderLeftWidth: 5, borderLeftColor: item.brand_color || C.accent }}>
               <Text style={{ color: C.text, fontWeight: '700', fontSize: 16 }}>{item.name}</Text>
               <T mute>{catLabel(item.category)} · {item.city}{item.address ? ` · ${item.address}` : ''}</T>
             </Card></Pressable>

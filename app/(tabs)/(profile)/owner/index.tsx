@@ -1,10 +1,10 @@
-import { say, promptText } from '../../lib/alert';
+import { say, promptText } from '../../../../lib/alert';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { rpc, sb } from '../../lib/supabase';
-import { useAuth } from '../../lib/auth';
-import { Btn, C, Card, DAYS, H, Input, T, fmtDay, iso, s } from '../../lib/ui';
+import { rpc, sb } from '../../../../lib/supabase';
+import { useAuth } from '../../../../lib/auth';
+import { Btn, C, Card, DAYS, H, Input, T, fmtDay, iso, s } from '../../../../lib/ui';
 
 /* Πίνακας επιχείρησης: πρόγραμμα ημέρας, check-in / δεν ήρθε / ακύρωση,
    εγκρίσεις νέων πελατών, ανανέωση πακέτων, κλειστές μέρες. */

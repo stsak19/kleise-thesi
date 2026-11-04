@@ -1,8 +1,9 @@
-import { say, promptText } from '../lib/alert';
+import { say, promptText } from '../../lib/alert';
 import { useCallback, useEffect, useState } from 'react';
-import { RefreshControl, ScrollView, Text } from 'react-native';
-import { rpc, sb } from '../lib/supabase';
-import { Btn, C, Card, H, T, fmtDay, iso, s } from '../lib/ui';
+import { Pressable, RefreshControl, ScrollView, Text } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { rpc, sb } from '../../lib/supabase';
+import { Btn, C, Card, H, T, fmtDay, iso, s } from '../../lib/ui';
 
 export default function Bookings() {
   const [d, setD] = useState<any>(null);
@@ -14,7 +15,8 @@ export default function Bookings() {
     setD(m); setNotes(n.data ?? []); setLoading(false);
     sb.from('notifications').update({ read: true }).eq('read', false).then(() => {});
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+  const router = useRouter();
   const today = iso(new Date());
   const upcoming = (d?.bookings ?? []).filter((b: any) => b.status === 'booked' && b.date >= today);
   const past = (d?.bookings ?? []).filter((b: any) => !(b.status === 'booked' && b.date >= today)).reverse();
@@ -31,9 +33,11 @@ export default function Bookings() {
       {upcoming.length === 0 && <T mute>Καμία κράτηση.</T>}
       {upcoming.map((b: any) => (
         <Card key={b.id}>
-          <Text style={{ color: C.text, fontWeight: '700' }}>{fmtDay(b.date)} · {b.time}</Text>
-          <T>{b.business} — {b.service}</T>
-          {!!b.address && <T mute>{b.address}</T>}
+          <Pressable onPress={() => b.business_id && router.push(`/business/${b.business_id}`)} style={{ gap: 4 }}>
+            <Text style={{ color: C.text, fontWeight: '700' }}>{fmtDay(b.date)} · {b.time}</Text>
+            <T>{b.business} — {b.service}</T>
+            {!!b.address && <T mute>{b.address}</T>}
+          </Pressable>
           <Btn kind="danger" title="Ακύρωση" onPress={() => cancel(b)} />
         </Card>
       ))}

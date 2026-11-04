@@ -35,6 +35,7 @@ create table businesses (
   phone text,
   description text,
   logo_url text,
+  brand_color text check (brand_color is null or brand_color ~ '^#[0-9a-fA-F]{6}$'), -- χρώμα καταστήματος
   -- ρυθμίσεις κρατήσεων (αντίστοιχα του settings του γυμναστηρίου)
   max_days_ahead int not null default 14 check (max_days_ahead between 0 and 90),
   cancel_before_min int not null default 120,  -- ως πότε ακυρώνει ο πελάτης

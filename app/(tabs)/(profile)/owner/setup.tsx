@@ -1,13 +1,16 @@
-import { say, promptText } from '../../lib/alert';
+import { say, promptText } from '../../../../lib/alert';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { sb } from '../../lib/supabase';
-import { useAuth } from '../../lib/auth';
-import { Btn, C, CATEGORIES, Card, DAYS, H, Input, T, s } from '../../lib/ui';
+import { sb } from '../../../../lib/supabase';
+import { useAuth } from '../../../../lib/auth';
+import { Btn, C, CATEGORIES, Card, DAYS, H, Input, T, s } from '../../../../lib/ui';
 
 type Svc = { id?: string; name: string; duration_min: string; price: string; capacity: string };
 type Hours = { weekday: number; opens: string; closes: string }[];
+
+const BRAND_COLORS = ['#ff7a59', '#e5484d', '#ec4899', '#a855f7', '#6366f1', '#2563eb', '#0ea5e9', '#14b8a6', '#1fa971', '#eab308', '#8b5e3c', '#16161a'];
+const HEX = /^#[0-9a-fA-F]{6}$/;
 
 const DEFAULT_HOURS: Hours = [1, 2, 3, 4, 5].map((d) => ({ weekday: d, opens: '09:00', closes: '21:00' }));
 
@@ -33,8 +36,15 @@ export default function Setup() {
     if (!b.name.trim() || !b.city.trim()) return say('Γράψε όνομα και πόλη');
     const row = { ...b, owner_id: session!.user.id, max_days_ahead: +b.max_days_ahead || 14, cancel_before_min: +b.cancel_before_min || 0, package_days: +b.package_days || 30 };
     delete row.created_at;
-    const { data, error } = await sb.from('businesses').upsert(row).select().single();
-    if (error) return say('Δεν αποθηκεύτηκε', error.message);
+    if (row.brand_color && !HEX.test(row.brand_color)) return say('Το χρώμα πρέπει να είναι της μορφής #RRGGBB');
+    let { data, error } = await sb.from('businesses').upsert(row).select().single();
+    // Αν η βάση δεν έχει ακόμα τη στήλη brand_color (δες supabase/migrations), αποθήκευσε χωρίς αυτήν.
+    if (error && /brand_color/.test(error.message)) {
+      delete row.brand_color;
+      ({ data, error } = await sb.from('businesses').upsert(row).select().single());
+      if (!error) say('Το χρώμα δεν αποθηκεύτηκε', 'Χρειάζεται ενημέρωση της βάσης (supabase/migrations/001_brand_color.sql).');
+    }
+    if (error || !data) return say('Δεν αποθηκεύτηκε', error?.message);
     for (const x of svcs.filter((x) => x.name.trim())) {
       const r = { business_id: data.id, name: x.name.trim(), duration_min: +x.duration_min || 30, capacity: +x.capacity || 1,
         price_cents: x.price ? Math.round(parseFloat(x.price.replace(',', '.')) * 100) : null };
@@ -64,6 +74,21 @@ export default function Setup() {
       <Input placeholder="Διεύθυνση" value={b.address ?? ''} onChangeText={(v) => setB({ ...b, address: v })} />
       <Input placeholder="Τηλέφωνο" keyboardType="phone-pad" value={b.phone ?? ''} onChangeText={(v) => setB({ ...b, phone: v })} />
       <Input placeholder="Περιγραφή" multiline value={b.description ?? ''} onChangeText={(v) => setB({ ...b, description: v })} />
+
+      <H>Χρώμα καταστήματος</H>
+      <T mute>Έτσι θα βλέπουν οι πελάτες τη σελίδα σου: τίτλος, κουμπιά, επιλεγμένη μέρα.</T>
+      <View style={[s.row, { flexWrap: 'wrap' }]}>
+        {BRAND_COLORS.map((c) => { const on = (b.brand_color || '#ff7a59') === c; return (
+          <Pressable key={c} onPress={() => setB({ ...b, brand_color: c })}
+            style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: c, borderWidth: on ? 3 : 0, borderColor: C.text, alignItems: 'center', justifyContent: 'center' }}>
+            {on && <Text style={{ color: '#fff', fontWeight: '900' }}>✓</Text>}
+          </Pressable>); })}
+      </View>
+      <Input placeholder="ή γράψε κωδικό, π.χ. #2563eb" autoCapitalize="none" value={b.brand_color ?? ''} onChangeText={(v) => setB({ ...b, brand_color: v.trim() })} />
+      <View style={{ backgroundColor: HEX.test(b.brand_color ?? '') ? b.brand_color : '#ff7a59', borderRadius: 16, padding: 14 }}>
+        <Text style={{ color: '#fff', fontWeight: '800', fontSize: 18 }}>{b.name || 'Το κατάστημά σου'}</Text>
+        <Text style={{ color: '#fff', opacity: 0.9 }}>Προεπισκόπηση</Text>
+      </View>
 
       <H>Υπηρεσίες</H>
       <T mute>Θέσεις 1 = ατομικό ραντεβού (νύχια, κούρεμα). Περισσότερες = ομαδικό (γυμναστήριο, pilates).</T>

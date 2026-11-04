@@ -1,15 +1,16 @@
-import { say, promptText } from '../../lib/alert';
+import { say, promptText } from '../../../../lib/alert';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
-import { rpc, sb } from '../../lib/supabase';
-import { Btn, C, Card, DAYS, H, T, catLabel, fmtDay, iso, s } from '../../lib/ui';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { rpc, sb } from '../../../../lib/supabase';
+import { Btn, C, Card, DAYS, H, T, catLabel, fmtDay, iso, s } from '../../../../lib/ui';
 
 type Service = { id: string; name: string; duration_min: number; price_cents: number | null; capacity: number };
 type Slot = { slot_time: string; time: string; capacity: number; taken: number; free: number };
 
 export default function Business() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const [biz, setBiz] = useState<any>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [service, setService] = useState<Service | null>(null);
@@ -63,7 +64,15 @@ export default function Business() {
      της ίδιας μέρας, ρωτάμε αν η νέα κράτηση είναι η εναλλακτική. */
   const book = (t: string) => {
     const open = mine.waitlist.find((w: any) => w.service_id === service!.id && w.date === date && w.time !== t);
-    const go = (backup: string | null) => act(t, () => rpc('create_booking', { p_service: service!.id, p_date: date, p_time: t, p_backup_for: backup }), `Κράτηση ${fmtDay(date)}, ${t} ✅`);
+    const go = async (backup: string | null) => {
+      setBusy(t);
+      try {
+        const r = await rpc('create_booking', { p_service: service!.id, p_date: date, p_time: t, p_backup_for: backup });
+        if (r && r.ok === false) say(r.pending ? 'Σε αναμονή έγκρισης' : 'Δεν έγινε', r.error);
+        else router.push({ pathname: '/booked', params: { biz: biz.name, service: service!.name, date, time: t, color: brand } });
+      } catch (e: any) { say('Κάτι πήγε στραβά', e.message); }
+      setBusy(null); load();
+    };
     if (!open) return go(null);
     say('Είναι εναλλακτική;', `Έχεις δηλώσει ενδιαφέρον για τις ${open.time}. Αν ελευθερωθεί θέση εκεί, να ακυρωθεί αυτόματα η κράτηση των ${t};`,
       [{ text: 'Ναι, εναλλακτική', onPress: () => go(open.id) }, { text: 'Όχι, θέλω και τις δύο', onPress: () => go(null) }]);
@@ -77,18 +86,23 @@ export default function Business() {
   };
 
   if (!biz) return <View style={s.screen} />;
+  const brand: string = biz.brand_color || C.accent;
+  const brandBtn = { backgroundColor: brand, borderColor: brand };
   return (
     <ScrollView style={s.screen} contentContainerStyle={s.pad}>
       <Stack.Screen options={{ title: biz.name }} />
-      <H>{biz.name}</H>
-      <T mute>{catLabel(biz.category)} · {biz.city}{biz.address ? ` · ${biz.address}` : ''}{biz.phone ? ` · ☎ ${biz.phone}` : ''}</T>
+      <View style={{ backgroundColor: brand, borderRadius: 20, padding: 18, gap: 4 }}>
+        <Text style={{ color: '#fff', fontSize: 24, fontWeight: '800' }}>{biz.name}</Text>
+        <Text style={{ color: '#fff', opacity: 0.9 }}>{catLabel(biz.category)} · {biz.city}</Text>
+      </View>
+      {!!(biz.address || biz.phone) && <T mute>{biz.address ? `📍 ${biz.address}` : ''}{biz.address && biz.phone ? ' · ' : ''}{biz.phone ? `☎ ${biz.phone}` : ''}</T>}
       {!!biz.description && <T>{biz.description}</T>}
 
       <Text style={{ color: C.mute, marginTop: 8 }}>Υπηρεσία</Text>
       <View style={{ gap: 8 }}>
         {services.map((sv) => (
           <Pressable key={sv.id} onPress={() => setService(sv)}>
-            <Card style={service?.id === sv.id ? { borderColor: C.accent } : undefined}>
+            <Card style={service?.id === sv.id ? { borderColor: brand, borderWidth: 2 } : undefined}>
               <Text style={{ color: C.text, fontWeight: '700' }}>{sv.name}</Text>
               <T mute>{sv.duration_min}′{sv.price_cents != null ? ` · ${(sv.price_cents / 100).toFixed(2)}€` : ''}{sv.capacity > 1 ? ` · έως ${sv.capacity} άτομα` : ''}</T>
             </Card>
@@ -98,7 +112,7 @@ export default function Business() {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginTop: 8 }}>
         {days.map((d) => { const dd = new Date(d + 'T00:00'); const on = d === date; return (
-          <Pressable key={d} onPress={() => setDate(d)} style={[s.chip, { alignItems: 'center' }, on && { backgroundColor: C.accent, borderColor: C.accent }]}>
+          <Pressable key={d} onPress={() => setDate(d)} style={[s.chip, { alignItems: 'center' }, on && brandBtn]}>
             <Text style={{ color: on ? C.onAccent : C.mute, fontSize: 12 }}>{DAYS[dd.getDay()]}</Text>
             <Text style={{ color: on ? C.onAccent : C.text, fontWeight: '700' }}>{dd.getDate()}</Text>
           </Pressable>); })}
@@ -116,7 +130,7 @@ export default function Business() {
             </View>
             {b ? <Btn kind="danger" title="Ακύρωση" disabled={busy === sl.time} onPress={() => act(sl.time, () => rpc('cancel_booking', { p_booking: b.id }), 'Η κράτηση ακυρώθηκε')} />
               : w ? <Btn kind="ghost" title="Απόσυρση" disabled={busy === sl.time} onPress={() => act(sl.time, () => rpc('leave_waitlist', { p_service: service!.id, p_date: date, p_time: sl.time + ':00' }), 'Η δήλωση αποσύρθηκε')} />
-              : sl.free > 0 ? <Btn title="Κράτηση" disabled={busy === sl.time} onPress={() => book(sl.time)} />
+              : sl.free > 0 ? <Btn title="Κράτηση" style={brandBtn} disabled={busy === sl.time} onPress={() => book(sl.time)} />
               : <Btn kind="ghost" title="Δήλωση ενδιαφέροντος" disabled={busy === sl.time} onPress={() => wait(sl.time)} />}
           </Card>
         );
