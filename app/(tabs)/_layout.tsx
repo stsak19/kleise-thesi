@@ -18,8 +18,9 @@ export default function TabsLayout() {
   return (
     <Tabs screenOptions={{
       headerShown: false, tabBarActiveTintColor: C.accent, tabBarInactiveTintColor: C.mute,
-      tabBarStyle: { backgroundColor: C.card, borderTopColor: C.line, height: 64 + bottom, paddingTop: 8, paddingBottom: bottom + 8, boxShadow: `0px -4px 20px ${alpha(C.text, 0.05)}` },
-      tabBarLabelStyle: { fontWeight: '700', fontSize: 11, marginTop: 2 },
+      tabBarStyle: { backgroundColor: C.card, borderTopColor: C.line, height: 70 + bottom, paddingTop: 6, paddingBottom: bottom + 6, boxShadow: `0px -4px 20px ${alpha(C.text, 0.05)}` },
+      tabBarLabelStyle: { fontWeight: '700', fontSize: 11, lineHeight: 15, height: 15, marginTop: 3 },
+      tabBarIconStyle: { height: 28, flex: 0 },
     }}>
       <Tabs.Screen name="(search)" options={{ title: 'Αναζήτηση', tabBarIcon: icon('search') }} />
       <Tabs.Screen name="bookings" options={{ title: 'Κρατήσεις', tabBarIcon: icon('calendar') }} />
