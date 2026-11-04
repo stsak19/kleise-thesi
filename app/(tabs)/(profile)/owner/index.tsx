@@ -4,6 +4,7 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router';
 import { rpc, sb } from '../../../../lib/supabase';
 import { useAuth } from '../../../../lib/auth';
+import { LAYOUTS, styleOf } from '../../../../lib/presets';
 import { Avatar, Btn, C, Card, DayStrip, Empty, Input, Pill, Section, T, alpha, fmtLong, iso, s } from '../../../../lib/ui';
 
 /* Πίνακας επιχείρησης: πρόγραμμα ημέρας, check-in / δεν ήρθε / ακύρωση,
@@ -59,7 +60,7 @@ export default function Owner() {
   const byTime: Record<string, any[]> = {};
   day.forEach((b) => (byTime[b.time] ??= []).push(b));
 
-  const brand: string = biz.brand_color || C.accent;
+  const brand: string = styleOf(biz).color;
   const attended = day.filter((b) => b.status === 'attended').length;
   const Stat = ({ n, label, color }: { n: number; label: string; color?: string }) => (
     <Card style={{ flex: 1, padding: 14, gap: 2 }}>
@@ -82,8 +83,22 @@ export default function Owner() {
           <Text style={{ color: C.text, fontWeight: '900', fontSize: 18, letterSpacing: -0.3 }} numberOfLines={1}>{biz.name}</Text>
           <Pill text={biz.is_published ? '● Δημοσιευμένο' : '○ Μη δημοσιευμένο'} tone={biz.is_published ? 'ok' : 'mute'} />
         </View>
-        <Btn kind="ghost" size="sm" title="Ρυθμίσεις" onPress={() => router.push('/owner/setup')} />
       </Card>
+
+      {/* Διαχείριση */}
+      <View style={[s.row, { gap: 10, flexWrap: 'wrap' }]}>
+        {[
+          { emoji: '⚙️', title: 'Ρυθμίσεις', sub: 'Είδος, υπηρεσίες, ωράριο, κανόνες', go: '/owner/setup' },
+          { emoji: '🎨', title: 'Εμφάνιση', sub: `${LAYOUTS.find((l) => l.key === styleOf(biz).layout)!.name} · ${styleOf(biz).theme.name}`, go: '/owner/style' },
+          { emoji: '✉️', title: 'Μηνύματα', sub: 'Σε όλους ή σε έναν πελάτη', go: '/owner/messages' },
+        ].map((t) => (
+          <Card key={t.go} onPress={() => router.push(t.go as any)} style={{ flexGrow: 1, flexBasis: '30%', minWidth: 140, padding: 14, gap: 4 }}>
+            <Text style={{ fontSize: 24 }}>{t.emoji}</Text>
+            <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{t.title}</Text>
+            <Text style={{ color: C.mute, fontSize: 12 }} numberOfLines={2}>{t.sub}</Text>
+          </Card>
+        ))}
+      </View>
       {!biz.is_published && (
         <View style={{ backgroundColor: alpha(C.accent, 0.08), borderRadius: 16, padding: 14 }}>
           <T style={{ fontSize: 14 }}>Η επιχείρηση δεν φαίνεται ακόμα στην αναζήτηση. Ενεργοποίησε τη «Δημοσίευση» στις Ρυθμίσεις.</T>
@@ -150,6 +165,7 @@ export default function Owner() {
                   <Btn size="sm" kind="ghost" title="Δεν ήρθε" onPress={() => setStatus(b, 'no_show')} />
                   <Btn size="sm" kind="danger" title="Ακύρωση" onPress={() => setStatus(b, 'cancelled')} />
                   {biz.uses_credits && <Btn size="sm" kind="ghost" title="Ανανέωση" onPress={() => renew(b)} />}
+                  <Btn size="sm" kind="ghost" title="✉️ Μήνυμα" onPress={() => router.push({ pathname: '/owner/messages', params: { to: b.user_id } })} />
                 </View>
               </View>
             ))}

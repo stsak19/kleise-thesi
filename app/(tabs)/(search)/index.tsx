@@ -4,13 +4,14 @@ import { useRouter } from 'expo-router';
 import { sb } from '../../../lib/supabase';
 import { C, CATEGORIES, Card, Empty, Icon, Input, ScreenHeader, alpha, catEmoji, catLabel, s, shadow } from '../../../lib/ui';
 
-type Biz = { id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null };
+import { styleOf } from '../../../lib/presets';
+type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null };
 
 const hello = () => { const h = new Date().getHours(); return h < 12 ? 'Καλημέρα ☀️' : h < 19 ? 'Καλησπέρα 👋' : 'Καλό βράδυ 🌙'; };
 
 /* Κάρτα καταστήματος: εξώφυλλο (ή το χρώμα του με το σύμβολο της κατηγορίας) και στοιχεία. */
 function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
-  const brand = b.brand_color || C.accent;
+  const brand = styleOf(b).color;
   return (
     <Card onPress={onPress} style={{ padding: 0, gap: 0, overflow: 'hidden' }}>
       <View style={{ height: 112, backgroundColor: brand, overflow: 'hidden' }}>

@@ -5,7 +5,8 @@ import { pickAndUpload } from '../../../../lib/upload';
 import { useRouter } from 'expo-router';
 import { sb } from '../../../../lib/supabase';
 import { useAuth } from '../../../../lib/auth';
-import { Btn, C, CATEGORIES, Card, Chip, DAYS, Group, Icon, Input, Section, SwitchRow, T, TextBtn, Toggle, alpha, catEmoji, onColor, s, shadow } from '../../../../lib/ui';
+import { LAYOUTS, presetFor, styleOf } from '../../../../lib/presets';
+import { Btn, C, CATEGORIES, catLabel, Card, Chip, DAYS, Group, Icon, Input, Section, SwitchRow, T, TextBtn, Toggle, alpha, catEmoji, onColor, s, shadow } from '../../../../lib/ui';
 
 type Svc = { key: string; id?: string; name: string; duration_min: string; price: string; capacity: string };
 /* svc: null = γενικό ωράριο, αλλιώς το key της υπηρεσίας. Πολλά διαστήματα την ίδια μέρα = διάλειμμα. */
@@ -15,7 +16,6 @@ const newKey = () => Math.random().toString(36).slice(2);
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
-const BRAND_COLORS = ['#ff7a59', '#e5484d', '#ec4899', '#a855f7', '#6366f1', '#2563eb', '#0ea5e9', '#14b8a6', '#1fa971', '#eab308', '#8b5e3c', '#16161a'];
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
 const DEFAULT_HOURS: Hours = [1, 2, 3, 4, 5].map((d) => ({ weekday: d, opens: '09:00', closes: '21:00', svc: null }));
@@ -29,6 +29,7 @@ export default function Setup() {
   const [edit, setEdit] = useState<string | null>(null); // ποιο ωράριο επεξεργάζεσαι
   const [up, setUp] = useState<string | null>(null);
   const [hours, setHours] = useState<Hours>(DEFAULT_HOURS);
+  const [removed, setRemoved] = useState<string[]>([]); // υπηρεσίες που φεύγουν με την αποθήκευση
 
   useEffect(() => { (async () => {
     const { data } = await sb.from('businesses').select('*').eq('owner_id', session!.user.id).maybeSingle();
@@ -50,7 +51,7 @@ export default function Setup() {
     let { data, error } = await sb.from('businesses').upsert(row).select().single();
     // Αν η βάση δεν έχει ακόμα τις νέες στήλες (δες supabase/migrations), αποθήκευσε χωρίς αυτές.
     const missing: string[] = [];
-    for (const col of ['brand_color', 'cover_url']) {
+    for (const col of ['brand_color', 'cover_url', 'layout', 'theme']) {
       if (error && error.message.includes(col)) {
         delete row[col]; missing.push(col);
         ({ data, error } = await sb.from('businesses').upsert(row).select().single());
@@ -58,6 +59,7 @@ export default function Setup() {
     }
     if (error || !data) return say('Δεν αποθηκεύτηκε', error?.message);
     if (missing.length) say('Κάποια στοιχεία δεν αποθηκεύτηκαν', 'Χρειάζεται ενημέρωση της βάσης (supabase/migrations).');
+    for (const rid of removed) await sb.from('services').update({ active: false }).eq('id', rid);
     const ids: Record<string, string> = {};
     for (const x of svcs.filter((x) => x.name.trim())) {
       const r = { business_id: data.id, name: x.name.trim(), duration_min: +x.duration_min || 30, capacity: +x.capacity || 1,
@@ -93,13 +95,38 @@ export default function Setup() {
   const setOwn = (on: boolean) => setHours(on
     ? [...hours, ...hours.filter((h) => h.svc === null).map((h) => ({ ...h, svc: edit }))]
     : hours.filter((h) => !mine(h)));
+  /* Πρότυπο είδους: υπηρεσίες, ωράριο και κανόνες που ταιριάζουν (lib/presets.ts). */
+  const applyPreset = (cat: string, ask: boolean) => {
+    const p = presetFor(cat);
+    const go = () => {
+      setB((x: any) => ({ ...x, category: cat, layout: null, theme: null, brand_color: null, ...p.rules }));
+      // οι υπάρχουσες υπηρεσίες απενεργοποιούνται στην αποθήκευση, οι προτεινόμενες μπαίνουν ως νέες
+      setRemoved((r) => [...r, ...svcs.filter((x) => x.id).map((x) => x.id!)]);
+      const fresh = p.services.map((x) => ({ key: newKey(), name: x.name, duration_min: String(x.duration_min), price: x.price != null ? String(x.price) : '', capacity: String(x.capacity) }));
+      setSvcs(fresh);
+      setHours(p.hours.flatMap((h) => h.days.flatMap((d) => h.spans.map(([o, c]) => ({ weekday: d, opens: o, closes: c, svc: null })))));
+      setEdit(null);
+    };
+    if (!ask) return go();
+    say(`Πρότυπο «${catLabel(cat)}»`, 'Οι υπηρεσίες, το ωράριο, οι κανόνες και η εμφάνιση θα αντικατασταθούν με τις προτεινόμενες. Αλλάζουν οριστικά όταν πατήσεις «Αποθήκευση».',
+      [{ text: 'Άκυρο', style: 'cancel' }, { text: 'Εφαρμογή', onPress: go }]);
+  };
+  const pickCategory = (cat: string) => {
+    if (cat === b.category) return;
+    const empty = !b.id && svcs.every((x) => !x.name.trim());
+    if (empty) return applyPreset(cat, false);
+    setB({ ...b, category: cat });
+    say(`Είδος: ${catLabel(cat)}`, 'Θέλεις να μπουν και οι προτεινόμενες ρυθμίσεις (υπηρεσίες, ωράριο, κανόνες, εμφάνιση);',
+      [{ text: 'Όχι', style: 'cancel' }, { text: 'Ναι, βάλ’ τες', onPress: () => applyPreset(cat, false) }]);
+  };
+
   const photo = async (kind: 'logo' | 'cover') => {
     setUp(kind);
     try { const url = await pickAndUpload(session!.user.id, kind); if (url) setB({ ...b, [kind === 'logo' ? 'logo_url' : 'cover_url']: url }); }
     catch (e: any) { say('Δεν ανέβηκε η φωτογραφία', e.message); }
     setUp(null);
   };
-  const brand = HEX.test(b.brand_color ?? '') ? b.brand_color : '#ff7a59';
+  const brand = styleOf(b).color;
   const DAYNAME = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
 
   return (
@@ -110,8 +137,9 @@ export default function Setup() {
         <View style={{ gap: 8 }}>
           <Text style={s.label}>Κατηγορία</Text>
           <View style={[s.row, { flexWrap: 'wrap' }]}>
-            {CATEGORIES.map((c) => <Chip key={c.key} emoji={c.emoji} label={c.label} on={b.category === c.key} onPress={() => setB({ ...b, category: c.key })} />)}
+            {CATEGORIES.map((c) => <Chip key={c.key} emoji={c.emoji} label={c.label} on={b.category === c.key} onPress={() => pickCategory(c.key)} />)}
           </View>
+          <TextBtn title={`✨ Βάλε τις προτεινόμενες ρυθμίσεις για «${catLabel(b.category)}»`} onPress={() => applyPreset(b.category, true)} />
         </View>
         <View style={[s.row, { gap: 10 }]}>
           <View style={{ flex: 1 }}><Input label="Πόλη" placeholder="Αθήνα" value={b.city} onChangeText={(v) => setB({ ...b, city: v })} /></View>
@@ -142,25 +170,10 @@ export default function Setup() {
             <TextBtn title={up === 'logo' ? 'Ανέβασμα…' : b.logo_url ? 'Αλλαγή λογότυπου' : 'Προσθήκη λογότυπου (1:1)'} color={brand} onPress={() => photo('logo')} />
           </View>
         </View>
-        <View style={{ padding: 16, paddingTop: 4, gap: 12, borderTopWidth: 1, borderTopColor: C.line }}>
-          <Text style={[s.label, { marginTop: 10 }]}>Χρώμα καταστήματος</Text>
-          <View style={[s.row, { flexWrap: 'wrap', gap: 10 }]}>
-            {BRAND_COLORS.map((c) => { const on = (b.brand_color || '#ff7a59') === c; return (
-              <Pressable key={c} onPress={() => setB({ ...b, brand_color: c })}
-                style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c, alignItems: 'center', justifyContent: 'center',
-                  boxShadow: on ? `0px 0px 0px 3px ${C.card}, 0px 0px 0px 5px ${c}` : undefined }}>
-                {on && <Icon name="check" size={18} color={onColor(c)} />}
-              </Pressable>); })}
-          </View>
-          <Input placeholder="ή γράψε κωδικό, π.χ. #2563eb" autoCapitalize="none" value={b.brand_color ?? ''} onChangeText={(v) => setB({ ...b, brand_color: v.trim() })} />
-          <View style={[s.row, { gap: 10 }]}>
-            <View style={{ flex: 1 }}><Btn title="Κράτηση" color={brand} size="sm" onPress={() => {}} /></View>
-            <View style={{ width: 56, paddingVertical: 8, borderRadius: 14, backgroundColor: brand, alignItems: 'center' }}>
-              <Text style={{ color: onColor(brand), fontSize: 11, fontWeight: '600' }}>Τετ</Text>
-              <Text style={{ color: onColor(brand), fontSize: 17, fontWeight: '800' }}>12</Text>
-            </View>
-            <T mute style={{ flex: 1, fontSize: 12 }}>Προεπισκόπηση κουμπιών και επιλεγμένης μέρας</T>
-          </View>
+        <View style={{ padding: 16, paddingTop: 4, gap: 6, borderTopWidth: 1, borderTopColor: C.line }}>
+          <T mute style={{ fontSize: 13, marginTop: 10 }}>Χρώμα, θέμα και διάταξη σελίδας: {LAYOUTS.find((l) => l.key === styleOf(b).layout)!.name} · {styleOf(b).theme.name}</T>
+          {b.id ? <TextBtn title="🎨 Άλλαξε την εμφάνιση" color={brand} onPress={() => router.push('/owner/style')} />
+            : <T mute style={{ fontSize: 12 }}>Θα μπορείς να την αλλάξεις μετά την πρώτη αποθήκευση.</T>}
         </View>
       </Card>
 

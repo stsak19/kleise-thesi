@@ -183,6 +183,19 @@ const RPC: Record<string, (a: any) => any> = {
   owner_set_status: (a) => { const b = db.bookings.find((x) => x.id === a.p_booking); if (b) b.status = a.p_status; return { ok: true }; },
   owner_set_member: (a) => { pending = pending.filter((p) => p.user_id !== a.p_user); return { ok: true }; },
   owner_renew: () => ({ ok: true }),
+  owner_clients: (a) => {
+    const last: Record<string, string> = {};
+    db.bookings.filter((b) => b.business_id === a.p_business).forEach((b) => { if (!last[b.user_id] || b.date > last[b.user_id]) last[b.user_id] = b.date; });
+    return Object.entries(last).filter(([u]) => u === DEMO_UID || CLIENTS[u]).sort((x, y) => y[1].localeCompare(x[1]))
+      .map(([u, d]) => ({ user_id: u, name: u === DEMO_UID ? 'Demo Χρήστης' : CLIENTS[u].name, phone: u === DEMO_UID ? '6900000000' : CLIENTS[u].phone, last: d }));
+  },
+  owner_notify: (a) => {
+    if (!String(a.p_body ?? '').trim()) return { ok: false, error: 'Γράψε μήνυμα' };
+    const to = RPC.owner_clients(a).map((c: any) => c.user_id).filter((u: string) => !a.p_user || u === a.p_user);
+    const title = bz(a.p_business).name + (String(a.p_title ?? '').trim() ? ' · ' + String(a.p_title).trim() : '');
+    to.forEach((u: string) => db.notifications.push({ id: uid(), user_id: u, title, body: String(a.p_body).trim(), read: false, created_at: new Date().toISOString() }));
+    return { ok: to.length > 0, sent: to.length, error: to.length ? undefined : 'Δεν βρέθηκε πελάτης' };
+  },
 };
 
 /* ---------- μικρός «PostgREST» για select/insert/update/delete ---------- */
@@ -217,6 +230,7 @@ function rest(method: string, u: URL, table: string, body: any, h: Headers) {
   };
   if (method === 'GET' || method === 'HEAD') {
     let out = order(rows.filter(filters(u)), u);
+    if (table === 'notifications') out = out.filter((r) => r.user_id === DEMO_UID); // όπως το RLS: βλέπεις μόνο τις δικές σου
     const lim = u.searchParams.get('limit'); if (lim) out = out.slice(0, +lim);
     return back(out);
   }

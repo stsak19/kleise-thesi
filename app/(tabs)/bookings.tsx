@@ -1,3 +1,4 @@
+import { styleOf } from '../../lib/presets';
 import { say } from '../../lib/alert';
 import { useCallback, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -35,8 +36,8 @@ export default function Bookings() {
     // Το χρώμα κάθε καταστήματος, για να χρωματιστούν οι κάρτες.
     const ids = [...new Set(((m?.bookings ?? []) as any[]).map((b) => b.business_id).filter(Boolean))];
     if (ids.length) {
-      const { data } = await sb.from('businesses').select('id,brand_color').in('id', ids);
-      setColors(Object.fromEntries((data ?? []).filter((x: any) => x.brand_color).map((x: any) => [x.id, x.brand_color])));
+      const { data } = await sb.from('businesses').select('*').in('id', ids);
+      setColors(Object.fromEntries((data ?? []).map((x: any) => [x.id, styleOf(x).color])));
     }
   }, []);
   useFocusEffect(useCallback(() => { load(); }, [load]));

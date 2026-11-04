@@ -21,6 +21,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - run: npx tsc --noEmit
       - run: npx expo export --platform web --output-dir web
       - run: cp web/index.html web/404.html && touch web/.nojekyll
       - uses: actions/upload-pages-artifact@v3

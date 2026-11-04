@@ -9,6 +9,8 @@ export default function ProfileStack() {
       <Stack.Screen name="profile" options={{ title: 'Προφίλ', headerShown: false }} />
       <Stack.Screen name="owner/index" options={{ title: 'Η επιχείρησή μου' }} />
       <Stack.Screen name="owner/setup" options={{ title: 'Ρυθμίσεις καταστήματος' }} />
+      <Stack.Screen name="owner/style" options={{ title: 'Εμφάνιση σελίδας' }} />
+      <Stack.Screen name="owner/messages" options={{ title: 'Μηνύματα σε πελάτες' }} />
     </Stack>
   );
 }
