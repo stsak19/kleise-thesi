@@ -1,7 +1,11 @@
 import { Stack, Redirect, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../lib/auth';
+import { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { C } from '../lib/ui';
+import { isDark, loadTheme, onTheme } from '../lib/theme';
+import ColorEditor from '../lib/ColorEditor';
 
 function Gate() {
   const { session, ready } = useAuth();
@@ -23,5 +27,14 @@ function Gate() {
 }
 
 export default function Root() {
-  return <AuthProvider><StatusBar style="light" /><Gate /></AuthProvider>;
+  // Κάθε αλλαγή χρώματος ξαναζωγραφίζει την εφαρμογή.
+  const [v, setV] = useState(0);
+  useEffect(() => { const off = onTheme(() => setV((x) => x + 1)); loadTheme(); return off; }, []);
+  return (
+    <AuthProvider>
+      <StatusBar style={isDark() ? 'light' : 'dark'} />
+      <View key={v} style={{ flex: 1, backgroundColor: C.bg }}><Gate /></View>
+      <ColorEditor />
+    </AuthProvider>
+  );
 }

@@ -57,7 +57,7 @@ export default function Setup() {
       <View style={[s.row, { flexWrap: 'wrap' }]}>
         {CATEGORIES.map((c) => (
           <Pressable key={c.key} onPress={() => setB({ ...b, category: c.key })} style={[s.chip, b.category === c.key && { backgroundColor: C.accent, borderColor: C.accent }]}>
-            <Text style={{ color: b.category === c.key ? '#111' : C.text }}>{c.emoji} {c.label}</Text>
+            <Text style={{ color: b.category === c.key ? C.onAccent : C.text }}>{c.emoji} {c.label}</Text>
           </Pressable>))}
       </View>
       <Input placeholder="Πόλη" value={b.city} onChangeText={(v) => setB({ ...b, city: v })} />
@@ -86,7 +86,7 @@ export default function Setup() {
       <View style={[s.row, { flexWrap: 'wrap' }]}>
         {DAYS.map((d, i) => { const on = hours.some((h) => h.weekday === i); return (
           <Pressable key={d} onPress={() => toggleDay(i)} style={[s.chip, on && { backgroundColor: C.accent, borderColor: C.accent }]}>
-            <Text style={{ color: on ? '#111' : C.text }}>{d}</Text></Pressable>); })}
+            <Text style={{ color: on ? C.onAccent : C.text }}>{d}</Text></Pressable>); })}
       </View>
       {hours.map((h, i) => (
         <View key={h.weekday} style={s.row}>

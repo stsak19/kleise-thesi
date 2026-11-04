@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 
-export const C = { bg: '#0f0f12', card: '#1b1b21', line: '#2b2b33', text: '#f4f4f6', mute: '#9a9aa6', accent: '#ff7a59', ok: '#3ecf8e', bad: '#ff5d5d' };
+import { C, onTheme } from './theme';
+export { C };
 
 export const CATEGORIES: { key: string; label: string; emoji: string }[] = [
   { key: 'gym', label: 'Γυμναστήρια', emoji: '🏋️' },
@@ -27,7 +28,7 @@ export const fmtDay = (s: string) => { const d = new Date(s + 'T00:00'); return 
 export function Btn({ title, onPress, kind = 'primary', disabled, style }:
   { title: string; onPress: () => void; kind?: 'primary' | 'ghost' | 'danger'; disabled?: boolean; style?: ViewStyle }) {
   const bg = kind === 'primary' ? C.accent : 'transparent';
-  const color = kind === 'danger' ? C.bad : kind === 'ghost' ? C.text : '#111';
+  const color = kind === 'danger' ? C.bad : kind === 'ghost' ? C.text : C.onAccent;
   return (
     <Pressable onPress={onPress} disabled={disabled}
       style={[s.btn, { backgroundColor: bg, borderColor: kind === 'primary' ? C.accent : C.line, opacity: disabled ? 0.5 : 1 }, style]}>
@@ -40,7 +41,7 @@ export const Card = ({ children, style }: { children: React.ReactNode; style?: V
 export const H = ({ children }: { children: React.ReactNode }) => <Text style={s.h}>{children}</Text>;
 export const T = ({ children, mute }: { children: React.ReactNode; mute?: boolean }) => <Text style={{ color: mute ? C.mute : C.text }}>{children}</Text>;
 
-export const s = StyleSheet.create({
+const make = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg },
   pad: { padding: 16, gap: 12 },
   btn: { paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
@@ -50,3 +51,6 @@ export const s = StyleSheet.create({
   chip: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999, borderWidth: 1, borderColor: C.line },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });
+
+export const s = make();
+onTheme(() => Object.assign(s, make()));

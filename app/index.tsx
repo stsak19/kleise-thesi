@@ -37,7 +37,7 @@ export default function Home() {
           {CATEGORIES.map((c) => (
             <Pressable key={c.key} onPress={() => setCat(cat === c.key ? null : c.key)}
               style={[s.chip, cat === c.key && { backgroundColor: C.accent, borderColor: C.accent }]}>
-              <Text style={{ color: cat === c.key ? '#111' : C.text }}>{c.emoji} {c.label}</Text>
+              <Text style={{ color: cat === c.key ? C.onAccent : C.text }}>{c.emoji} {c.label}</Text>
             </Pressable>
           ))}
         </ScrollView>

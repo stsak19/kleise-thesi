@@ -99,8 +99,8 @@ export default function Business() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginTop: 8 }}>
         {days.map((d) => { const dd = new Date(d + 'T00:00'); const on = d === date; return (
           <Pressable key={d} onPress={() => setDate(d)} style={[s.chip, { alignItems: 'center' }, on && { backgroundColor: C.accent, borderColor: C.accent }]}>
-            <Text style={{ color: on ? '#111' : C.mute, fontSize: 12 }}>{DAYS[dd.getDay()]}</Text>
-            <Text style={{ color: on ? '#111' : C.text, fontWeight: '700' }}>{dd.getDate()}</Text>
+            <Text style={{ color: on ? C.onAccent : C.mute, fontSize: 12 }}>{DAYS[dd.getDay()]}</Text>
+            <Text style={{ color: on ? C.onAccent : C.text, fontWeight: '700' }}>{dd.getDate()}</Text>
           </Pressable>); })}
       </ScrollView>
       {!!note && <Card><T>📌 {note}</T></Card>}
