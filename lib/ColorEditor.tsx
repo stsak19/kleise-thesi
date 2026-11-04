@@ -34,13 +34,13 @@ export default function ColorEditor() {
   return (
     <>
       <Pressable onPress={() => setOpen(!open)} accessibilityLabel="Επεξεργαστής χρωμάτων"
-        style={{ position: 'absolute', right: 16, bottom: 90, width: 52, height: 52, borderRadius: 26, backgroundColor: '#fff',
+        style={{ position: 'absolute', right: 12, bottom: 176, width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff',
           alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#ddd', zIndex: 1000,
           shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 6 }}>
-        <Text style={{ fontSize: 24 }}>{open ? '✕' : '🎨'}</Text>
+        <Text style={{ fontSize: 20 }}>{open ? '✕' : '🎨'}</Text>
       </Pressable>
       {open && (
-        <View style={{ position: 'absolute', left: 12, right: 12, bottom: 154, maxHeight: '45%', backgroundColor: '#fff', borderRadius: 16,
+        <View style={{ position: 'absolute', left: 12, right: 12, bottom: 228, maxHeight: '45%', backgroundColor: '#fff', borderRadius: 16,
           borderWidth: 1, borderColor: '#ddd', zIndex: 999, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 16, elevation: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', padding: 14, paddingBottom: 6 }}>
             <Text style={{ flex: 1, fontSize: 17, fontWeight: '800', color: '#16161a' }}>Χρώματα</Text>

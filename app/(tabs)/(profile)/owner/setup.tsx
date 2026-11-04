@@ -5,7 +5,7 @@ import { pickAndUpload } from '../../../../lib/upload';
 import { useRouter } from 'expo-router';
 import { sb } from '../../../../lib/supabase';
 import { useAuth } from '../../../../lib/auth';
-import { Btn, C, CATEGORIES, Card, DAYS, H, Input, T, s } from '../../../../lib/ui';
+import { Btn, C, CATEGORIES, Card, Chip, DAYS, Group, Icon, Input, Section, SwitchRow, T, TextBtn, alpha, catEmoji, onColor, s, shadow } from '../../../../lib/ui';
 
 type Svc = { key: string; id?: string; name: string; duration_min: string; price: string; capacity: string };
 /* svc: null = γενικό ωράριο, αλλιώς το key της υπηρεσίας. Πολλά διαστήματα την ίδια μέρα = διάλειμμα. */
@@ -99,112 +99,140 @@ export default function Setup() {
     catch (e: any) { say('Δεν ανέβηκε η φωτογραφία', e.message); }
     setUp(null);
   };
-  const sw = (k: string, label: string) => (
-    <View style={s.row}><Switch value={!!b[k]} onValueChange={(v) => setB({ ...b, [k]: v })} /><T>{label}</T></View>);
+  const brand = HEX.test(b.brand_color ?? '') ? b.brand_color : '#ff7a59';
+  const DAYNAME = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={s.pad}>
-      <H>Επιχείρηση</H>
-      <Input placeholder="Όνομα" value={b.name} onChangeText={(v) => setB({ ...b, name: v })} />
-      <View style={[s.row, { flexWrap: 'wrap' }]}>
-        {CATEGORIES.map((c) => (
-          <Pressable key={c.key} onPress={() => setB({ ...b, category: c.key })} style={[s.chip, b.category === c.key && { backgroundColor: C.accent, borderColor: C.accent }]}>
-            <Text style={{ color: b.category === c.key ? C.onAccent : C.text }}>{c.emoji} {c.label}</Text>
-          </Pressable>))}
-      </View>
-      <Input placeholder="Πόλη" value={b.city} onChangeText={(v) => setB({ ...b, city: v })} />
-      <Input placeholder="Διεύθυνση" value={b.address ?? ''} onChangeText={(v) => setB({ ...b, address: v })} />
-      <Input placeholder="Τηλέφωνο" keyboardType="phone-pad" value={b.phone ?? ''} onChangeText={(v) => setB({ ...b, phone: v })} />
-      <Input placeholder="Περιγραφή" multiline value={b.description ?? ''} onChangeText={(v) => setB({ ...b, description: v })} />
-
-      <H>Φωτογραφίες</H>
-      <T mute>Λογότυπο και φωτογραφία εξωφύλλου που βλέπουν οι πελάτες στη σελίδα σου.</T>
-      <Pressable onPress={() => photo('cover')} style={{ height: 150, borderRadius: 16, backgroundColor: C.card, borderWidth: 1, borderColor: C.line, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
-        {b.cover_url ? <Image source={{ uri: b.cover_url }} style={{ position: 'absolute', width: '100%', height: '100%' }} resizeMode="cover" /> : null}
-        <View style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 999, paddingVertical: 8, paddingHorizontal: 14 }}>
-          <Text style={{ color: '#fff', fontWeight: '700' }}>{up === 'cover' ? 'Ανέβασμα…' : b.cover_url ? '📷 Αλλαγή εξωφύλλου' : '📷 Προσθήκη εξωφύλλου'}</Text>
+    <ScrollView style={s.screen} contentContainerStyle={s.pad} keyboardShouldPersistTaps="handled">
+      <Section title="Επιχείρηση" />
+      <Card style={{ gap: 14 }}>
+        <Input label="Όνομα" placeholder="π.χ. Κομμωτήριο Ελένη" value={b.name} onChangeText={(v) => setB({ ...b, name: v })} />
+        <View style={{ gap: 8 }}>
+          <Text style={s.label}>Κατηγορία</Text>
+          <View style={[s.row, { flexWrap: 'wrap' }]}>
+            {CATEGORIES.map((c) => <Chip key={c.key} emoji={c.emoji} label={c.label} on={b.category === c.key} onPress={() => setB({ ...b, category: c.key })} />)}
+          </View>
         </View>
-      </Pressable>
-      <View style={s.row}>
-        <Pressable onPress={() => photo('logo')} style={{ width: 84, height: 84, borderRadius: 42, backgroundColor: C.card, borderWidth: 1, borderColor: C.line, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
-          {b.logo_url ? <Image source={{ uri: b.logo_url }} style={{ width: 84, height: 84 }} /> : <Text style={{ fontSize: 28 }}>🏪</Text>}
+        <View style={[s.row, { gap: 10 }]}>
+          <View style={{ flex: 1 }}><Input label="Πόλη" placeholder="Αθήνα" value={b.city} onChangeText={(v) => setB({ ...b, city: v })} /></View>
+          <View style={{ flex: 1 }}><Input label="Τηλέφωνο" placeholder="210…" keyboardType="phone-pad" value={b.phone ?? ''} onChangeText={(v) => setB({ ...b, phone: v })} /></View>
+        </View>
+        <Input label="Διεύθυνση" icon="pin" placeholder="Οδός και αριθμός" value={b.address ?? ''} onChangeText={(v) => setB({ ...b, address: v })} />
+        <Input label="Περιγραφή" placeholder="Τι κάνετε, τι να περιμένει ο πελάτης…" multiline value={b.description ?? ''} onChangeText={(v) => setB({ ...b, description: v })} />
+      </Card>
+
+      <Section title="Φωτογραφίες & χρώμα" sub="Έτσι θα βλέπουν οι πελάτες τη σελίδα σου." />
+      <Card style={{ padding: 0, gap: 0, overflow: 'hidden' }}>
+        <Pressable onPress={() => photo('cover')} style={{ height: 150, backgroundColor: brand, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          {b.cover_url ? <Image source={{ uri: b.cover_url }} style={{ position: 'absolute', width: '100%', height: '100%' }} resizeMode="cover" />
+            : <Text style={{ position: 'absolute', right: 24, top: 26, fontSize: 56 }}>{catEmoji(b.category)}</Text>}
+          <View style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 999, paddingVertical: 8, paddingHorizontal: 14 }}>
+            <Text style={{ color: '#fff', fontWeight: '700' }}>{up === 'cover' ? 'Ανέβασμα…' : b.cover_url ? '📷 Αλλαγή εξωφύλλου' : '📷 Εξώφυλλο 16:9'}</Text>
+          </View>
         </Pressable>
-        <Btn kind="ghost" title={up === 'logo' ? 'Ανέβασμα…' : b.logo_url ? 'Αλλαγή λογότυπου' : 'Προσθήκη λογότυπου'} onPress={() => photo('logo')} style={{ flex: 1 }} />
-      </View>
+        <View style={[s.row, { padding: 16, paddingTop: 0, gap: 14, alignItems: 'flex-end' }]}>
+          <Pressable onPress={() => photo('logo')} style={{ marginTop: -36, width: 80, height: 80, borderRadius: 24, backgroundColor: C.card, padding: 4, ...shadow(2) }}>
+            <View style={{ flex: 1, borderRadius: 20, overflow: 'hidden', backgroundColor: alpha(brand, 0.14), alignItems: 'center', justifyContent: 'center' }}>
+              {b.logo_url ? <Image source={{ uri: b.logo_url }} style={{ width: '100%', height: '100%' }} />
+                : <Text style={{ color: brand, fontWeight: '900', fontSize: 28 }}>{(b.name || '🏪').slice(0, 1)}</Text>}
+            </View>
+          </Pressable>
+          <View style={{ flex: 1, paddingTop: 12, gap: 2 }}>
+            <Text style={{ color: C.text, fontWeight: '900', fontSize: 18 }} numberOfLines={1}>{b.name || 'Το κατάστημά σου'}</Text>
+            <TextBtn title={up === 'logo' ? 'Ανέβασμα…' : b.logo_url ? 'Αλλαγή λογότυπου' : 'Προσθήκη λογότυπου (1:1)'} color={brand} onPress={() => photo('logo')} />
+          </View>
+        </View>
+        <View style={{ padding: 16, paddingTop: 4, gap: 12, borderTopWidth: 1, borderTopColor: C.line }}>
+          <Text style={[s.label, { marginTop: 10 }]}>Χρώμα καταστήματος</Text>
+          <View style={[s.row, { flexWrap: 'wrap', gap: 10 }]}>
+            {BRAND_COLORS.map((c) => { const on = (b.brand_color || '#ff7a59') === c; return (
+              <Pressable key={c} onPress={() => setB({ ...b, brand_color: c })}
+                style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c, alignItems: 'center', justifyContent: 'center',
+                  boxShadow: on ? `0px 0px 0px 3px ${C.card}, 0px 0px 0px 5px ${c}` : undefined }}>
+                {on && <Icon name="check" size={18} color={onColor(c)} />}
+              </Pressable>); })}
+          </View>
+          <Input placeholder="ή γράψε κωδικό, π.χ. #2563eb" autoCapitalize="none" value={b.brand_color ?? ''} onChangeText={(v) => setB({ ...b, brand_color: v.trim() })} />
+          <View style={[s.row, { gap: 10 }]}>
+            <View style={{ flex: 1 }}><Btn title="Κράτηση" color={brand} size="sm" onPress={() => {}} /></View>
+            <View style={{ width: 56, paddingVertical: 8, borderRadius: 14, backgroundColor: brand, alignItems: 'center' }}>
+              <Text style={{ color: onColor(brand), fontSize: 11, fontWeight: '600' }}>Τετ</Text>
+              <Text style={{ color: onColor(brand), fontSize: 17, fontWeight: '800' }}>12</Text>
+            </View>
+            <T mute style={{ flex: 1, fontSize: 12 }}>Προεπισκόπηση κουμπιών και επιλεγμένης μέρας</T>
+          </View>
+        </View>
+      </Card>
 
-      <H>Χρώμα καταστήματος</H>
-      <T mute>Έτσι θα βλέπουν οι πελάτες τη σελίδα σου: τίτλος, κουμπιά, επιλεγμένη μέρα.</T>
-      <View style={[s.row, { flexWrap: 'wrap' }]}>
-        {BRAND_COLORS.map((c) => { const on = (b.brand_color || '#ff7a59') === c; return (
-          <Pressable key={c} onPress={() => setB({ ...b, brand_color: c })}
-            style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: c, borderWidth: on ? 3 : 0, borderColor: C.text, alignItems: 'center', justifyContent: 'center' }}>
-            {on && <Text style={{ color: '#fff', fontWeight: '900' }}>✓</Text>}
-          </Pressable>); })}
-      </View>
-      <Input placeholder="ή γράψε κωδικό, π.χ. #2563eb" autoCapitalize="none" value={b.brand_color ?? ''} onChangeText={(v) => setB({ ...b, brand_color: v.trim() })} />
-      <View style={{ backgroundColor: HEX.test(b.brand_color ?? '') ? b.brand_color : '#ff7a59', borderRadius: 16, padding: 14 }}>
-        <Text style={{ color: '#fff', fontWeight: '800', fontSize: 18 }}>{b.name || 'Το κατάστημά σου'}</Text>
-        <Text style={{ color: '#fff', opacity: 0.9 }}>Προεπισκόπηση</Text>
-      </View>
-
-      <H>Υπηρεσίες</H>
-      <T mute>Θέσεις 1 = ατομικό ραντεβού (νύχια, κούρεμα). Περισσότερες = ομαδικό (γυμναστήριο, pilates).</T>
+      <Section title="Υπηρεσίες" sub="Θέσεις 1 = ατομικό ραντεβού (νύχια, κούρεμα). Περισσότερες = ομαδικό (γυμναστήριο, pilates)." />
       {svcs.map((x, i) => {
         const up = (k: keyof Svc, v: string) => setSvcs(svcs.map((y, j) => (j === i ? { ...y, [k]: v } : y)));
         return (
-          <Card key={x.key}>
-            <Input placeholder="Όνομα υπηρεσίας" value={x.name} onChangeText={(v) => up('name', v)} />
-            <View style={s.row}>
-              <Input style={{ flex: 1, minWidth: 0, width: 10 }} placeholder="Λεπτά" keyboardType="number-pad" value={x.duration_min} onChangeText={(v) => up('duration_min', v)} />
-              <Input style={{ flex: 1, minWidth: 0, width: 10 }} placeholder="Τιμή €" keyboardType="decimal-pad" value={x.price} onChangeText={(v) => up('price', v)} />
-              <Input style={{ flex: 1, minWidth: 0, width: 10 }} placeholder="Θέσεις" keyboardType="number-pad" value={x.capacity} onChangeText={(v) => up('capacity', v)} />
+          <Card key={x.key} style={{ gap: 12 }}>
+            <View style={[s.row, { gap: 10 }]}>
+              <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: alpha(brand, 0.14), alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: brand, fontWeight: '900' }}>{i + 1}</Text>
+              </View>
+              <View style={{ flex: 1 }}><Input placeholder="Όνομα υπηρεσίας" value={x.name} onChangeText={(v) => up('name', v)} /></View>
             </View>
-            {x.id && <Btn kind="danger" title="Αφαίρεση" onPress={async () => { await sb.from('services').update({ active: false }).eq('id', x.id!); setSvcs(svcs.filter((_, j) => j !== i)); setHours(hours.filter((h) => h.svc !== x.key)); }} />}
+            <View style={[s.row, { gap: 8 }]}>
+              <View style={{ flex: 1 }}><Input label="Λεπτά" style={{ width: 10 }} keyboardType="number-pad" value={x.duration_min} onChangeText={(v) => up('duration_min', v)} /></View>
+              <View style={{ flex: 1 }}><Input label="Τιμή €" style={{ width: 10 }} keyboardType="decimal-pad" value={x.price} onChangeText={(v) => up('price', v)} /></View>
+              <View style={{ flex: 1 }}><Input label="Θέσεις" style={{ width: 10 }} keyboardType="number-pad" value={x.capacity} onChangeText={(v) => up('capacity', v)} /></View>
+            </View>
+            {x.id && <Btn kind="danger" size="sm" title="Αφαίρεση υπηρεσίας" onPress={async () => { await sb.from('services').update({ active: false }).eq('id', x.id!); setSvcs(svcs.filter((_, j) => j !== i)); setHours(hours.filter((h) => h.svc !== x.key)); }} />}
           </Card>);
       })}
-      <Btn kind="ghost" title="+ Υπηρεσία" onPress={() => setSvcs([...svcs, { key: newKey(), name: '', duration_min: '60', price: '', capacity: '1' }])} />
+      <Btn kind="tint" icon="plus" title="Νέα υπηρεσία" onPress={() => setSvcs([...svcs, { key: newKey(), name: '', duration_min: '60', price: '', capacity: '1' }])} />
 
-      <H>Ωράριο</H>
-      <T mute>Για διάλειμμα (π.χ. μεσημεριανό) πάτα «+ Διάλειμμα» και βάλε δεύτερο διάστημα την ίδια μέρα.</T>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-        {[{ key: null as string | null, name: 'Γενικό' }, ...svcs.filter((x) => x.name.trim())].map((x) => { const on = edit === x.key; return (
-          <Pressable key={x.key ?? 'all'} onPress={() => setEdit(x.key)} style={[s.chip, on && { backgroundColor: C.accent, borderColor: C.accent }]}>
-            <Text style={{ color: on ? C.onAccent : C.text, fontWeight: '600' }}>{x.key === null ? '🏪 ' : ''}{x.name}</Text>
-          </Pressable>); })}
+      <Section title="Ωράριο" sub="Για διάλειμμα (π.χ. μεσημεριανό) πάτα «+ Διάλειμμα» και βάλε δεύτερο διάστημα την ίδια μέρα." />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
+        {[{ key: null as string | null, name: 'Γενικό' }, ...svcs.filter((x) => x.name.trim())].map((x) =>
+          <Chip key={x.key ?? 'all'} emoji={x.key === null ? '🏪' : undefined} label={x.name} on={edit === x.key} onPress={() => setEdit(x.key)} />)}
       </ScrollView>
       {edit !== null && (
-        <View style={s.row}><Switch value={own} onValueChange={setOwn} />
-          <T>{own ? 'Δικό της ωράριο' : 'Ίδιο με το γενικό ωράριο'}</T></View>
+        <Group><SwitchRow label={own ? 'Δικό της ωράριο' : 'Ίδιο με το γενικό ωράριο'} sub="Αν η υπηρεσία γίνεται μόνο κάποιες ώρες" value={own} onChange={setOwn} last /></Group>
       )}
-      {own && WEEK.map((d) => { const rows = dayRows(d); return (
-        <Card key={d} style={{ gap: 8 }}>
-          <View style={s.row}>
-            <Text style={{ color: C.text, fontWeight: '800', width: 44 }}>{DAYS[d]}</Text>
-            <Switch value={rows.length > 0} onValueChange={() => toggleDay(d)} />
-            <Text style={{ color: C.mute, flex: 1 }}>{rows.length ? (rows.length > 1 ? 'Ανοιχτά, με διάλειμμα' : 'Ανοιχτά') : 'Κλειστά'}</Text>
-          </View>
-          {rows.sort((a, z) => a.h.opens.localeCompare(z.h.opens)).map(({ h, i }) => (
-            <View key={i} style={s.row}>
-              <Input style={{ flex: 1, minWidth: 0, width: 10, textAlign: 'center' }} value={h.opens} placeholder="09:00" onChangeText={(v) => setRow(i, { opens: v })} />
-              <Text style={{ color: C.mute }}>έως</Text>
-              <Input style={{ flex: 1, minWidth: 0, width: 10, textAlign: 'center' }} value={h.closes} placeholder="17:00" onChangeText={(v) => setRow(i, { closes: v })} />
-              {rows.length > 1 && <Pressable onPress={() => setHours(hours.filter((_, j) => j !== i))}><Text style={{ color: C.bad, fontSize: 18, padding: 6 }}>✕</Text></Pressable>}
-            </View>
-          ))}
-          {rows.length > 0 && <Pressable onPress={() => addBreak(d)}><Text style={{ color: C.accent, fontWeight: '700' }}>+ Διάλειμμα</Text></Pressable>}
-        </Card>); })}
+      {own && (
+        <Group>
+          {WEEK.map((d, di) => { const rows = dayRows(d); return (
+            <View key={d} style={[{ padding: 14, gap: 10 }, di < WEEK.length - 1 && { borderBottomWidth: 1, borderBottomColor: C.line }]}>
+              <View style={s.row}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: C.text, fontWeight: '700', fontSize: 15 }}>{DAYNAME[d]}</Text>
+                  <Text style={{ color: rows.length ? C.ok : C.mute, fontSize: 12, fontWeight: '600' }}>{rows.length ? (rows.length > 1 ? 'Ανοιχτά, με διάλειμμα' : 'Ανοιχτά') : 'Κλειστά'}</Text>
+                </View>
+                <Switch value={rows.length > 0} onValueChange={() => toggleDay(d)} trackColor={{ true: C.accent, false: C.line }} thumbColor="#ffffff" />
+              </View>
+              {rows.sort((a, z) => a.h.opens.localeCompare(z.h.opens)).map(({ h, i }) => (
+                <View key={i} style={[s.row, { gap: 8 }]}>
+                  <View style={{ flex: 1 }}><Input style={{ width: 10, textAlign: 'center' }} value={h.opens} placeholder="09:00" onChangeText={(v) => setRow(i, { opens: v })} /></View>
+                  <Text style={{ color: C.mute }}>–</Text>
+                  <View style={{ flex: 1 }}><Input style={{ width: 10, textAlign: 'center' }} value={h.closes} placeholder="17:00" onChangeText={(v) => setRow(i, { closes: v })} /></View>
+                  {rows.length > 1 && <Pressable onPress={() => setHours(hours.filter((_, j) => j !== i))} hitSlop={6}
+                    style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: alpha(C.bad, 0.1), alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="close" size={14} color={C.bad} /></Pressable>}
+                </View>
+              ))}
+              {rows.length > 0 && <TextBtn title="+ Διάλειμμα" onPress={() => addBreak(d)} />}
+            </View>); })}
+        </Group>
+      )}
 
-      <H>Κανόνες κρατήσεων</H>
-      <T mute>Μέρες μπροστά που ανοίγουν κρατήσεις</T>
-      <Input keyboardType="number-pad" value={String(b.max_days_ahead)} onChangeText={(v) => setB({ ...b, max_days_ahead: v })} />
-      <T mute>Ακύρωση από τον πελάτη έως (λεπτά πριν)</T>
-      <Input keyboardType="number-pad" value={String(b.cancel_before_min)} onChangeText={(v) => setB({ ...b, cancel_before_min: v })} />
-      {sw('requires_approval', 'Οι νέοι πελάτες θέλουν έγκριση')}
-      {sw('uses_credits', 'Πακέτα κρατήσεων (καρνέ)')}
-      {b.uses_credits && <><T mute>Διάρκεια πακέτου (μέρες)</T>
-        <Input keyboardType="number-pad" value={String(b.package_days)} onChangeText={(v) => setB({ ...b, package_days: v })} /></>}
-      {sw('is_published', 'Δημοσίευση στην αναζήτηση')}
-      <Btn title="Αποθήκευση" onPress={save} />
+      <Section title="Κανόνες κρατήσεων" />
+      <Card style={{ gap: 14 }}>
+        <View style={[s.row, { gap: 10 }]}>
+          <View style={{ flex: 1 }}><Input label="Μέρες μπροστά" keyboardType="number-pad" value={String(b.max_days_ahead)} onChangeText={(v) => setB({ ...b, max_days_ahead: v })} /></View>
+          <View style={{ flex: 1 }}><Input label="Ακύρωση έως (λεπτά πριν)" keyboardType="number-pad" value={String(b.cancel_before_min)} onChangeText={(v) => setB({ ...b, cancel_before_min: v })} /></View>
+        </View>
+        {b.uses_credits && <Input label="Διάρκεια πακέτου (μέρες)" keyboardType="number-pad" value={String(b.package_days)} onChangeText={(v) => setB({ ...b, package_days: v })} />}
+      </Card>
+      <Group>
+        <SwitchRow label="Έγκριση νέων πελατών" sub="Ο νέος πελάτης κλείνει μόνο αφού τον εγκρίνεις" value={!!b.requires_approval} onChange={(v) => setB({ ...b, requires_approval: v })} />
+        <SwitchRow label="Πακέτα κρατήσεων (καρνέ)" sub="Κάθε κράτηση χρεώνεται από το πακέτο του πελάτη" value={!!b.uses_credits} onChange={(v) => setB({ ...b, uses_credits: v })} />
+        <SwitchRow label="Δημοσίευση στην αναζήτηση" sub="Οι πελάτες βρίσκουν το κατάστημα και κλείνουν θέση" value={!!b.is_published} onChange={(v) => setB({ ...b, is_published: v })} last />
+      </Group>
+      <Btn title="Αποθήκευση" onPress={save} style={{ marginTop: 8 }} />
     </ScrollView>
   );
 }

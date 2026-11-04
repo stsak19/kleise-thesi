@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { rpc, sb } from '../../../../lib/supabase';
-import { Btn, C, Card, DAYS, H, T, catLabel, fmtDay, iso, s } from '../../../../lib/ui';
+import { Btn, C, DayStrip, Empty, Group, Icon, Pill, Row, Section, T, alpha, catEmoji, catLabel, fmtLong, iso, onColor, price, s, shadow } from '../../../../lib/ui';
 
 type Service = { id: string; name: string; duration_min: number; price_cents: number | null; capacity: number };
 type Slot = { slot_time: string; time: string; capacity: number; taken: number; free: number };
@@ -19,6 +19,8 @@ export default function Business() {
   const [mine, setMine] = useState<any>({ bookings: [], waitlist: [] });
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [pick, setPick] = useState<string | null>(null); // επιλεγμένη ώρα
+  useEffect(() => setPick(null), [service, date]);
 
   useEffect(() => {
     (async () => {
@@ -87,61 +89,143 @@ export default function Business() {
 
   if (!biz) return <View style={s.screen} />;
   const brand: string = biz.brand_color || C.accent;
-  const brandBtn = { backgroundColor: brand, borderColor: brand };
+  const fg = onColor(brand);
+  const today = days[0];
+
+  // Κατάσταση κάθε ώρας για το πλέγμα και για την μπάρα ενέργειας.
+  const state = (sl: Slot) => (myAt(sl.time) ? 'mine' : waitAt(sl.time) ? 'wait' : sl.free > 0 ? 'free' : 'full');
+  const picked = slots.find((x) => x.time === pick);
+  const pState = picked ? state(picked) : null;
+  const pB = picked ? myAt(picked.time) : null;
+
+  const action = !picked ? null
+    : pState === 'mine' ? <Btn kind="danger" title="Ακύρωση κράτησης" disabled={busy === picked.time}
+        onPress={() => act(picked.time, () => rpc('cancel_booking', { p_booking: pB.id }), 'Η κράτηση ακυρώθηκε')} />
+    : pState === 'wait' ? <Btn kind="ghost" title="Απόσυρση από τη λίστα" disabled={busy === picked.time}
+        onPress={() => act(picked.time, () => rpc('leave_waitlist', { p_service: service!.id, p_date: date, p_time: picked.time + ':00' }), 'Η δήλωση αποσύρθηκε')} />
+    : pState === 'free' ? <Btn title={`Κράτηση · ${picked.time}`} color={brand} disabled={busy === picked.time} onPress={() => book(picked.time)} />
+    : <Btn kind="tint" color={brand} title="🙋 Δήλωση ενδιαφέροντος" disabled={busy === picked.time} onPress={() => wait(picked.time)} />;
+
   return (
-    <ScrollView style={s.screen} contentContainerStyle={s.pad}>
-      <Stack.Screen options={{ title: biz.name }} />
-      <View style={{ backgroundColor: brand, borderRadius: 20, overflow: 'hidden' }}>
-        {!!biz.cover_url && <Image source={{ uri: biz.cover_url }} style={{ width: '100%', height: 160 }} resizeMode="cover" />}
-        <View style={{ padding: 18, gap: 4, flexDirection: 'row', alignItems: 'center' }}>
-          {!!biz.logo_url && <Image source={{ uri: biz.logo_url }} style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 3, borderColor: '#fff', marginRight: 12,
-            marginTop: biz.cover_url ? -46 : 0, backgroundColor: '#fff' }} />}
-          <View style={{ flex: 1, gap: 4 }}>
-            <Text style={{ color: '#fff', fontSize: 24, fontWeight: '800' }}>{biz.name}</Text>
-            <Text style={{ color: '#fff', opacity: 0.9 }}>{catLabel(biz.category)} · {biz.city}</Text>
-          </View>
+    <View style={s.screen}>
+      <Stack.Screen options={{ title: '' }} />
+      <ScrollView contentContainerStyle={{ paddingBottom: picked ? 170 : 40 }}>
+        {/* Εξώφυλλο */}
+        <View style={{ height: 180, backgroundColor: brand, marginHorizontal: 12, borderRadius: 26, overflow: 'hidden' }}>
+          {biz.cover_url
+            ? <Image source={{ uri: biz.cover_url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+            : <>
+                <View style={{ position: 'absolute', right: -40, top: -50, width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(255,255,255,0.12)' }} />
+                <View style={{ position: 'absolute', left: -30, bottom: -70, width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(255,255,255,0.08)' }} />
+                <Text style={{ position: 'absolute', right: 34, top: 40, fontSize: 72 }}>{catEmoji(biz.category)}</Text>
+              </>}
         </View>
-      </View>
-      {!!(biz.address || biz.phone) && <T mute>{biz.address ? `📍 ${biz.address}` : ''}{biz.address && biz.phone ? ' · ' : ''}{biz.phone ? `☎ ${biz.phone}` : ''}</T>}
-      {!!biz.description && <T>{biz.description}</T>}
 
-      <Text style={{ color: C.mute, marginTop: 8 }}>Υπηρεσία</Text>
-      <View style={{ gap: 8 }}>
-        {services.map((sv) => (
-          <Pressable key={sv.id} onPress={() => setService(sv)}>
-            <Card style={service?.id === sv.id ? { borderColor: brand, borderWidth: 2 } : undefined}>
-              <Text style={{ color: C.text, fontWeight: '700' }}>{sv.name}</Text>
-              <T mute>{sv.duration_min}′{sv.price_cents != null ? ` · ${(sv.price_cents / 100).toFixed(2)}€` : ''}{sv.capacity > 1 ? ` · έως ${sv.capacity} άτομα` : ''}</T>
-            </Card>
-          </Pressable>
-        ))}
-      </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginTop: 8 }}>
-        {days.map((d) => { const dd = new Date(d + 'T00:00'); const on = d === date; return (
-          <Pressable key={d} onPress={() => setDate(d)} style={[s.chip, { alignItems: 'center' }, on && brandBtn]}>
-            <Text style={{ color: on ? C.onAccent : C.mute, fontSize: 12 }}>{DAYS[dd.getDay()]}</Text>
-            <Text style={{ color: on ? C.onAccent : C.text, fontWeight: '700' }}>{dd.getDate()}</Text>
-          </Pressable>); })}
-      </ScrollView>
-      {!!note && <Card><T>📌 {note}</T></Card>}
-
-      {slots.length === 0 && <T mute>Δεν υπάρχουν διαθέσιμες ώρες.</T>}
-      {slots.map((sl) => {
-        const b = myAt(sl.time), w = waitAt(sl.time);
-        return (
-          <Card key={sl.time} style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: C.text, fontSize: 18, fontWeight: '700' }}>{sl.time}</Text>
-              <T mute>{b ? 'Έχεις κράτηση ✅' : w ? 'Σε λίστα ενδιαφέροντος 🙋' : sl.free > 0 ? (sl.capacity > 1 ? `${sl.free}/${sl.capacity} ελεύθερες` : 'Ελεύθερο') : 'Γεμάτο'}</T>
+        <View style={[s.pad, { paddingTop: 0, paddingBottom: 0, gap: 12 }]}>
+          {/* Λογότυπο, όνομα, κατηγορία */}
+          <View style={{ marginTop: -44, width: 84, height: 84, borderRadius: 26, backgroundColor: C.card, padding: 4, marginLeft: 6, ...shadow(2) }}>
+            {biz.logo_url
+              ? <Image source={{ uri: biz.logo_url }} style={{ width: '100%', height: '100%', borderRadius: 22 }} />
+              : <View style={{ flex: 1, borderRadius: 22, backgroundColor: alpha(brand, 0.14), alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: brand, fontWeight: '900', fontSize: 34 }}>{biz.name.slice(0, 1)}</Text>
+                </View>}
+          </View>
+          <View style={{ gap: 8 }}>
+            <Text style={{ color: C.text, fontSize: 28, fontWeight: '900', letterSpacing: -0.8 }}>{biz.name}</Text>
+            <View style={s.row}>
+              <Pill text={catLabel(biz.category)} color={brand} />
+              {!!biz.city && <Pill text={biz.city} />}
             </View>
-            {b ? <Btn kind="danger" title="Ακύρωση" disabled={busy === sl.time} onPress={() => act(sl.time, () => rpc('cancel_booking', { p_booking: b.id }), 'Η κράτηση ακυρώθηκε')} />
-              : w ? <Btn kind="ghost" title="Απόσυρση" disabled={busy === sl.time} onPress={() => act(sl.time, () => rpc('leave_waitlist', { p_service: service!.id, p_date: date, p_time: sl.time + ':00' }), 'Η δήλωση αποσύρθηκε')} />
-              : sl.free > 0 ? <Btn title="Κράτηση" style={brandBtn} disabled={busy === sl.time} onPress={() => book(sl.time)} />
-              : <Btn kind="ghost" title="Δήλωση ενδιαφέροντος" disabled={busy === sl.time} onPress={() => wait(sl.time)} />}
-          </Card>
-        );
-      })}
-    </ScrollView>
+            {!!biz.description && <T mute style={{ fontSize: 15, lineHeight: 22, marginTop: 2 }}>{biz.description}</T>}
+          </View>
+
+          {!!(biz.address || biz.phone) && (
+            <Group>
+              {!!biz.address && <Row icon="pin" color={brand} title={biz.address} sub={biz.city} last={!biz.phone} />}
+              {!!biz.phone && <Row icon="phone" color={brand} title={biz.phone} sub="Τηλέφωνο" last />}
+            </Group>
+          )}
+
+          {/* 1. Υπηρεσία */}
+          <Section title="Υπηρεσία" />
+          <Group>
+            {services.map((sv, i) => {
+              const on = service?.id === sv.id;
+              return (
+                <Pressable key={sv.id} onPress={() => setService(sv)}
+                  style={({ pressed }) => [s.row, { gap: 14, padding: 14, backgroundColor: on ? alpha(brand, 0.07) : pressed ? C.soft : 'transparent' },
+                    i < services.length - 1 && { borderBottomWidth: 1, borderBottomColor: C.line }]}>
+                  <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: on ? brand : C.line, alignItems: 'center', justifyContent: 'center' }}>
+                    {on && <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: brand }} />}
+                  </View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={{ color: C.text, fontWeight: '700', fontSize: 16 }}>{sv.name}</Text>
+                    <View style={[s.row, { gap: 5 }]}>
+                      <Icon name="clock" size={13} color={C.mute} />
+                      <Text style={{ color: C.mute, fontSize: 13 }}>{sv.duration_min} λεπτά{sv.capacity > 1 ? ` · ομαδικό έως ${sv.capacity}` : ''}</Text>
+                    </View>
+                  </View>
+                  {sv.price_cents != null && <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }}>{price(sv.price_cents)}</Text>}
+                </Pressable>
+              );
+            })}
+          </Group>
+
+          {/* 2. Μέρα */}
+          <Section title="Μέρα" />
+          <DayStrip days={days} value={date} onChange={setDate} color={brand} />
+          {!!note && (
+            <View style={[s.row, { backgroundColor: alpha(brand, 0.08), borderRadius: 14, padding: 12, gap: 10 }]}>
+              <Text style={{ fontSize: 16 }}>📌</Text><T style={{ flex: 1 }}>{note}</T>
+            </View>
+          )}
+
+          {/* 3. Ώρα */}
+          <Section title="Ώρα" sub={date === today ? 'Σήμερα' : fmtLong(date)} />
+          {slots.length === 0
+            ? <Empty emoji="🗓️" title="Δεν υπάρχουν ώρες" text="Διάλεξε άλλη μέρα για να δεις διαθεσιμότητα." />
+            : <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                {slots.map((sl) => {
+                  const st = state(sl), on = pick === sl.time;
+                  const bg = st === 'mine' ? brand : st === 'full' ? C.soft : on ? alpha(brand, 0.1) : C.card;
+                  const bc = st === 'mine' ? brand : on ? brand : st === 'full' ? C.soft : st === 'wait' ? brand : C.line;
+                  const tc = st === 'mine' ? fg : st === 'full' ? C.mute : C.text;
+                  const sub = st === 'mine' ? 'Δική σου ✓' : st === 'wait' ? 'Σε αναμονή' : st === 'full' ? 'Γεμάτο'
+                    : sl.capacity > 1 ? `${sl.free} ${sl.free === 1 ? 'θέση' : 'θέσεις'}` : 'Ελεύθερο';
+                  return (
+                    <Pressable key={sl.time} onPress={() => setPick(on ? null : sl.time)}
+                      style={({ pressed }) => [{ width: '31.5%', flexGrow: 0, paddingVertical: 12, borderRadius: 16, alignItems: 'center', gap: 2,
+                        backgroundColor: bg, borderColor: bc, borderWidth: on ? 2 : 1, borderStyle: st === 'wait' ? 'dashed' : 'solid',
+                        transform: [{ scale: pressed ? 0.96 : 1 }] }, st === 'free' && !on && shadow(1)]}>
+                      <Text style={{ color: tc, fontWeight: '800', fontSize: 18, letterSpacing: -0.3, textDecorationLine: st === 'full' ? 'line-through' : 'none' }}>{sl.time}</Text>
+                      <Text style={{ color: st === 'mine' ? fg : st === 'free' ? C.ok : st === 'wait' ? brand : C.mute, fontSize: 11, fontWeight: '700' }}>{sub}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>}
+        </View>
+      </ScrollView>
+
+      {/* Μπάρα ενέργειας για την επιλεγμένη ώρα */}
+      {picked && (
+        <View style={{ position: 'absolute', left: 12, right: 12, bottom: 12, backgroundColor: C.card, borderRadius: 24, padding: 16, gap: 12,
+          borderWidth: 1, borderColor: C.line, ...shadow(3) }}>
+          <View style={[s.row, { gap: 12 }]}>
+            <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: alpha(brand, 0.12), alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ color: brand, fontWeight: '900', fontSize: 15 }}>{picked.time}</Text>
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{service?.name}</Text>
+              <Text style={{ color: C.mute, fontSize: 13 }}>
+                {fmtLong(date)} · {pState === 'mine' ? 'έχεις κράτηση' : pState === 'wait' ? 'είσαι σε λίστα ενδιαφέροντος' : pState === 'full' ? 'γεμάτο — μπες σε λίστα ενδιαφέροντος' : `${service?.duration_min} λεπτά`}
+              </Text>
+            </View>
+            {pState === 'free' && service?.price_cents != null && <Text style={{ color: C.text, fontWeight: '900', fontSize: 18 }}>{price(service.price_cents)}</Text>}
+            <Pressable onPress={() => setPick(null)} hitSlop={10}><Icon name="close" size={18} color={C.mute} /></Pressable>
+          </View>
+          {action}
+        </View>
+      )}
+    </View>
   );
 }
