@@ -2,6 +2,7 @@ import { say, promptText } from '../../../lib/alert';
 import { useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { isDemo, setDemo } from '../../../lib/demo';
 import { sb } from '../../../lib/supabase';
 import { useAuth } from '../../../lib/auth';
 import { Btn, H, Input, T, s } from '../../../lib/ui';
@@ -18,6 +19,7 @@ export default function Profile() {
   };
   return (
     <ScrollView style={s.screen} contentContainerStyle={s.pad}>
+      {isDemo() && <T mute>👀 Βρίσκεσαι στο demo — τα δεδομένα είναι δοκιμαστικά και χάνονται όταν βγεις.</T>}
       <H>Τα στοιχεία μου</H>
       <T mute>Τα βλέπει η επιχείρηση όταν κλείνεις θέση.</T>
       <Input placeholder="Όνομα" value={p.first_name} onChangeText={(v) => setP({ ...p, first_name: v })} />
@@ -27,7 +29,7 @@ export default function Profile() {
       <H>Για επιχειρήσεις</H>
       <T mute>Στήσε το κατάστημά σου: χρώμα, ωράριο, υπηρεσίες και κρατήσεις.</T>
       <Btn kind="ghost" title="🏪 Η επιχείρησή μου" onPress={() => router.push('/owner')} />
-      <Btn kind="ghost" title="Αποσύνδεση" onPress={() => sb.auth.signOut()} />
+      <Btn kind="ghost" title={isDemo() ? 'Έξοδος από το demo' : 'Αποσύνδεση'} onPress={async () => { await sb.auth.signOut(); setDemo(false); }} />
     </ScrollView>
   );
 }

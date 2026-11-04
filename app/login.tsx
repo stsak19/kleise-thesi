@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Text, View } from 'react-native';
 import { sb } from '../lib/supabase';
+import { demoSession, setDemo } from '../lib/demo';
 import { Btn, C, H, Input, s, T } from '../lib/ui';
 
 /* Σύνδεση με email + κωδικό (χωρίς email επιβεβαίωσης για τις δοκιμές).
@@ -44,6 +45,13 @@ export default function Login() {
         <Btn title={mode === 'in' ? 'Σύνδεση' : 'Δημιουργία λογαριασμού'} onPress={go} disabled={busy} />
         <Btn kind="ghost" title={mode === 'in' ? 'Νέος χρήστης; Φτιάξε λογαριασμό' : 'Έχω ήδη λογαριασμό'}
           onPress={() => { setMode(mode === 'in' ? 'up' : 'in'); setErr(''); }} />
+        <Btn kind="ghost" title="👀 Δες το demo (χωρίς λογαριασμό)" disabled={busy} onPress={async () => {
+          setBusy(true); setDemo(true);
+          const s = demoSession();
+          const { error } = await sb.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
+          setBusy(false);
+          if (error) { setDemo(false); setErr('Δεν άνοιξε το demo'); }
+        }} />
       </View>
     </KeyboardAvoidingView>
   );
