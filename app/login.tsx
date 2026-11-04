@@ -36,7 +36,7 @@ export default function Login() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.screen, { justifyContent: 'center' }]}>
       <View style={s.pad}>
         <Text style={{ fontSize: 40 }}>📅</Text>
-        <H>Κλείσε Θέση</H>
+        <H>SpotOn</H>
         <T mute>Γυμναστήρια, κομμωτήρια, νυχάδικα, personal και ό,τι θέλει ραντεβού — σε όλη την Ελλάδα.</T>
         <Input placeholder="Email" autoCapitalize="none" keyboardType="email-address" value={email} onChangeText={setEmail} />
         <Input placeholder="Κωδικός" secureTextEntry value={pass} onChangeText={setPass} />

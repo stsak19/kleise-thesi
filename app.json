@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Κλείσε Θέση",
+    "name": "SpotOn",
     "slug": "kleise-thesi",
     "scheme": "kleisethesi",
     "version": "1.0.0",
@@ -29,7 +29,7 @@
       "output": "single",
       "bundler": "metro",
       "favicon": "./assets/favicon.png",
-      "name": "Κλείσε Θέση"
+      "name": "SpotOn"
     },
     "experiments": {
       "baseUrl": "/kleise-thesi"

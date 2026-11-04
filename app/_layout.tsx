@@ -18,7 +18,7 @@ function Gate() {
   if (session && seg[0] === 'login') return <Redirect href="/" />;
   return (
     <Stack screenOptions={{ headerStyle: { backgroundColor: C.bg }, headerTintColor: C.text, contentStyle: { backgroundColor: C.bg } }}>
-      <Stack.Screen name="index" options={{ title: 'Κλείσε Θέση' }} />
+      <Stack.Screen name="index" options={{ title: 'SpotOn' }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="business/[id]" options={{ title: '' }} />
       <Stack.Screen name="bookings" options={{ title: 'Οι κρατήσεις μου' }} />
