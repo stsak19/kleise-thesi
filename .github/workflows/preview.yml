@@ -4,6 +4,9 @@ on:
   push:
     branches: [ui-redesign]
 
+permissions:
+  contents: write
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -14,5 +17,10 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npx expo export --platform web --output-dir web
-      - uses: actions/upload-artifact@v4
-        with: { name: web-preview, path: web, retention-days: 3 }
+      - name: Build σε branch για προεπισκόπηση
+        run: |
+          cd web
+          git init -q -b ui-preview-build
+          git -c user.name=ci -c user.email=ci@local add -A
+          git -c user.name=ci -c user.email=ci@local commit -qm preview
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ui-preview-build
