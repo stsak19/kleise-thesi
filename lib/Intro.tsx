@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Btn, C } from './ui';
-import { SCENES } from './IntroScenes';
+import { H as SH, SCENES, W as SW } from './IntroScenes';
 
 /* Ξενάγηση με κίνηση που εμφανίζεται μόνο την πρώτη φορά που ανοίγει η εφαρμογή.
    Swipe ή κουμπιά για αλλαγή βήματος· κάθε βήμα έχει δικό του κινούμενο «φιλμάκι» (lib/IntroScenes.tsx). */
@@ -34,6 +34,9 @@ export default function Intro({ onDone }: { onDone: () => void }) {
     Animated.timing(txt, { toValue: 1, duration: 550, delay: 120, easing: Easing.out(Easing.cubic), useNativeDriver: ND }).start();
   }, [i]);
 
+  // Ύψος της περιοχής των σκηνών: η σκηνή μικραίνει αν δεν χωράει μαζί με το κείμενο.
+  const [ph, setPh] = useState(600);
+  const sc = Math.max(0.55, Math.min(1, (ph - (W < 360 ? 250 : 190)) / SH));
   const go = (k: number) => { setI(k); scroller.current?.scrollTo({ x: k * W, animated: true }); };
   const onScroll = Animated.event([{ nativeEvent: { contentOffset: { x } } }], {
     useNativeDriver: false,
@@ -47,18 +50,23 @@ export default function Intro({ onDone }: { onDone: () => void }) {
       </View>
 
       <Animated.ScrollView ref={scroller} horizontal pagingEnabled showsHorizontalScrollIndicator={false}
-        onScroll={onScroll} scrollEventThrottle={16} style={{ flex: 1 }}>
+        onScroll={onScroll} scrollEventThrottle={16} style={{ flex: 1 }}
+        onLayout={(e) => setPh(e.nativeEvent.layout.height)}>
         {STEPS.map((st, k) => {
           const r = [(k - 1) * W, k * W, (k + 1) * W];
           return (
-            <View key={k} style={{ width: W, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, gap: 22 }}>
+            <View key={k} style={{ width: W, height: ph, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, paddingTop: 12 * sc, gap: 22 * sc }}>
               <Animated.View style={{
                 opacity: x.interpolate({ inputRange: r, outputRange: [0, 1, 0], extrapolate: 'clamp' }),
                 transform: [
                   { translateX: x.interpolate({ inputRange: r, outputRange: [W * 0.4, 0, -W * 0.4], extrapolate: 'clamp' }) },
                   { scale: x.interpolate({ inputRange: r, outputRange: [0.6, 1, 0.6], extrapolate: 'clamp' }) },
                 ] }}>
-                {(() => { const Scene = SCENES[k]; return <Scene active={k === i} />; })()}
+                <View style={{ width: SW * sc, height: SH * sc, alignItems: 'center', justifyContent: 'center' }}>
+                  <View style={{ transform: [{ scale: sc }] }}>
+                    {(() => { const Scene = SCENES[k]; return <Scene active={k === i} />; })()}
+                  </View>
+                </View>
               </Animated.View>
               <Animated.View style={{ alignItems: 'center', gap: 10,
                 opacity: k === i ? txt : 0,
