@@ -183,9 +183,13 @@ export function Row({ icon, title, sub, onPress, right, danger, color, last }:
 export const Group = ({ children }: { children: React.ReactNode }) =>
   <View style={[s.card, shadow(1), { padding: 0, gap: 0, overflow: 'hidden' }]}>{children}</View>;
 
+/* Διακόπτης στο χρώμα της εφαρμογής (και στον browser). */
+export const Toggle = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
+  <Switch value={value} onValueChange={onChange} trackColor={{ true: C.accent, false: C.line }} thumbColor="#ffffff"
+    {...({ activeThumbColor: '#ffffff', activeTrackColor: C.accent } as any)} />
+);
 export const SwitchRow = ({ label, sub, value, onChange, last }: { label: string; sub?: string; value: boolean; onChange: (v: boolean) => void; last?: boolean }) => (
-  <Row title={label} sub={sub} last={last} right={<Switch value={value} onValueChange={onChange}
-    trackColor={{ true: C.accent, false: C.line }} thumbColor="#ffffff" {...({ activeThumbColor: '#ffffff' } as any)} />} />
+  <Row title={label} sub={sub} last={last} right={<Toggle value={value} onChange={onChange} />} />
 );
 
 /* Άδεια κατάσταση: εικονίδιο, τίτλος, κείμενο, προαιρετικό κουμπί. */
@@ -205,7 +209,7 @@ export function DayStrip({ days, value, onChange, color }: { days: string[]; val
   const c = color ?? C.accent;
   const today = iso(new Date());
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingVertical: 4 }} style={{ marginHorizontal: -20 }}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingTop: 4, paddingBottom: 14 }} style={{ marginHorizontal: -20, marginBottom: -10 }}>
       {days.map((d) => {
         const dd = new Date(d + 'T00:00'), on = d === value;
         return (

@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C, Icon, alpha } from '../../lib/ui';
 import type { IconName } from '../../lib/Icon';
 
@@ -13,10 +14,11 @@ const icon = (name: IconName) => ({ focused }: { focused: boolean }) => (
 );
 
 export default function TabsLayout() {
+  const bottom = useSafeAreaInsets().bottom;
   return (
     <Tabs screenOptions={{
       headerShown: false, tabBarActiveTintColor: C.accent, tabBarInactiveTintColor: C.mute,
-      tabBarStyle: { backgroundColor: C.card, borderTopColor: C.line, boxShadow: `0px -4px 20px ${alpha(C.text, 0.05)}` },
+      tabBarStyle: { backgroundColor: C.card, borderTopColor: C.line, height: 64 + bottom, paddingTop: 8, paddingBottom: bottom + 8, boxShadow: `0px -4px 20px ${alpha(C.text, 0.05)}` },
       tabBarLabelStyle: { fontWeight: '700', fontSize: 11, marginTop: 2 },
     }}>
       <Tabs.Screen name="(search)" options={{ title: 'Αναζήτηση', tabBarIcon: icon('search') }} />

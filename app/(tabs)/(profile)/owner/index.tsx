@@ -117,12 +117,12 @@ export default function Owner() {
         <Stat n={Object.keys(byTime).length} label="Ώρες" />
       </View>
 
-      <Card flat style={{ gap: 10 }}>
-        <View style={{ flexDirection: 'row', backgroundColor: alpha(C.text, 0.05), borderRadius: 14, padding: 4 }}>
+      <Card style={{ gap: 10 }}>
+        <View style={{ flexDirection: 'row', backgroundColor: C.soft, borderRadius: 14, padding: 4 }}>
           <Seg on={!closed} label="Ανοιχτά" color={C.ok} onPress={() => toggleClosed(false)} />
           <Seg on={closed} label="Κλειστά" color={C.bad} onPress={() => toggleClosed(true)} />
         </View>
-        <Input placeholder="Σημείωμα ημέρας για τους πελάτες" value={note} onChangeText={setNote} onEndEditing={() => toggleClosed(closed)} style={{ backgroundColor: 'transparent' }} />
+        <Input placeholder="Σημείωμα ημέρας για τους πελάτες" value={note} onChangeText={setNote} onEndEditing={() => toggleClosed(closed)} />
       </Card>
 
       {day.length === 0 && <Empty emoji="☕" title="Καμία κράτηση" text="Δεν έχει κλείσει κανείς θέση αυτή τη μέρα." />}

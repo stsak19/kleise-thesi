@@ -5,7 +5,7 @@ import { pickAndUpload } from '../../../../lib/upload';
 import { useRouter } from 'expo-router';
 import { sb } from '../../../../lib/supabase';
 import { useAuth } from '../../../../lib/auth';
-import { Btn, C, CATEGORIES, Card, Chip, DAYS, Group, Icon, Input, Section, SwitchRow, T, TextBtn, alpha, catEmoji, onColor, s, shadow } from '../../../../lib/ui';
+import { Btn, C, CATEGORIES, Card, Chip, DAYS, Group, Icon, Input, Section, SwitchRow, T, TextBtn, Toggle, alpha, catEmoji, onColor, s, shadow } from '../../../../lib/ui';
 
 type Svc = { key: string; id?: string; name: string; duration_min: string; price: string; capacity: string };
 /* svc: null = γενικό ωράριο, αλλιώς το key της υπηρεσίας. Πολλά διαστήματα την ίδια μέρα = διάλειμμα. */
@@ -202,7 +202,7 @@ export default function Setup() {
                   <Text style={{ color: C.text, fontWeight: '700', fontSize: 15 }}>{DAYNAME[d]}</Text>
                   <Text style={{ color: rows.length ? C.ok : C.mute, fontSize: 12, fontWeight: '600' }}>{rows.length ? (rows.length > 1 ? 'Ανοιχτά, με διάλειμμα' : 'Ανοιχτά') : 'Κλειστά'}</Text>
                 </View>
-                <Switch value={rows.length > 0} onValueChange={() => toggleDay(d)} trackColor={{ true: C.accent, false: C.line }} thumbColor="#ffffff" />
+                <Toggle value={rows.length > 0} onChange={() => toggleDay(d)} />
               </View>
               {rows.sort((a, z) => a.h.opens.localeCompare(z.h.opens)).map(({ h, i }) => (
                 <View key={i} style={[s.row, { gap: 8 }]}>
@@ -222,8 +222,8 @@ export default function Setup() {
       <Section title="Κανόνες κρατήσεων" />
       <Card style={{ gap: 14 }}>
         <View style={[s.row, { gap: 10 }]}>
-          <View style={{ flex: 1 }}><Input label="Μέρες μπροστά" keyboardType="number-pad" value={String(b.max_days_ahead)} onChangeText={(v) => setB({ ...b, max_days_ahead: v })} /></View>
-          <View style={{ flex: 1 }}><Input label="Ακύρωση έως (λεπτά πριν)" keyboardType="number-pad" value={String(b.cancel_before_min)} onChangeText={(v) => setB({ ...b, cancel_before_min: v })} /></View>
+          <View style={{ flex: 1 }}><Input label="Κρατήσεις (μέρες μπροστά)" keyboardType="number-pad" value={String(b.max_days_ahead)} onChangeText={(v) => setB({ ...b, max_days_ahead: v })} /></View>
+          <View style={{ flex: 1 }}><Input label="Ακύρωση (λεπτά πριν)" keyboardType="number-pad" value={String(b.cancel_before_min)} onChangeText={(v) => setB({ ...b, cancel_before_min: v })} /></View>
         </View>
         {b.uses_credits && <Input label="Διάρκεια πακέτου (μέρες)" keyboardType="number-pad" value={String(b.package_days)} onChangeText={(v) => setB({ ...b, package_days: v })} />}
       </Card>
