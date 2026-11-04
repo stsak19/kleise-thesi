@@ -19,8 +19,6 @@ export default function Business() {
   const [mine, setMine] = useState<any>({ bookings: [], waitlist: [] });
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [pick, setPick] = useState<string | null>(null); // επιλεγμένη ώρα
-  useEffect(() => setPick(null), [service, date]);
 
   useEffect(() => {
     (async () => {
@@ -94,22 +92,11 @@ export default function Business() {
 
   // Κατάσταση κάθε ώρας για το πλέγμα και για την μπάρα ενέργειας.
   const state = (sl: Slot) => (myAt(sl.time) ? 'mine' : waitAt(sl.time) ? 'wait' : sl.free > 0 ? 'free' : 'full');
-  const picked = slots.find((x) => x.time === pick);
-  const pState = picked ? state(picked) : null;
-  const pB = picked ? myAt(picked.time) : null;
-
-  const action = !picked ? null
-    : pState === 'mine' ? <Btn kind="danger" title="Ακύρωση κράτησης" disabled={busy === picked.time}
-        onPress={() => act(picked.time, () => rpc('cancel_booking', { p_booking: pB.id }), 'Η κράτηση ακυρώθηκε')} />
-    : pState === 'wait' ? <Btn kind="ghost" title="Απόσυρση από τη λίστα" disabled={busy === picked.time}
-        onPress={() => act(picked.time, () => rpc('leave_waitlist', { p_service: service!.id, p_date: date, p_time: picked.time + ':00' }), 'Η δήλωση αποσύρθηκε')} />
-    : pState === 'free' ? <Btn title={`Κράτηση · ${picked.time}`} color={brand} disabled={busy === picked.time} onPress={() => book(picked.time)} />
-    : <Btn kind="tint" color={brand} title="🙋 Δήλωση ενδιαφέροντος" disabled={busy === picked.time} onPress={() => wait(picked.time)} />;
 
   return (
     <View style={s.screen}>
       <Stack.Screen options={{ title: '' }} />
-      <ScrollView contentContainerStyle={{ paddingBottom: picked ? 170 : 40 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Εξώφυλλο */}
         <View style={{ height: 180, backgroundColor: brand, marginHorizontal: 12, borderRadius: 26, overflow: 'hidden' }}>
           {biz.cover_url
@@ -184,48 +171,48 @@ export default function Business() {
           <Section title="Ώρα" sub={date === today ? 'Σήμερα' : fmtLong(date)} />
           {slots.length === 0
             ? <Empty emoji="🗓️" title="Δεν υπάρχουν ώρες" text="Διάλεξε άλλη μέρα για να δεις διαθεσιμότητα." />
-            : <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-                {slots.map((sl) => {
-                  const st = state(sl), on = pick === sl.time;
-                  const bg = st === 'mine' ? brand : st === 'full' ? C.soft : on ? alpha(brand, 0.1) : C.card;
-                  const bc = st === 'mine' ? brand : on ? brand : st === 'full' ? C.soft : st === 'wait' ? brand : C.line;
-                  const tc = st === 'mine' ? fg : st === 'full' ? C.mute : C.text;
-                  const sub = st === 'mine' ? 'Δική σου ✓' : st === 'wait' ? 'Σε αναμονή' : st === 'full' ? 'Γεμάτο'
-                    : sl.capacity > 1 ? `${sl.free} ${sl.free === 1 ? 'θέση' : 'θέσεις'}` : 'Ελεύθερο';
+            : <Group>
+                {slots.map((sl, i) => {
+                  const st = state(sl), dis = busy === sl.time;
+                  const used = sl.capacity - sl.free, pct = Math.min(1, used / Math.max(1, sl.capacity));
+                  const end = (() => { const [h, m] = sl.time.split(':').map(Number); const e = h * 60 + m + (service?.duration_min ?? 0); return `${String(Math.floor(e / 60) % 24).padStart(2, '0')}:${String(e % 60).padStart(2, '0')}`; })();
+                  const status = st === 'mine' ? 'Η κράτησή σου ✓' : st === 'wait' ? 'Σε λίστα ενδιαφέροντος' : st === 'full' ? 'Γεμάτο'
+                    : sl.capacity > 1 ? `${sl.free} ${sl.free === 1 ? 'ελεύθερη θέση' : 'ελεύθερες θέσεις'}` : 'Ελεύθερο';
+                  const barColor = st === 'mine' ? brand : st === 'full' ? C.bad : pct >= 0.75 ? '#f59e0b' : C.ok;
+                  const btn = st === 'mine'
+                    ? <Btn size="sm" kind="danger" title="Ακύρωση" disabled={dis} onPress={() => act(sl.time, () => rpc('cancel_booking', { p_booking: myAt(sl.time).id }), 'Η κράτηση ακυρώθηκε')} />
+                    : st === 'wait'
+                    ? <Btn size="sm" kind="ghost" title="Απόσυρση" disabled={dis} onPress={() => act(sl.time, () => rpc('leave_waitlist', { p_service: service!.id, p_date: date, p_time: sl.time + ':00' }), 'Η δήλωση αποσύρθηκε')} />
+                    : st === 'free'
+                    ? <Btn size="sm" title="Κράτηση" color={brand} disabled={dis} onPress={() => book(sl.time)} />
+                    : <Btn size="sm" kind="tint" color={brand} title="🙋 Αναμονή" disabled={dis} onPress={() => wait(sl.time)} />;
                   return (
-                    <Pressable key={sl.time} onPress={() => setPick(on ? null : sl.time)}
-                      style={({ pressed }) => [{ width: '31.5%', flexGrow: 0, paddingVertical: 12, borderRadius: 16, alignItems: 'center', gap: 2,
-                        backgroundColor: bg, borderColor: bc, borderWidth: on ? 2 : 1, borderStyle: st === 'wait' ? 'dashed' : 'solid',
-                        transform: [{ scale: pressed ? 0.96 : 1 }] }, st === 'free' && !on && shadow(1)]}>
-                      <Text style={{ color: tc, fontWeight: '800', fontSize: 18, letterSpacing: -0.3, textDecorationLine: st === 'full' ? 'line-through' : 'none' }}>{sl.time}</Text>
-                      <Text style={{ color: st === 'mine' ? fg : st === 'free' ? C.ok : st === 'wait' ? brand : C.mute, fontSize: 11, fontWeight: '700' }}>{sub}</Text>
-                    </Pressable>
+                    <View key={sl.time} style={[s.row, { gap: 14, paddingVertical: 12, paddingHorizontal: 14,
+                      backgroundColor: st === 'mine' ? alpha(brand, 0.08) : 'transparent' },
+                      i < slots.length - 1 && { borderBottomWidth: 1, borderBottomColor: alpha(C.text, 0.08) }]}>
+                      <View style={{ width: 62 }}>
+                        <Text style={{ color: st === 'full' ? C.mute : C.text, fontWeight: '900', fontSize: 19, letterSpacing: -0.4 }}>{sl.time}</Text>
+                        <Text style={{ color: C.mute, fontSize: 11 }}>έως {end}</Text>
+                      </View>
+                      <View style={{ flex: 1, gap: 6 }}>
+                        <View style={[s.row, { justifyContent: 'space-between' }]}>
+                          <Text style={{ color: st === 'mine' || st === 'wait' ? brand : st === 'full' ? C.bad : C.text, fontSize: 13, fontWeight: '700' }} numberOfLines={1}>{status}</Text>
+                          {sl.capacity > 1 && <Text style={{ color: C.mute, fontSize: 12, fontWeight: '700' }}>{used}/{sl.capacity}</Text>}
+                        </View>
+                        {sl.capacity > 1 && (
+                          <View style={{ height: 6, borderRadius: 3, backgroundColor: alpha(C.text, 0.08), overflow: 'hidden' }}>
+                            <View style={{ width: `${pct * 100}%`, height: '100%', borderRadius: 3, backgroundColor: barColor }} />
+                          </View>
+                        )}
+                      </View>
+                      {btn}
+                    </View>
                   );
                 })}
-              </View>}
+              </Group>}
         </View>
       </ScrollView>
 
-      {/* Μπάρα ενέργειας για την επιλεγμένη ώρα */}
-      {picked && (
-        <View style={{ position: 'absolute', left: 12, right: 12, bottom: 12, backgroundColor: C.card, borderRadius: 24, padding: 16, gap: 12,
-          borderWidth: 1, borderColor: C.line, ...shadow(3) }}>
-          <View style={[s.row, { gap: 12 }]}>
-            <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: alpha(brand, 0.12), alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: brand, fontWeight: '900', fontSize: 15 }}>{picked.time}</Text>
-            </View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{service?.name}</Text>
-              <Text style={{ color: C.mute, fontSize: 13 }}>
-                {fmtLong(date)} · {pState === 'mine' ? 'έχεις κράτηση' : pState === 'wait' ? 'είσαι σε λίστα ενδιαφέροντος' : pState === 'full' ? 'γεμάτο — μπες σε λίστα ενδιαφέροντος' : `${service?.duration_min} λεπτά`}
-              </Text>
-            </View>
-            {pState === 'free' && service?.price_cents != null && <Text style={{ color: C.text, fontWeight: '900', fontSize: 18 }}>{price(service.price_cents)}</Text>}
-            <Pressable onPress={() => setPick(null)} hitSlop={10}><Icon name="close" size={18} color={C.mute} /></Pressable>
-          </View>
-          {action}
-        </View>
-      )}
     </View>
   );
 }
