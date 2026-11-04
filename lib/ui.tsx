@@ -27,11 +27,12 @@ export const fmtDay = (s: string) => { const d = new Date(s + 'T00:00'); return 
 
 export function Btn({ title, onPress, kind = 'primary', disabled, style }:
   { title: string; onPress: () => void; kind?: 'primary' | 'ghost' | 'danger'; disabled?: boolean; style?: ViewStyle }) {
-  const bg = kind === 'primary' ? C.accent : 'transparent';
-  const color = kind === 'danger' ? C.bad : kind === 'ghost' ? C.text : C.onAccent;
+  const bg = kind === 'primary' ? C.btn : C.btn2;
+  const color = kind === 'danger' ? C.bad : kind === 'ghost' ? C.btn2Text : C.btnText;
+  const border = kind === 'primary' ? C.btn : kind === 'danger' ? C.bad : C.btn2Line;
   return (
     <Pressable onPress={onPress} disabled={disabled}
-      style={[s.btn, { backgroundColor: bg, borderColor: kind === 'primary' ? C.accent : C.line, opacity: disabled ? 0.5 : 1 }, style]}>
+      style={[s.btn, { backgroundColor: bg, borderColor: border, opacity: disabled ? 0.5 : 1 }, style]}>
       <Text style={{ color, fontWeight: '700' }}>{title}</Text>
     </Pressable>
   );

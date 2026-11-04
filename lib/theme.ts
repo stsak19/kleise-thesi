@@ -3,12 +3,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 /* Τα χρώματα της εφαρμογής. Αλλάζουν live από τον επεξεργαστή χρωμάτων (🎨). */
 export const DEFAULT = {
   bg: '#ffffff', card: '#f5f5f7', line: '#e3e3e8', text: '#16161a', mute: '#6e6e78',
-  accent: '#ff7a59', onAccent: '#ffffff', ok: '#1fa971', bad: '#e5484d',
+  accent: '#ff7a59', onAccent: '#ffffff',
+  btn: '#ff7a59', btnText: '#ffffff', btn2: '#ffffff', btn2Text: '#16161a', btn2Line: '#e3e3e8',
+  ok: '#1fa971', bad: '#e5484d',
 };
 export type Theme = typeof DEFAULT;
 export const LABELS: Record<keyof Theme, string> = {
   bg: 'Φόντο', card: 'Κάρτες / πεδία', line: 'Περιγράμματα', text: 'Κείμενο', mute: 'Δευτερεύον κείμενο',
-  accent: 'Κύριο χρώμα', onAccent: 'Κείμενο πάνω στο κύριο', ok: 'Επιτυχία', bad: 'Σφάλμα',
+  accent: 'Κύριο χρώμα', onAccent: 'Κείμενο πάνω στο κύριο',
+  btn: 'Κύριο κουμπί', btnText: 'Κείμενο κύριου κουμπιού', btn2: 'Δευτερεύον κουμπί', btn2Text: 'Κείμενο δευτερεύοντος κουμπιού', btn2Line: 'Περίγραμμα δευτερεύοντος κουμπιού', ok: 'Επιτυχία', bad: 'Σφάλμα',
 };
 export const C: Theme = { ...DEFAULT };
 
@@ -23,7 +26,7 @@ export function setColors(p: Partial<Theme>) {
 }
 export const resetColors = () => setColors(DEFAULT);
 export async function loadTheme() {
-  try { const v = await AsyncStorage.getItem(KEY); if (v) { Object.assign(C, JSON.parse(v)); emit(); } } catch {}
+  try { const v = await AsyncStorage.getItem(KEY); if (v) { Object.assign(C, DEFAULT, JSON.parse(v)); emit(); } } catch {}
 }
 export const isDark = () => {
   const h = C.bg.replace('#', ''); if (h.length < 6) return false;
