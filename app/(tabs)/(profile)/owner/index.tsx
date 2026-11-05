@@ -41,7 +41,7 @@ export default function Owner() {
     <View style={[s.screen, s.pad, { justifyContent: 'center' }]}>
       <Card style={{ padding: 4 }}>
         <Empty emoji="🏪" title="Έχεις επιχείρηση;" text="Γράψε την επιχείρησή σου και οι πελάτες σου θα κλείνουν θέση από την εφαρμογή." />
-        <View style={{ padding: 12, paddingTop: 0 }}><Btn title="Δημιουργία επιχείρησης" onPress={() => router.push('/owner/setup')} /></View>
+        <View style={{ padding: 12, paddingTop: 0 }}><Btn title="Δημιουργία επιχείρησης" onPress={() => router.push('/new-business')} /></View>
       </Card>
     </View>
   );

@@ -5,76 +5,37 @@ import { pickAndUpload } from '../../../../lib/upload';
 import { useRouter } from 'expo-router';
 import { sb } from '../../../../lib/supabase';
 import { useAuth } from '../../../../lib/auth';
-import { LAYOUTS, presetFor, styleOf } from '../../../../lib/presets';
+import { LAYOUTS, styleOf } from '../../../../lib/presets';
+import { DAYNAME, EMPTY_BIZ, HEX, Hours, Slot, Svc, WEEK, badHours, loadBusiness, newKey, presetData, saveBusiness } from '../../../../lib/owner/save';
 import { Btn, C, CATEGORIES, catLabel, Card, Chip, DAYS, Group, Icon, Input, Section, SwitchRow, T, TextBtn, Toggle, alpha, catEmoji, onColor, s, shadow } from '../../../../lib/ui';
-
-type Svc = { key: string; id?: string; name: string; duration_min: string; price: string; capacity: string };
-/* svc: null = γενικό ωράριο, αλλιώς το key της υπηρεσίας. Πολλά διαστήματα την ίδια μέρα = διάλειμμα. */
-type Slot = { weekday: number; opens: string; closes: string; svc: string | null };
-type Hours = Slot[];
-const newKey = () => Math.random().toString(36).slice(2);
-const WEEK = [1, 2, 3, 4, 5, 6, 0];
-const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
-
-const HEX = /^#[0-9a-fA-F]{6}$/;
 
 const DEFAULT_HOURS: Hours = [1, 2, 3, 4, 5].map((d) => ({ weekday: d, opens: '09:00', closes: '21:00', svc: null }));
 
 export default function Setup() {
   const router = useRouter();
   const { session } = useAuth();
-  const [b, setB] = useState<any>({ name: '', category: 'gym', city: '', address: '', phone: '', description: '',
-    max_days_ahead: 14, cancel_before_min: 120, requires_approval: false, uses_credits: false, package_days: 30, is_published: false });
+  const [b, setB] = useState<any>(EMPTY_BIZ);
   const [svcs, setSvcs] = useState<Svc[]>([{ key: newKey(), name: '', duration_min: '60', price: '', capacity: '1' }]);
   const [edit, setEdit] = useState<string | null>(null); // ποιο ωράριο επεξεργάζεσαι
   const [up, setUp] = useState<string | null>(null);
   const [hours, setHours] = useState<Hours>(DEFAULT_HOURS);
   const [removed, setRemoved] = useState<string[]>([]); // υπηρεσίες που φεύγουν με την αποθήκευση
 
-  useEffect(() => { (async () => {
-    const { data } = await sb.from('businesses').select('*').eq('owner_id', session!.user.id).maybeSingle();
-    if (!data) return;
-    setB(data);
-    const { data: sv } = await sb.from('services').select('*').eq('business_id', data.id).eq('active', true);
-    if (sv?.length) setSvcs(sv.map((x) => ({ key: x.id, id: x.id, name: x.name, duration_min: String(x.duration_min), price: x.price_cents != null ? String(x.price_cents / 100) : '', capacity: String(x.capacity) })));
-    const { data: h } = await sb.from('opening_hours').select('*').eq('business_id', data.id).order('weekday');
-    if (h?.length) setHours(h.map((x) => ({ weekday: x.weekday, opens: x.opens.slice(0, 5), closes: x.closes.slice(0, 5), svc: x.service_id ?? null })));
-  })(); }, [session]);
+  useEffect(() => { loadBusiness(session!.user.id).then((r) => {
+    if (!r) return;
+    setB(r.b);
+    if (r.svcs.length) setSvcs(r.svcs);
+    if (r.hours.length) setHours(r.hours);
+  }); }, [session]);
 
   const save = async () => {
     if (!b.name.trim() || !b.city.trim()) return say('Γράψε όνομα και πόλη');
-    const row = { ...b, owner_id: session!.user.id, max_days_ahead: +b.max_days_ahead || 14, cancel_before_min: +b.cancel_before_min || 0, package_days: +b.package_days || 30 };
-    delete row.created_at;
-    if (row.brand_color && !HEX.test(row.brand_color)) return say('Το χρώμα πρέπει να είναι της μορφής #RRGGBB');
-    const bad = hours.find((h) => !TIME.test(h.opens) || !TIME.test(h.closes) || h.closes <= h.opens);
-    if (bad) return say('Λάθος ωράριο', `${DAYS[bad.weekday]}: ${bad.opens}–${bad.closes}. Γράψε ώρες σαν 09:00 και το κλείσιμο μετά το άνοιγμα.`);
-    let { data, error } = await sb.from('businesses').upsert(row).select().single();
-    // Αν η βάση δεν έχει ακόμα τις νέες στήλες (δες supabase/migrations), αποθήκευσε χωρίς αυτές.
-    const missing: string[] = [];
-    for (const col of ['brand_color', 'cover_url', 'layout', 'theme']) {
-      if (error && error.message.includes(col)) {
-        delete row[col]; missing.push(col);
-        ({ data, error } = await sb.from('businesses').upsert(row).select().single());
-      }
-    }
-    if (error || !data) return say('Δεν αποθηκεύτηκε', error?.message);
-    if (missing.length) say('Κάποια στοιχεία δεν αποθηκεύτηκαν', 'Χρειάζεται ενημέρωση της βάσης (supabase/migrations).');
-    for (const rid of removed) await sb.from('services').update({ active: false }).eq('id', rid);
-    const ids: Record<string, string> = {};
-    for (const x of svcs.filter((x) => x.name.trim())) {
-      const r = { business_id: data.id, name: x.name.trim(), duration_min: +x.duration_min || 30, capacity: +x.capacity || 1,
-        price_cents: x.price ? Math.round(parseFloat(x.price.replace(',', '.')) * 100) : null };
-      if (x.id) { await sb.from('services').update(r).eq('id', x.id); ids[x.key] = x.id; }
-      else { const { data: n } = await sb.from('services').insert(r).select('id').single(); if (n) ids[x.key] = n.id; }
-    }
-    await sb.from('opening_hours').delete().eq('business_id', data.id);
-    const rows = hours.filter((h) => h.svc === null || ids[h.svc])
-      .map((h) => ({ business_id: data.id, weekday: h.weekday, opens: h.opens, closes: h.closes, ...(h.svc ? { service_id: ids[h.svc] } : {}) }));
-    const hr = await sb.from('opening_hours').insert(rows);
-    if (hr.error && hr.error.message.includes('service_id')) {
-      await sb.from('opening_hours').insert(rows.filter((r: any) => !r.service_id));
-      say('Το ωράριο ανά υπηρεσία δεν αποθηκεύτηκε', 'Χρειάζεται ενημέρωση της βάσης (supabase/migrations/002).');
-    }
+    if (b.brand_color && !HEX.test(b.brand_color)) return say('Το χρώμα πρέπει να είναι της μορφής #RRGGBB');
+    const bad = badHours(hours);
+    if (bad) return say('Λάθος ωράριο', bad);
+    const r = await saveBusiness(session!.user.id, b, svcs, hours, removed);
+    if (!r.ok) return say('Δεν αποθηκεύτηκε', r.error);
+    r.warnings.forEach((w) => say('Προσοχή', w));
     say('Αποθηκεύτηκε'); router.back();
   };
 
@@ -97,14 +58,13 @@ export default function Setup() {
     : hours.filter((h) => !mine(h)));
   /* Πρότυπο είδους: υπηρεσίες, ωράριο και κανόνες που ταιριάζουν (lib/presets.ts). */
   const applyPreset = (cat: string, ask: boolean) => {
-    const p = presetFor(cat);
+    const p = presetData(cat);
     const go = () => {
       setB((x: any) => ({ ...x, category: cat, layout: null, theme: null, brand_color: null, ...p.rules }));
       // οι υπάρχουσες υπηρεσίες απενεργοποιούνται στην αποθήκευση, οι προτεινόμενες μπαίνουν ως νέες
       setRemoved((r) => [...r, ...svcs.filter((x) => x.id).map((x) => x.id!)]);
-      const fresh = p.services.map((x) => ({ key: newKey(), name: x.name, duration_min: String(x.duration_min), price: x.price != null ? String(x.price) : '', capacity: String(x.capacity) }));
-      setSvcs(fresh);
-      setHours(p.hours.flatMap((h) => h.days.flatMap((d) => h.spans.map(([o, c]) => ({ weekday: d, opens: o, closes: c, svc: null })))));
+      setSvcs(p.svcs);
+      setHours(p.hours);
       setEdit(null);
     };
     if (!ask) return go();
@@ -127,7 +87,6 @@ export default function Setup() {
     setUp(null);
   };
   const brand = styleOf(b).color;
-  const DAYNAME = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
 
   return (
     <ScrollView style={s.screen} contentContainerStyle={s.pad} keyboardShouldPersistTaps="handled">
