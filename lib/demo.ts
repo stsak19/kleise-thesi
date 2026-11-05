@@ -112,6 +112,9 @@ addBooking('s-color', plus(1), '10:00', 'c4'); addBooking('s-color', plus(3), '1
 // Ιστορικό του demo χρήστη
 addBooking('s-barb', plus(-20), '18:00', DEMO_UID, 'attended'); addBooking('s-ref', plus(-12), '09:00', DEMO_UID, 'attended');
 addBooking('s-mass', plus(-7), '19:00', DEMO_UID, 'cancelled'); addBooking('s-exam', plus(-4), '10:00', DEMO_UID, 'no_show');
+addBooking('s-barb', plus(-27), '17:30', DEMO_UID, 'attended'); addBooking('s-barb', plus(-6), '18:30', DEMO_UID, 'attended');
+addBooking('s-ref', plus(-26), '09:00', DEMO_UID, 'attended'); addBooking('s-ref', plus(-19), '09:00', DEMO_UID, 'cancelled');
+addBooking('s-ref', plus(-5), '17:50', DEMO_UID, 'attended'); addBooking('s-mani', plus(-15), '12:00', DEMO_UID, 'attended');
 addBooking('s-ref', plus(1), '17:50', DEMO_UID); addBooking('s-phy', plus(4), '18:30', DEMO_UID);
 // Λίστα ενδιαφέροντος: η γεμάτη ώρα του Cross Training
 db.waitlist.push({ id: 'w1', service_id: 's-cross', user_id: DEMO_UID, date: plus(2), time: '19:00:00' });
