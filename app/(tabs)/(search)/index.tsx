@@ -17,15 +17,14 @@ type Biz = { theme?: string | null; layout?: string | null; id: string; name: st
 /* Κάρτα καταστήματος: εξώφυλλο (ή σκούρο πλαίσιο με λάμψη στο χρώμα του), ετικέτα κατηγορίας
    πάνω του, και από κάτω λογότυπο, όνομα και διεύθυνση. */
 function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
-  const brand = styleOf(b).color;
+  const brand = styleOf(b).color, light = isLight(C.bg);
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => ({ gap: 8, opacity: pressed ? 0.85 : 1 })}>
-      <View style={{ borderRadius: 18, backgroundColor: C.bg, boxShadow: `0px 10px 22px ${alpha('#000000', isLight(C.bg) ? 0.16 : 0.5)}, 0px 2px 6px ${alpha('#000000', isLight(C.bg) ? 0.08 : 0.3)}` }}>
-        <View style={{ height: 150, borderRadius: 18, overflow: 'hidden', backgroundColor: '#0d0d0d' }}>
-          <Photo uri={b.cover_url} color={brand} />
-        </View>
+    <Pressable onPress={onPress} style={({ pressed }) => ({ borderRadius: 20, backgroundColor: C.card, opacity: pressed ? 0.88 : 1,
+      boxShadow: `0px 10px 22px ${alpha('#000000', light ? 0.14 : 0.5)}, 0px 2px 6px ${alpha('#000000', light ? 0.07 : 0.3)}` })}>
+      <View style={{ height: 150, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden', backgroundColor: '#0d0d0d' }}>
+        <Photo uri={b.cover_url} color={brand} />
       </View>
-      <View style={{ paddingHorizontal: 2, gap: 2 }}>
+      <View style={{ paddingHorizontal: 14, paddingVertical: 12, gap: 2 }}>
         <Text style={{ color: C.text, fontWeight: '800', fontSize: 16, letterSpacing: -0.2 }} numberOfLines={1}>{b.name}</Text>
         <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{catEmoji(b.category)} {catLabel(b.category)} · {b.city}</Text>
       </View>
