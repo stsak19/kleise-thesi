@@ -17,19 +17,20 @@ export const LIGHT = {
 };
 export type Theme = typeof LIGHT;
 /* Σκούρα εμφάνιση (Ρυθμίσεις → Εμφάνιση). */
+/* Ζεστά, χαμηλής αντίθεσης γκρι, όπως η σκούρα λειτουργία του Claude. */
 export const DARK: Theme = {
-  bg: '#0a0a0a', card: '#151515', soft: '#1c1c1c', line: '#262626', text: '#f5f5f5', mute: '#9a9a9a',
-  accent: '#2e2e33', onAccent: '#f5f5f5', tint: '#ffffff',
-  btn: '#2e2e33', btnText: '#f5f5f5', btn2: '#151515', btn2Text: '#f5f5f5', btn2Line: '#2e2e2e',
-  ok: '#34c77b', bad: '#ff4d6d',
+  bg: '#262624', card: '#30302e', soft: '#30302e', line: '#3e3e3a', text: '#f0eee6', mute: '#a6a39a',
+  accent: '#454540', onAccent: '#f0eee6', tint: '#f0eee6',
+  btn: '#454540', btnText: '#f0eee6', btn2: '#30302e', btn2Text: '#f0eee6', btn2Line: '#4a4a45',
+  ok: '#5bb98a', bad: '#e5707e',
   shade: '#000000',
-  neon: '#2e2e33', glow: '#000000', ink: '#1c1c1c', inkText: '#ffffff', inkLine: '#2e2e2e',
+  neon: '#454540', glow: '#000000', ink: '#30302e', inkText: '#f0eee6', inkLine: '#3e3e3a',
 };
 export const DEFAULT = LIGHT;
 /* Σκούρο κείμενο πάνω σε ανοιχτές επιφάνειες (π.χ. κίτρινο χρώμα καταστήματος), ίδιο και στις δύο εμφανίσεις. */
 export const INK = '#000000';
 /* Σκούρα σελίδα καταστήματος (κουρεία, tattoo): μόνο για τη σελίδα του καταστήματος, όχι για όλη την εφαρμογή. */
-export const NIGHT = { bg: '#0a0a0a', card: '#161616', line: '#262626', text: '#ffffff', mute: '#9a9a9a' };
+export const NIGHT = { bg: '#1f1e1d', card: '#2b2a28', line: '#3a3935', text: '#f0eee6', mute: '#a6a39a' };
 export const C: Theme = { ...LIGHT };
 
 const subs = new Set<() => void>();
