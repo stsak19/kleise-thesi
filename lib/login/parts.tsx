@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
-import { C, Icon, Input, alpha, shadow } from '../ui';
-import type { LoginState, Mode } from './useLogin';
+import { C, Icon, Input, alpha } from '../ui';
+import type { LoginState } from './useLogin';
 
 /* Κοινά κομμάτια των οθονών σύνδεσης. */
 
@@ -9,21 +9,6 @@ export const Logo = ({ size = 26, color = C.text, accent = C.accent }: { size?: 
     Spot<Text style={{ color: accent }}>On</Text>
   </Text>
 );
-
-/* Διακόπτης «Σύνδεση / Νέος λογαριασμός». */
-export function ModeSwitch({ L }: { L: LoginState }) {
-  const Tab = ({ m, label }: { m: Mode; label: string }) => (
-    <Pressable onPress={() => L.setMode(m)}
-      style={[{ flex: 1, paddingVertical: 11, borderRadius: 11, alignItems: 'center' }, L.mode === m && [{ backgroundColor: C.bg }, shadow(1)]]}>
-      <Text style={{ color: L.mode === m ? C.text : C.mute, fontWeight: '700', fontSize: 15 }}>{label}</Text>
-    </Pressable>
-  );
-  return (
-    <View style={{ flexDirection: 'row', backgroundColor: C.soft, borderRadius: 14, padding: 4 }}>
-      <Tab m="in" label="Σύνδεση" /><Tab m="up" label="Νέος λογαριασμός" />
-    </View>
-  );
-}
 
 /* Τα πεδία: όνομα (μόνο στην εγγραφή), email, κωδικός με «εμφάνιση». */
 export function Fields({ L, labels = true }: { L: LoginState; labels?: boolean }) {

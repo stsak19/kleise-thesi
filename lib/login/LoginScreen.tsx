@@ -21,9 +21,9 @@ function CategoryGrid() {
   );
 }
 
-/* Εκδοχή Γ — «Βήμα-βήμα»: πρώτα μια οθόνη καλωσορίσματος με δύο καθαρές επιλογές,
+/* Οθόνη σύνδεσης: πρώτα μια οθόνη καλωσορίσματος με δύο καθαρές επιλογές,
    και μετά η φόρμα σε δική της οθόνη με βελάκι «πίσω». */
-export default function LoginC({ start }: { start?: 'welcome' | 'in' | 'up' }) {
+export default function LoginScreen({ start }: { start?: 'welcome' | 'in' | 'up' }) {
   const L = useLogin(start === 'up' ? 'up' : 'in');
   const [step, setStep] = useState<'welcome' | 'form'>(start && start !== 'welcome' ? 'form' : 'welcome');
   const { top, bottom } = useSafeAreaInsets();
