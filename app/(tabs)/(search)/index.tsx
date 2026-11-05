@@ -4,7 +4,7 @@ import { Text } from '../../../lib/Txt';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { rpc, sb } from '../../../lib/supabase';
-import { C, CATEGORIES, Card, DAYS, Empty, Icon, Input, alpha, catEmoji, catLabel, iso, s } from '../../../lib/ui';
+import { C, CATEGORIES, Card, DAYS, Empty, Icon, Input, TAB_SPACE, alpha, catEmoji, catLabel, iso, s } from '../../../lib/ui';
 import { grad, isLight } from '../../../lib/theme';
 import { useAuth } from '../../../lib/auth';
 
@@ -104,47 +104,77 @@ export default function Home() {
   const cats = [{ key: null as string | null, label: 'Όλα', emoji: '✨' }, ...CATEGORIES];
   const next = useTodayBooking();
 
-  /* Πάνω μέρος σταθερό: αναζήτηση και κατηγορίες μένουν στη θέση τους όσο κυλάει η λίστα. */
+  const filtering = !!cat || !!q.trim();
+  /* Πάνω μέρος σε στιλ Wolt: προφίλ αριστερά, στρογγυλή μπάρα αναζήτησης στο κέντρο. */
   const fixed = (
-    <View style={{ backgroundColor: C.bg, paddingHorizontal: 20, paddingBottom: 12, gap: 14, zIndex: 1,
-      borderBottomWidth: 1, borderBottomColor: C.line }}>
-      <View style={{ paddingTop: top + 12, gap: 14 }}>
-        <Input icon="search" placeholder="Κομμωτήριο, γυμναστήριο, ιατρείο…" value={q} onChangeText={setQ} returnKeyType="search" style={{ fontSize: 15 }} />
+    <View style={{ backgroundColor: C.bg, paddingHorizontal: 16, paddingTop: top + 10, paddingBottom: 10, zIndex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      <Pressable onPress={() => router.push('/profile')} accessibilityLabel="Προφίλ"
+        style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: C.card, borderWidth: 1, borderColor: C.line, opacity: pressed ? 0.7 : 1 })}>
+        <Icon name="user" size={20} color={C.text} />
+      </Pressable>
+      <View style={{ flex: 1 }}>
+        <Input icon="search" placeholder="Αναζήτηση στο SpotOn" value={q} onChangeText={setQ} returnKeyType="search"
+          box={{ borderRadius: 999 }} style={{ fontSize: 15 }} />
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20, flexGrow: 0 }}
-        contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }} keyboardShouldPersistTaps="handled">
-        {cats.map((c) => {
-          const on = cat === c.key;
-          return (
-            <Pressable key={c.key ?? 'all'} onPress={() => setCat(c.key === null || on ? null : c.key)}
-              style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingLeft: 12, paddingRight: 14,
-                borderRadius: 999, borderWidth: 1, backgroundColor: on ? C.accent : C.bg, borderColor: on ? C.accent : C.line,
-                opacity: pressed ? 0.75 : 1 }]}>
-              <Text style={{ fontSize: 16 }}>{c.emoji}</Text>
-              <Text style={{ color: on ? C.onAccent : C.text, fontSize: 14, fontWeight: on ? '700' : '600' }}>{c.label}</Text>
-            </Pressable>
-          );
-        })}
+    </View>
+  );
+
+  /* Φίλτρα σε στιλ Wolt: τετράγωνα πλακίδια με μεγάλο εικονίδιο και τίτλο από κάτω. */
+  const chips = (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }}
+      contentContainerStyle={{ gap: 10, paddingHorizontal: 16 }} keyboardShouldPersistTaps="handled">
+      {cats.map((c) => {
+        const on = cat === c.key || (c.key === null && !cat);
+        return (
+          <Pressable key={c.key ?? 'all'} onPress={() => setCat(c.key === null || cat === c.key ? null : c.key)}
+            style={({ pressed }) => ({ width: 76, alignItems: 'center', gap: 6, opacity: pressed ? 0.75 : 1 })}>
+            <View style={{ width: 68, height: 68, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
+              backgroundColor: on ? C.accent : C.card, borderWidth: 1, borderColor: on ? C.accent : C.line }}>
+              <Text style={{ fontSize: 30 }}>{c.emoji}</Text>
+            </View>
+            <Text style={{ color: C.text, fontSize: 12, fontWeight: on ? '800' : '600' }} numberOfLines={1}>{c.label}</Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+
+  /* Ενότητες με οριζόντια κύλιση, όπως στη Wolt. */
+  const sections: { title: string; items: Biz[] }[] = [
+    { title: 'Κοντά σου', items: list.slice(0, 10) },
+    { title: 'Δημοφιλή', items: [...list].reverse().slice(0, 10) },
+    ...CATEGORIES.map((c) => ({ title: `${c.emoji} ${c.label}`, items: list.filter((b) => b.category === c.key) })),
+  ].filter((x) => x.items.length > 0);
+
+  const row = (x: { title: string; items: Biz[] }) => (
+    <View key={x.title} style={{ gap: 10 }}>
+      <Text style={[s.h, { paddingHorizontal: 16 }]}>{x.title}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingHorizontal: 16 }}>
+        {x.items.map((b) => <View key={b.id} style={{ width: 270 }}><BizCard b={b} onPress={() => router.push(`/business/${b.id}`)} /></View>)}
       </ScrollView>
     </View>
   );
 
-  const head = (
-    <View style={s.row}>
-      <Text style={[s.h, { flex: 1 }]}>{cat ? catLabel(cat) : q.trim() ? 'Αποτελέσματα' : 'Όλα τα καταστήματα'}</Text>
-      {loaded && <Text style={{ color: C.mute, fontWeight: '600', fontSize: 14 }}>{list.length} {list.length === 1 ? 'κατάστημα' : 'καταστήματα'}</Text>}
-    </View>
-  );
+  const empty = <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα ή άλλη κατηγορία."
+    action={filtering ? 'Καθαρισμός φίλτρων' : undefined} onAction={() => { setCat(null); setQ(''); }} />;
 
   return (
     <View style={s.screen}>
       {fixed}
       {next && <TodayToast b={next} onPress={() => router.push('/bookings')} />}
-      <FlatList style={{ flex: 1 }} data={list} keyExtractor={(b) => b.id} contentContainerStyle={[s.pad, { paddingTop: 16, gap: 16 }]}
-        ListHeaderComponent={head} keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={loaded ? <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα ή άλλη κατηγορία."
-          action={cat || q ? 'Καθαρισμός φίλτρων' : undefined} onAction={() => { setCat(null); setQ(''); }} /> : undefined}
-        renderItem={({ item }) => <BizCard b={item} onPress={() => router.push(`/business/${item.id}`)} />} />
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingTop: 8, paddingBottom: TAB_SPACE, gap: 24 }} keyboardShouldPersistTaps="handled">
+        {chips}
+        {!loaded ? null : list.length === 0 ? <View style={{ paddingHorizontal: 16 }}>{empty}</View>
+          : filtering ? (
+            <View style={{ paddingHorizontal: 16, gap: 16 }}>
+              <View style={s.row}>
+                <Text style={[s.h, { flex: 1 }]}>{cat ? catLabel(cat) : 'Αποτελέσματα'}</Text>
+                <Text style={{ color: C.mute, fontWeight: '600', fontSize: 14 }}>{list.length} {list.length === 1 ? 'κατάστημα' : 'καταστήματα'}</Text>
+              </View>
+              {list.map((b) => <BizCard key={b.id} b={b} onPress={() => router.push(`/business/${b.id}`)} />)}
+            </View>
+          ) : sections.map(row)}
+      </ScrollView>
     </View>
   );
 }

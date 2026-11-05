@@ -3,7 +3,7 @@ import { C } from './theme';
 
 /* Μικρά εικονίδια γραμμής, φτιαγμένα μόνο με View (χωρίς βιβλιοθήκη εικονιδίων).
    Παίρνουν το χρώμα τους από το θέμα, οπότε αλλάζουν μαζί με το 🎨. */
-export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack';
+export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack' | 'home';
 
 export function Icon({ name, size = 22, color = C.text, style }: { name: IconName; size?: number; color?: string; style?: ViewStyle }) {
   const s = size, w = Math.max(1.6, Math.round(s * 0.09 * 10) / 10);
@@ -16,6 +16,12 @@ export function Icon({ name, size = 22, color = C.text, style }: { name: IconNam
       body = <>
         <View style={abs(s * 0.08, s * 0.08, { width: s * 0.6, height: s * 0.6, borderRadius: s, borderWidth: w, borderColor: color })} />
         {bar(s * 0.76, s * 0.76, s * 0.3, 45)}
+      </>; break;
+    case 'home':
+      body = <>
+        {bar(s * 0.3, s * 0.3, s * 0.5, -40)}
+        {bar(s * 0.7, s * 0.3, s * 0.5, 40)}
+        <View style={abs(s * 0.2, s * 0.44, { width: s * 0.6, height: s * 0.46, borderRadius: s * 0.08, borderWidth: w, borderColor: color, borderTopWidth: 0 })} />
       </>; break;
     case 'calendar':
       body = <>
