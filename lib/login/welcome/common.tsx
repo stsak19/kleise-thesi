@@ -1,10 +1,10 @@
 import { Animated, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Btn, C, R, alpha, s } from '../../ui';
+import { Btn, C, s } from '../../ui';
 import { LinkText } from '../parts';
-import { k, useLoop, type V } from '../motion';
+import { k, type V } from '../motion';
 
-/* Κοινά κομμάτια των οθονών καλωσορίσματος. Κάθε εκδοχή τα κινεί με τον δικό της τρόπο. */
+/* Κομμάτια του καλωσορίσματος: σκελετός, κείμενα, κουμπιά, λογότυπο γράμμα-γράμμα. */
 
 export type WelcomeProps = { onUp: () => void; onIn: () => void; onGuest: () => void; reduce: boolean };
 
@@ -44,17 +44,6 @@ export function Actions({ p, styles = [], primaryExtra }: { p: WelcomeProps; sty
   );
 }
 
-/* Μια λωρίδα φωτός που περνάει πάνω από το κύριο κουμπί. */
-export function Shine({ on, every = 3200 }: { on: boolean; every?: number }) {
-  const t = useLoop(every, on);
-  return (
-    <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: R.md, overflow: 'hidden' }}>
-      <Animated.View style={{ position: 'absolute', top: -20, bottom: -20, width: 46, backgroundColor: alpha(C.btnText, 0.28),
-        transform: [{ translateX: k(t, [0, 0.45, 1], [-80, 420, 420]) }, { rotate: '18deg' }] }} />
-    </View>
-  );
-}
-
 /* Λογότυπο που «χτίζεται» γράμμα-γράμμα. */
 export function LetterLogo({ vals, size = 30 }: { vals: V[]; size?: number }) {
   const letters = 'SpotOn'.split('');
@@ -67,10 +56,3 @@ export function LetterLogo({ vals, size = 30 }: { vals: V[]; size?: number }) {
     </View>
   );
 }
-
-/* Ημιτονοειδής κίνηση από ένα ρολόι 0→1: amp·sin(2π(t + phase)). */
-export function wave(t: V, phase: number, amp: number) {
-  const n = 16, xs = [...Array(n + 1)].map((_, i) => i / n);
-  return t.interpolate({ inputRange: xs, outputRange: xs.map((x) => amp * Math.sin(2 * Math.PI * (x + phase))) });
-}
-

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Platform, Text, View, ViewStyle } from 'react-native';
 import { C, CATEGORIES, alpha } from '../ui';
 
-/* Εργαλεία για τις κινούμενες εκδοχές της οθόνης σύνδεσης (μόνο Animated του React Native). */
+/* Εργαλεία για την κίνηση στην οθόνη σύνδεσης (μόνο Animated του React Native). */
 
 export type V = Animated.Value;
 /* Στο κινητό τα transform/opacity τρέχουν στο native thread· στον browser δεν υποστηρίζεται. */
@@ -10,12 +10,9 @@ export const ND = Platform.OS !== 'web';
 export const k = (t: Animated.Value | Animated.AnimatedInterpolation<number>, i: number[], o: (number | string)[]) =>
   (t as Animated.Value).interpolate({ inputRange: i, outputRange: o as any, extrapolate: 'clamp' }) as any;
 
-/* Οι 9 κατηγορίες του πλέγματος (3×3) και οι διαστάσεις του. */
+/* Οι 9 κατηγορίες της ταινίας και οι διαστάσεις ενός πλακιδίου. */
 export const CATS = CATEGORIES.filter((c) => !['other', 'physio', 'medical', 'tattoo'].includes(c.key));
 export const TW = 88, TH = 74, GAP = 10;
-export const GW = TW * 3 + GAP * 2, GH = TH * 3 + GAP * 2;
-export const tx = (i: number) => (i % 3) * (TW + GAP);
-export const ty = (i: number) => Math.floor(i / 3) * (TH + GAP);
 
 /* Αν ο χρήστης έχει ζητήσει λιγότερη κίνηση, οι επαναλαμβανόμενες κινήσεις σταματούν. */
 export function useReduceMotion() {
@@ -39,17 +36,6 @@ export function useLoop(ms: number, on = true) {
   return t;
 }
 
-/* Ένα «χτύπημα» κάθε `ms`: επιστρέφει έναν μετρητή που αυξάνεται. */
-export function useTick(ms: number, on = true) {
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    if (!on) return;
-    const id = setInterval(() => setN((x) => x + 1), ms);
-    return () => clearInterval(id);
-  }, [on, ms]);
-  return n;
-}
-
 /* Είσοδος: n τιμές 0→1, η μία μετά την άλλη. */
 export function useStagger(n: number, { delay = 0, step = 70, ms = 520, spring = false } = {}) {
   const vals = useRef([...Array(n)].map(() => new Animated.Value(0))).current;
@@ -63,18 +49,6 @@ export function useStagger(n: number, { delay = 0, step = 70, ms = 520, spring =
     const a = Animated.parallel(anims); a.start(); return () => a.stop();
   }, []);
   return vals;
-}
-
-/* Τιμή που ακολουθεί ομαλά έναν στόχο (π.χ. 0/1 για «επιλεγμένο»). */
-export function useFollow(target: number, ms = 380, spring = false) {
-  const v = useRef(new Animated.Value(target)).current;
-  useEffect(() => {
-    const a = spring
-      ? Animated.spring(v, { toValue: target, friction: 7, tension: 80, useNativeDriver: ND })
-      : Animated.timing(v, { toValue: target, duration: ms, easing: Easing.inOut(Easing.cubic), useNativeDriver: ND });
-    a.start(); return () => a.stop();
-  }, [target]);
-  return v;
 }
 
 /* Είσοδος από κάτω με σβήσιμο: style για Animated.View. */
