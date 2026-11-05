@@ -87,7 +87,7 @@ function Password({ last }: { last?: boolean }) {
 }
 
 /* Όλες οι ρυθμίσεις της εφαρμογής. Η εμφάνιση εφαρμόζεται αμέσως σε όλη την εφαρμογή. */
-export function SettingsBody({ onEdit, compact }: { onEdit?: () => void; compact?: boolean }) {
+export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
   const prefs = usePrefs();
   return (
     <>
@@ -111,11 +111,9 @@ export function SettingsBody({ onEdit, compact }: { onEdit?: () => void; compact
         <Row icon="gear" title="Έκδοση εφαρμογής" right={<Text style={{ color: C.mute, fontSize: 14 }}>{Constants.expoConfig?.version ?? '—'}</Text>} last />
       </Group>
 
-      {!compact && (
-        <View style={{ marginTop: 10 }}>
-          <Group><Row title="Αποσύνδεση" danger last onPress={signOut} right={<View />} /></Group>
-        </View>
-      )}
+      <View style={{ marginTop: 10 }}>
+        <Group><Row title="Αποσύνδεση" danger last onPress={signOut} right={<View />} /></Group>
+      </View>
     </>
   );
 }

@@ -25,21 +25,18 @@ export function usePerson() {
   return { uid, p, setP, save, email, name, initials };
 }
 
-/* Επιχείρηση και μικρά στατιστικά κρατήσεων (ανανεώνονται κάθε φορά που ανοίγει το προφίλ). */
+/* Έχει επιχείρηση; Πόσα επερχόμενα ραντεβού; (ανανεώνονται κάθε φορά που ανοίγει το προφίλ) */
 export function useProfileExtras(uid: string) {
   const [hasBiz, setHasBiz] = useState<boolean | null>(null);
-  const [stats, setStats] = useState<{ upcoming: number; done: number; places: number; next: any | null } | null>(null);
+  const [upcoming, setUpcoming] = useState<number | null>(null);
   useFocusEffect(useCallback(() => {
     sb.from('businesses').select('id').eq('owner_id', uid).maybeSingle().then(({ data }) => setHasBiz(!!data));
     rpc('my_bookings').then((m: any) => {
       const today = iso(new Date());
-      const all: any[] = m?.bookings ?? [];
-      const up = all.filter((b) => b.status === 'booked' && b.date >= today);
-      setStats({ upcoming: up.length, done: all.filter((b) => b.status === 'attended' || (b.status === 'booked' && b.date < today)).length,
-        places: new Set(all.map((b) => b.business_id)).size, next: up[0] ?? null });
-    }).catch(() => setStats({ upcoming: 0, done: 0, places: 0, next: null }));
+      setUpcoming(((m?.bookings ?? []) as any[]).filter((b) => b.status === 'booked' && b.date >= today).length);
+    }).catch(() => setUpcoming(null));
   }, [uid]));
-  return { hasBiz, stats };
+  return { hasBiz, upcoming };
 }
 
 export const signOut = async () => { await sb.auth.signOut(); setDemo(false); };
