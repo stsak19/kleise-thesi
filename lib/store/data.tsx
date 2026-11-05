@@ -63,7 +63,8 @@ function useStoreData(id: string) {
 
   const loadDay = useCallback(async () => {
     if (!layout) return;
-    const list = layout === 'classes' ? services : services.filter((x) => x.id === service);
+    // Μαθήματα: «Όλα» (service = null) ή μόνο το επιλεγμένο τμήμα. Ραντεβού: πάντα μία υπηρεσία.
+    const list = layout === 'classes' && !service ? services : services.filter((x) => x.id === service);
     if (!list.length) { setSlots([]); return; }
     const [all, dn] = await Promise.all([
       Promise.all(list.map((sv) => avail(sv, date))),
