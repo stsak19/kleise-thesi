@@ -10,6 +10,7 @@ import { useAuth } from '../../../lib/auth';
 
 import { styleOf } from '../../../lib/presets';
 import { Photo } from '../../../lib/Photo';
+import { CAT_ART } from '../../../lib/catArt';
 type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null };
 
 
@@ -125,12 +126,13 @@ export default function Home() {
       contentContainerStyle={{ gap: 10, paddingHorizontal: 16 }} keyboardShouldPersistTaps="handled">
       {cats.map((c) => {
         const on = cat === c.key || (c.key === null && !cat);
+        const art = CAT_ART[c.key ?? 'all'] ?? CAT_ART.other;
         return (
           <Pressable key={c.key ?? 'all'} onPress={() => setCat(c.key === null || cat === c.key ? null : c.key)}
             style={({ pressed }) => ({ width: 76, alignItems: 'center', gap: 6, opacity: pressed ? 0.75 : 1 })}>
-            <View style={{ width: 68, height: 68, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
-              backgroundColor: on ? C.accent : C.card, borderWidth: 1, borderColor: on ? C.accent : C.line }}>
-              <Text style={{ fontSize: 30 }}>{c.emoji}</Text>
+            <View style={{ width: 72, height: 72, borderRadius: 20, alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+              backgroundColor: isLight(C.bg) ? art.bg : art.bgDark, borderWidth: 2, borderColor: on ? C.text : 'transparent' }}>
+              <Image source={art.img} style={{ width: 50, height: 50 }} resizeMode="contain" />
             </View>
             <Text style={{ color: C.text, fontSize: 12, fontWeight: on ? '800' : '600' }} numberOfLines={1}>{c.label}</Text>
           </Pressable>
