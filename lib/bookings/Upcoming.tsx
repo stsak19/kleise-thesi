@@ -1,12 +1,12 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { Photo, Scrim } from '../../Photo';
-import { C, Icon, alpha, fmtLong, s, shadow } from '../../ui';
-import { type Booking, type BookingsData, countdown } from '../data';
-import { BizLogo, CancelBtn } from '../parts';
+import { Photo, Scrim } from '../Photo';
+import { C, Icon, alpha, fmtLong, s, shadow } from '../ui';
+import { type Booking, type BookingsData, countdown } from './data';
+import { BizLogo, CancelBtn } from './parts';
 
-/* Εκδοχή 2 · Κάρτες: το επόμενο ραντεβού μεγάλο με τη φωτογραφία του καταστήματος και αντίστροφη μέτρηση,
+/* Τα επερχόμενα ραντεβού: το επόμενο μεγάλο, με τη φωτογραφία του καταστήματος και αντίστροφη μέτρηση,
    τα υπόλοιπα σε κάρτες που κυλάνε οριζόντια. */
-export default function Cards({ D }: { D: BookingsData }) {
+export default function Upcoming({ D }: { D: BookingsData }) {
   const [next, ...rest] = D.upcoming;
   return <>
     <Hero b={next} D={D} />

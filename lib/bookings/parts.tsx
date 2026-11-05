@@ -1,19 +1,17 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Photo } from '../Photo';
-import { Btn, C, DAYS, Group, Icon, IconBubble, MONTHS, Pill, Row, Section, T, type Tone, alpha, catLabel, fmtDay, fmtLong, onColor, s, shadow } from '../ui';
+import { Btn, C, DAYS, Group, Icon, IconBubble, MONTHS, Pill, Row, Section, T, type Tone, alpha, catLabel, fmtDay, fmtLong, s, shadow } from '../ui';
 import type { Biz, Booking, BookingsData } from './data';
 
 /* Μπλοκ ημερομηνίας: μέρα, αριθμός, μήνας. */
-export const DateBlock = ({ date, color, inverted, small }: { date: string; color: string; inverted?: boolean; small?: boolean }) => {
+export const DateBlock = ({ date, color }: { date: string; color: string }) => {
   const d = new Date(date + 'T00:00');
-  const fg = inverted ? onColor(color) : color;
   return (
-    <View style={{ width: small ? 48 : 62, paddingVertical: small ? 6 : 10, borderRadius: small ? 13 : 16, alignItems: 'center',
-      backgroundColor: inverted ? 'rgba(255,255,255,0.18)' : alpha(color, 0.12) }}>
-      <Text style={{ color: fg, fontSize: small ? 11 : 12, fontWeight: '700' }}>{DAYS[d.getDay()]}</Text>
-      <Text style={{ color: fg, fontSize: small ? 18 : 24, fontWeight: '900', letterSpacing: -0.5 }}>{d.getDate()}</Text>
-      <Text style={{ color: fg, fontSize: small ? 10 : 11, fontWeight: '600', opacity: 0.85 }}>{MONTHS[d.getMonth()]}</Text>
+    <View style={{ width: 48, paddingVertical: 6, borderRadius: 13, alignItems: 'center', backgroundColor: alpha(color, 0.12) }}>
+      <Text style={{ color, fontSize: 11, fontWeight: '700' }}>{DAYS[d.getDay()]}</Text>
+      <Text style={{ color, fontSize: 18, fontWeight: '900', letterSpacing: -0.5 }}>{d.getDate()}</Text>
+      <Text style={{ color, fontSize: 10, fontWeight: '600', opacity: 0.85 }}>{MONTHS[d.getMonth()]}</Text>
     </View>
   );
 };
@@ -25,12 +23,11 @@ export const BizLogo = ({ biz, name, color, size = 44 }: { biz?: Biz; name: stri
   </View>
 );
 
-/* Μικρό κουμπί ακύρωσης (απαλό κόκκινο ή διάφανο πάνω σε χρώμα). */
-export const CancelBtn = ({ onPress, on }: { onPress: () => void; on?: string }) => (
+/* Μικρό κουμπί ακύρωσης. */
+export const CancelBtn = ({ onPress }: { onPress: () => void }) => (
   <Pressable onPress={onPress} hitSlop={8}
-    style={({ pressed }) => ({ alignSelf: 'flex-start', borderRadius: 10, paddingVertical: 7, paddingHorizontal: 12,
-      backgroundColor: on ? `rgba(255,255,255,${pressed ? 0.3 : 0.2})` : alpha(C.bad, pressed ? 0.16 : 0.09) })}>
-    <Text style={{ color: on ?? C.bad, fontWeight: '700', fontSize: 13 }}>Ακύρωση</Text>
+    style={({ pressed }) => ({ alignSelf: 'flex-start', borderRadius: 10, paddingVertical: 7, paddingHorizontal: 12, backgroundColor: alpha(C.bad, pressed ? 0.16 : 0.09) })}>
+    <Text style={{ color: C.bad, fontWeight: '700', fontSize: 13 }}>Ακύρωση</Text>
   </Pressable>
 );
 
@@ -129,7 +126,7 @@ function Folder({ items, D, start }: { items: Booking[]; D: BookingsData; start?
           </View>
           {items.map((b, i) => { const [t, tone] = STATUS[b.status] ?? (['', 'mute'] as [string, Tone]); return (
             <View key={b.id} style={[s.row, { gap: 12, paddingVertical: 9 }, i < items.length - 1 && { borderBottomWidth: 1, borderBottomColor: alpha(C.mute, 0.12) }]}>
-              <DateBlock date={b.date} color={b.status === 'cancelled' ? C.mute : c} small />
+              <DateBlock date={b.date} color={b.status === 'cancelled' ? C.mute : c} />
               <View style={{ flex: 1, gap: 1 }}>
                 <Text style={{ color: C.text, fontWeight: '700', fontSize: 15, textDecorationLine: b.status === 'cancelled' ? 'line-through' : 'none' }} numberOfLines={1}>{b.service}</Text>
                 <Text style={{ color: C.mute, fontSize: 13 }}>{b.time}</Text>
