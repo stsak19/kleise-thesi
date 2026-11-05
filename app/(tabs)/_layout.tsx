@@ -8,7 +8,7 @@ import type { IconName } from '../../lib/Icon';
 
 /* Η κάτω μπάρα: Αναζήτηση · Κρατήσεις · Πακέτα · Προφίλ. Πάντα ορατή, και μέσα σε ένα κατάστημα.
    Είναι ένα πλωτό γυάλινο «χάπι» πάνω από το περιεχόμενο (λευκό στο ανοιχτό θέμα, σκούρο στο σκούρο)·
-   η ενεργή καρτέλα είναι ένας πράσινος κύκλος.
+   η ενεργή καρτέλα είναι ένας απλός κύκλος (μαύρος στο ανοιχτό, λευκός στο σκούρο).
    Οι οθόνες αφήνουν κάτω κενό TAB_SPACE ώστε το τελευταίο στοιχείο να μην κρύβεται πίσω της. */
 const ICONS: Record<string, { icon: IconName; label: string }> = {
   '(search)': { icon: 'search', label: 'Αναζήτηση' },
@@ -33,9 +33,9 @@ function FloatBar({ state, navigateToTab }: { state: { index: number; routes: { 
           return (
             <Pressable key={r.key} onPress={press} accessibilityRole="tab" accessibilityLabel={it.label} accessibilityState={{ selected: on }}
               style={({ pressed }) => ({ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center',
-                backgroundColor: on ? C.neon : 'transparent', opacity: pressed ? 0.75 : 1,
-                boxShadow: on ? `0px 4px 16px ${alpha(C.neon, 0.45)}` : undefined })}>
-              <Icon name={it.icon} size={21} color={on ? '#0a0a0a' : light ? alpha('#0a0a0a', 0.55) : alpha('#ffffff', 0.6)} />
+                backgroundColor: on ? (light ? '#0a0a0a' : '#ffffff') : 'transparent', opacity: pressed ? 0.75 : 1,
+                boxShadow: on ? `0px 4px 12px ${alpha('#000000', light ? 0.18 : 0.4)}` : undefined })}>
+              <Icon name={it.icon} size={21} color={on ? (light ? '#ffffff' : '#0a0a0a') : light ? alpha('#0a0a0a', 0.55) : alpha('#ffffff', 0.6)} />
             </Pressable>
           );
         })}
