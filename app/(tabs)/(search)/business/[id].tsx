@@ -148,7 +148,7 @@ export default function Business() {
   const brand = st?.color ?? C.accent;
   /* Το χρώμα του καταστήματος δίνει την ταυτότητα (κορυφή, λογότυπο, λάμψη). Οι επιλογές (μέρα, ώρα, υπηρεσία)
      και το κουμπί κράτησης ακολουθούν την εφαρμογή: μαύρο/πράσινο, ή πράσινο στις σκούρες σελίδες. */
-  const accent = night ? '#ffffff' : C.accent;
+  const accent = night ? '#2e2e33' : C.accent;
   const tint = night ? '#ffffff' : C.tint; // κείμενο/εικονίδια στο χρώμα επιλογής
   const P = night ? NIGHT : { bg: C.bg, card: C.card, line: alpha(C.text, 0.08), text: C.text, mute: C.mute };
 

@@ -19,11 +19,11 @@ export type Theme = typeof LIGHT;
 /* Σκούρα εμφάνιση (Ρυθμίσεις → Εμφάνιση). */
 export const DARK: Theme = {
   bg: '#0a0a0a', card: '#151515', soft: '#1c1c1c', line: '#262626', text: '#f5f5f5', mute: '#9a9a9a',
-  accent: '#ffffff', onAccent: '#0a0a0a', tint: '#ffffff',
-  btn: '#ffffff', btnText: '#0a0a0a', btn2: '#151515', btn2Text: '#f5f5f5', btn2Line: '#2e2e2e',
+  accent: '#2e2e33', onAccent: '#f5f5f5', tint: '#ffffff',
+  btn: '#2e2e33', btnText: '#f5f5f5', btn2: '#151515', btn2Text: '#f5f5f5', btn2Line: '#2e2e2e',
   ok: '#34c77b', bad: '#ff4d6d',
   shade: '#000000',
-  neon: '#ffffff', glow: '#000000', ink: '#1c1c1c', inkText: '#ffffff', inkLine: '#2e2e2e',
+  neon: '#2e2e33', glow: '#000000', ink: '#1c1c1c', inkText: '#ffffff', inkLine: '#2e2e2e',
 };
 export const DEFAULT = LIGHT;
 /* Σκούρο κείμενο πάνω σε ανοιχτές επιφάνειες (π.χ. κίτρινο χρώμα καταστήματος), ίδιο και στις δύο εμφανίσεις. */

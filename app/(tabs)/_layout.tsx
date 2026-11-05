@@ -33,9 +33,9 @@ function FloatBar({ state, navigateToTab }: { state: { index: number; routes: { 
           return (
             <Pressable key={r.key} onPress={press} accessibilityRole="tab" accessibilityLabel={it.label} accessibilityState={{ selected: on }}
               style={({ pressed }) => ({ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center',
-                backgroundColor: on ? (light ? '#e3e3e8' : '#ffffff') : 'transparent', opacity: pressed ? 0.75 : 1,
+                backgroundColor: on ? (light ? '#e3e3e8' : '#3a3a40') : 'transparent', opacity: pressed ? 0.75 : 1,
                 boxShadow: on ? `0px 4px 12px ${alpha('#000000', light ? 0.18 : 0.4)}` : undefined })}>
-              <Icon name={it.icon} size={21} color={on ? '#0a0a0a' : light ? alpha('#0a0a0a', 0.55) : alpha('#ffffff', 0.6)} />
+              <Icon name={it.icon} size={21} color={on ? (light ? '#0a0a0a' : '#ffffff') : light ? alpha('#0a0a0a', 0.55) : alpha('#ffffff', 0.6)} />
             </Pressable>
           );
         })}
