@@ -19,29 +19,15 @@ type Biz = { theme?: string | null; layout?: string | null; id: string; name: st
 function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
   const brand = styleOf(b).color;
   return (
-    <Card onPress={onPress} style={{ padding: 0, gap: 0, overflow: 'hidden', borderRadius: 24 }}>
-      <View style={{ height: 136, backgroundColor: '#0d0d0d', overflow: 'hidden' }}>
+    <Pressable onPress={onPress} style={({ pressed }) => ({ gap: 8, opacity: pressed ? 0.85 : 1 })}>
+      <View style={{ height: 150, borderRadius: 18, overflow: 'hidden', backgroundColor: '#0d0d0d' }}>
         <Photo uri={b.cover_url} color={brand} />
-        <View style={{ position: 'absolute', left: 12, bottom: 12, flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 5, paddingHorizontal: 11,
-          borderRadius: 999, backgroundColor: alpha('#0a0a0a', 0.7) }}>
-          <Text style={{ fontSize: 12 }}>{catEmoji(b.category)}</Text>
-          <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 12 }}>{catLabel(b.category)}</Text>
-        </View>
       </View>
-      <View style={{ padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-        <View style={{ width: 46, height: 46, borderRadius: 14, overflow: 'hidden', backgroundColor: alpha(brand, 0.12) }}>
-          <Photo uri={b.logo_url} color={isLight(C.bg) ? brand : C.text} letter={b.name.slice(0, 1)} style={{ borderRadius: 14 }} />
-        </View>
-        <View style={{ flex: 1, gap: 3 }}>
-          <Text style={{ color: C.text, fontWeight: '700', fontSize: 17, letterSpacing: -0.2 }} numberOfLines={1}>{b.name}</Text>
-          <View style={[s.row, { gap: 4 }]}>
-            <Icon name="pin" size={13} color={C.mute} />
-            <Text style={{ color: C.mute, fontSize: 13, flex: 1 }} numberOfLines={1}>{b.city}{b.address ? ` · ${b.address}` : ''}</Text>
-          </View>
-        </View>
-        <Icon name="chevron" size={16} color={C.mute} />
+      <View style={{ paddingHorizontal: 2, gap: 2 }}>
+        <Text style={{ color: C.text, fontWeight: '800', fontSize: 16, letterSpacing: -0.2 }} numberOfLines={1}>{b.name}</Text>
+        <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{catEmoji(b.category)} {catLabel(b.category)} · {b.city}</Text>
       </View>
-    </Card>
+    </Pressable>
   );
 }
 
