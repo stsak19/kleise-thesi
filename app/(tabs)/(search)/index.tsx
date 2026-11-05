@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { FlatList, Image, Pressable, ScrollView, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, FlatList, Image, Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../../../lib/Txt';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -45,65 +45,43 @@ function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
 }
 
 
-/* Το όνομα της εφαρμογής ως λογότυπο-κείμενο: το «On» είναι πράσινο (σε μαύρο κουτάκι στην ανοιχτή εμφάνιση). */
-const Logo = () => {
-  const light = isLight(C.bg);
-  return (
-    <View style={[s.row, { gap: 2 }]}>
-      <Text style={{ fontSize: 30, fontWeight: '800', letterSpacing: -1.2, color: C.text }}>Spot</Text>
-      <View>
-        <Text style={{ fontSize: 30, fontWeight: '800', letterSpacing: -1.2, color: C.mute }}>On</Text>
-      </View>
-    </View>
-  );
-};
-
 type Next = { date: string; time: string; service: string; business: string };
-/* Η πιο κοντινή επερχόμενη κράτηση του χρήστη (ή τίποτα). */
-function useNextBooking() {
+/* Η επόμενη κράτηση του χρήστη για ΣΗΜΕΡΑ (ή τίποτα). */
+function useTodayBooking() {
   const [n, setN] = useState<Next | null>(null);
   useFocusEffect(useCallback(() => {
     rpc('my_bookings').then((m: any) => {
-      const today = iso(new Date());
-      setN(((m?.bookings ?? []) as any[]).find((b) => b.status === 'booked' && b.date >= today) ?? null);
+      const d = new Date(), today = iso(d), now = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      setN(((m?.bookings ?? []) as any[]).filter((b) => b.status === 'booked' && b.date === today && b.time >= now)
+        .sort((x, z) => x.time.localeCompare(z.time))[0] ?? null);
     }).catch(() => {});
   }, []));
   return n;
 }
 
-/* Κάρτα «Επόμενη κράτηση»: σκούρα με πράσινη διαβάθμιση και λάμψη από κάτω. */
-const NextBooking = ({ b, onPress }: { b: Next; onPress: () => void }) => {
-  const light = isLight(C.bg);
-  const d = new Date(b.date + 'T00:00');
-  return (
-    <Pressable onPress={onPress} style={({ pressed }) => [s.row, { gap: 14, padding: 12, paddingRight: 16, borderRadius: 22, opacity: pressed ? 0.85 : 1,
-      boxShadow: `0px 8px 24px ${alpha('#000000', light ? 0.12 : 0.3)}` },
-      { backgroundColor: C.ink, borderWidth: 1, borderColor: C.inkLine }]}>
-      <View style={{ width: 50, height: 54, borderRadius: 16, backgroundColor: alpha(C.inkText, 0.08), alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: C.inkText, fontSize: 12, fontWeight: '600' }}>{DAYS[d.getDay()]}</Text>
-        <Text style={{ color: C.inkText, fontSize: 21, fontWeight: '800', marginTop: -3 }}>{d.getDate()}</Text>
-      </View>
-      <View style={{ flex: 1, gap: 1 }}>
-        <Text style={{ color: alpha(C.inkText, 0.7), fontSize: 11.5, fontWeight: '700', letterSpacing: 0.4 }}>ΕΠΟΜΕΝΗ ΚΡΑΤΗΣΗ · {b.time}</Text>
-        <Text style={{ color: C.inkText, fontSize: 17, fontWeight: '700' }} numberOfLines={1}>{b.business}</Text>
-        <Text style={{ color: alpha(C.inkText, 0.72), fontSize: 13 }} numberOfLines={1}>{b.service}</Text>
-      </View>
-      <Icon name="chevron" size={16} color={C.inkText} />
-    </Pressable>
-  );
-};
-
-/* Χαιρετισμός με το μικρό όνομα του χρήστη, ανάλογα με την ώρα. */
-function Hello() {
-  const { session } = useAuth();
-  const [name, setName] = useState('');
+/* Ειδοποίηση από πάνω όταν ανοίγει η αρχική: μόνο κατάστημα και ώρα της σημερινής κράτησης.
+   Κατεβαίνει, μένει λίγα δευτερόλεπτα και ανεβαίνει ξανά. Πατώντας την ανοίγουν οι κρατήσεις. */
+function TodayToast({ b, onPress }: { b: Next; onPress: () => void }) {
+  const top = useSafeAreaInsets().top;
+  const y = useRef(new Animated.Value(-120)).current;
   useEffect(() => {
-    const uid = session?.user.id; if (!uid) return;
-    sb.from('profiles').select('first_name').eq('id', uid).maybeSingle().then(({ data }) => setName(data?.first_name ?? ''));
-  }, [session?.user.id]);
-  const h = new Date().getHours();
-  const hi = h < 12 ? 'Καλημέρα' : h < 18 ? 'Καλό απόγευμα' : 'Καλησπέρα';
-  return <Text style={{ color: C.mute, fontSize: 14, marginTop: -10 }}>{name ? `${hi}, ${name}` : hi}</Text>;
+    const anim = Animated.sequence([
+      Animated.spring(y, { toValue: 0, useNativeDriver: true, friction: 8 }),
+      Animated.delay(4500),
+      Animated.timing(y, { toValue: -120, duration: 260, useNativeDriver: true }),
+    ]);
+    anim.start(); return () => anim.stop();
+  }, [b.business, b.time]);
+  return (
+    <Animated.View style={{ position: 'absolute', left: 16, right: 16, top: top + 8, zIndex: 20, transform: [{ translateY: y }] }}>
+      <Pressable onPress={onPress} style={({ pressed }) => [s.row, { gap: 10, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 18, opacity: pressed ? 0.85 : 1,
+        backgroundColor: C.ink, borderWidth: 1, borderColor: C.inkLine, boxShadow: `0px 8px 24px ${alpha('#000000', 0.15)}` }]}>
+        <Icon name="calendar" size={16} color={C.inkText} />
+        <Text style={{ flex: 1, color: C.inkText, fontSize: 15, fontWeight: '700' }} numberOfLines={1}>{b.business}</Text>
+        <Text style={{ color: C.inkText, fontSize: 15, fontWeight: '800' }}>{b.time}</Text>
+      </Pressable>
+    </Animated.View>
+  );
 }
 
 export default function Home() {
@@ -124,19 +102,14 @@ export default function Home() {
 
   const top = useSafeAreaInsets().top;
   const cats = [{ key: null as string | null, label: 'Όλα', emoji: '✨' }, ...CATEGORIES];
-  const next = useNextBooking();
+  const next = useTodayBooking();
 
-  /* Πάνω μέρος σταθερό: λογότυπο, αναζήτηση, επόμενη κράτηση και κατηγορίες μένουν στη θέση τους όσο κυλάει η λίστα. */
+  /* Πάνω μέρος σταθερό: αναζήτηση και κατηγορίες μένουν στη θέση τους όσο κυλάει η λίστα. */
   const fixed = (
     <View style={{ backgroundColor: C.bg, paddingHorizontal: 20, paddingBottom: 12, gap: 14, zIndex: 1,
       borderBottomWidth: 1, borderBottomColor: C.line }}>
       <View style={{ paddingTop: top + 12, gap: 14 }}>
-        <View style={s.row}>
-          <Logo />
-        </View>
-        <Hello />
         <Input icon="search" placeholder="Κομμωτήριο, γυμναστήριο, ιατρείο…" value={q} onChangeText={setQ} returnKeyType="search" style={{ fontSize: 15 }} />
-        {next && <NextBooking b={next} onPress={() => router.push('/bookings')} />}
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20, flexGrow: 0 }}
         contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }} keyboardShouldPersistTaps="handled">
@@ -166,6 +139,7 @@ export default function Home() {
   return (
     <View style={s.screen}>
       {fixed}
+      {next && <TodayToast b={next} onPress={() => router.push('/bookings')} />}
       <FlatList style={{ flex: 1 }} data={list} keyExtractor={(b) => b.id} contentContainerStyle={[s.pad, { paddingTop: 16, gap: 16 }]}
         ListHeaderComponent={head} keyboardShouldPersistTaps="handled"
         ListEmptyComponent={loaded ? <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα ή άλλη κατηγορία."
