@@ -8,7 +8,6 @@ const ICONS: TabItems = {
   '(search)': { icon: 'home', label: 'Αρχική' },
   bookings: { icon: 'calendar', label: 'Κρατήσεις' },
   packs: { icon: 'pack', label: 'Πακέτα' },
-  '(profile)': { icon: 'user', label: 'Προφίλ' },
 };
 
 export default function TabsLayout() {

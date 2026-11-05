@@ -95,14 +95,14 @@ export default function Home() {
   /* Πάνω μέρος σε στιλ Wolt: προφίλ αριστερά, στρογγυλή μπάρα αναζήτησης στο κέντρο. */
   const fixed = (
     <View style={{ backgroundColor: C.bg, paddingHorizontal: 16, paddingTop: top + 10, paddingBottom: 10, zIndex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-      <Pressable onPress={() => router.push('/profile')} accessibilityLabel="Προφίλ"
-        style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: C.card, borderWidth: 1, borderColor: C.line, opacity: pressed ? 0.7 : 1 })}>
-        <Icon name="user" size={20} color={C.text} />
-      </Pressable>
       <View style={{ flex: 1 }}>
         <Input icon="search" placeholder="Αναζήτηση στο SpotOn" value={q} onChangeText={setQ} returnKeyType="search"
           box={{ borderRadius: 999 }} style={{ fontSize: 15 }} />
       </View>
+      <Pressable onPress={() => router.push('/profile')} accessibilityLabel="Προφίλ"
+        style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: C.card, borderWidth: 1, borderColor: C.line, opacity: pressed ? 0.7 : 1 })}>
+        <Icon name="user" size={20} color={C.text} />
+      </Pressable>
     </View>
   );
 
