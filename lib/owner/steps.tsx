@@ -62,41 +62,71 @@ export const ToggleCard = ({ title, sub, value, onChange }: { title: string; sub
   </Card>
 );
 
-/* Βήμα υπηρεσιών: κάρτες με όνομα, λεπτά, τιμή και θέσεις. */
-export function ServicesEditor({ svcs, setSvcs, category }: { svcs: Svc[]; setSvcs: (v: Svc[]) => void; category: string }) {
+/* Βήμα υπηρεσιών: λίστα με μία γραμμή για κάθε υπηρεσία. Πατάς μία και ανοίγει μόνη της (ServiceForm). */
+const durLabel = (m: number) => (m >= 60 && m % 60 === 0 ? `${m / 60} ${m === 60 ? 'ώρα' : 'ώρες'}` : m > 60 ? `${Math.floor(m / 60)}ω ${m % 60}′` : `${m}′`);
+export const svcSummary = (x: Svc) => {
+  const cap = +x.capacity || 1;
+  return [durLabel(+x.duration_min || 30), x.price ? `${x.price.replace('.', ',')}€` : 'χωρίς τιμή', cap > 1 ? `ομαδικό έως ${cap}` : 'ατομικό'].join(' · ');
+};
+
+export function ServiceList({ svcs, onOpen, onAdd, category }: { svcs: Svc[]; onOpen: (key: string) => void; onAdd: () => void; category: string }) {
+  const list = svcs.filter((x) => x.name.trim());
   const unit = screenFor(category).services.toLowerCase();
   return (
     <View style={{ gap: 12 }}>
-      {svcs.map((x, i) => {
-        const up = (k: keyof Svc, v: string) => setSvcs(svcs.map((y, j) => (j === i ? { ...y, [k]: v } : y)));
-        return (
-          <Card key={x.key} style={{ gap: 12 }}>
-            <View style={[s.row, { gap: 10 }]}>
-              <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: alpha(C.accent, 0.12), alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ color: C.accent, fontWeight: '900' }}>{i + 1}</Text>
+      {list.length > 0 && (
+        <View style={[s.card, shadow(1), { padding: 0, gap: 0, overflow: 'hidden' }]}>
+          {list.map((x, k) => (
+            <Pressable key={x.key} onPress={() => onOpen(x.key)}
+              style={({ pressed }) => [s.row, { gap: 12, padding: 14, backgroundColor: pressed ? alpha(C.accent, 0.06) : 'transparent' },
+                k < list.length - 1 && { borderBottomWidth: 1, borderBottomColor: C.bg }]}>
+              <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: alpha(C.accent, 0.12), alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: C.accent, fontWeight: '900' }}>{k + 1}</Text>
               </View>
-              <View style={{ flex: 1 }}><Input placeholder="Όνομα, π.χ. Κούρεμα" value={x.name} onChangeText={(v) => up('name', v)} box={{ backgroundColor: C.bg, borderColor: C.bg }} /></View>
-              {svcs.length > 1 && (
-                <Pressable onPress={() => setSvcs(svcs.filter((_, j) => j !== i))} hitSlop={6} accessibilityLabel="Αφαίρεση"
-                  style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: alpha(C.bad, 0.1), alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon name="close" size={14} color={C.bad} />
-                </Pressable>
-              )}
-            </View>
-            <View style={[s.row, { gap: 8 }]}>
-              <View style={{ flex: 1 }}><Input label="Λεπτά" style={{ width: 10 }} keyboardType="number-pad" value={x.duration_min} onChangeText={(v) => up('duration_min', v)} box={{ backgroundColor: C.bg, borderColor: C.bg }} /></View>
-              <View style={{ flex: 1 }}><Input label="Τιμή €" style={{ width: 10 }} keyboardType="decimal-pad" placeholder="—" value={x.price} onChangeText={(v) => up('price', v)} box={{ backgroundColor: C.bg, borderColor: C.bg }} /></View>
-              <View style={{ flex: 1 }}><Input label="Άτομα" style={{ width: 10 }} keyboardType="number-pad" value={x.capacity} onChangeText={(v) => up('capacity', v)} box={{ backgroundColor: C.bg, borderColor: C.bg }} /></View>
-            </View>
-          </Card>
-        );
-      })}
-      <Pressable onPress={() => setSvcs([...svcs, { key: newKey(), name: '', duration_min: '60', price: '', capacity: '1' }])}
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{x.name}</Text>
+                <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{svcSummary(x)}</Text>
+              </View>
+              <Icon name="chevron" size={14} color={C.mute} />
+            </Pressable>
+          ))}
+        </View>
+      )}
+      <Pressable onPress={onAdd}
         style={({ pressed }) => [s.row, { justifyContent: 'center', gap: 8, minHeight: 52, borderRadius: 16, borderWidth: 1.5, borderStyle: 'dashed',
           borderColor: alpha(C.accent, 0.5), opacity: pressed ? 0.7 : 1 }]}>
         <Icon name="plus" size={16} color={C.accent} />
-        <Text style={{ color: C.accent, fontWeight: '700', fontSize: 15 }}>Πρόσθεσε κι άλλες {unit}</Text>
+        <Text style={{ color: C.accent, fontWeight: '700', fontSize: 15 }}>{list.length ? `Πρόσθεσε κι άλλες ${unit}` : 'Πρόσθεσε την πρώτη'}</Text>
       </Pressable>
+    </View>
+  );
+}
+
+/* Μία υπηρεσία στη δική της οθόνη: όνομα, διάρκεια, τιμή, ατομικό ή ομαδικό. */
+const DURS = [15, 30, 45, 60, 90, 120];
+export function ServiceForm({ svc, onChange, onDelete }: { svc: Svc; onChange: (p: Partial<Svc>) => void; onDelete?: () => void }) {
+  const dur = +svc.duration_min || 0;
+  const cap = +svc.capacity || 1;
+  const group = cap > 1;
+  return (
+    <View style={{ gap: 22 }}>
+      <Input label="Όνομα" autoFocus={!svc.name} placeholder="π.χ. Κούρεμα" value={svc.name} onChangeText={(v) => onChange({ name: v })} style={{ fontSize: 18 }} />
+      <View style={{ gap: 10 }}>
+        <Choice label="Πόσο διαρκεί;" options={DURS.map((v) => ({ v, label: durLabel(v) }))} value={dur} onPick={(v) => onChange({ duration_min: String(v) })} />
+        <Input label="ή γράψε λεπτά" keyboardType="number-pad" value={svc.duration_min} onChangeText={(v) => onChange({ duration_min: v.replace(/\D/g, '') })} />
+      </View>
+      <Input label="Τιμή σε € (προαιρετικό)" keyboardType="decimal-pad" placeholder="π.χ. 15" value={svc.price} onChangeText={(v) => onChange({ price: v })} />
+      <View style={{ gap: 10 }}>
+        <Choice label="Πόσοι έρχονται μαζί;" sub="Ατομικό: ένας πελάτης τη φορά. Ομαδικό: τμήμα με πολλές θέσεις."
+          options={[{ v: 'one', label: '👤 Ατομικό ραντεβού' }, { v: 'group', label: '👥 Ομαδικό τμήμα' }]} value={group ? 'group' : 'one'}
+          onPick={(v) => onChange({ capacity: v === 'group' ? String(group ? cap : 10) : '1' })} />
+        {group && <Input label="Θέσεις ανά τμήμα" keyboardType="number-pad" value={svc.capacity} onChangeText={(v) => onChange({ capacity: v.replace(/\D/g, '') })} />}
+      </View>
+      {onDelete && (
+        <Pressable onPress={onDelete} hitSlop={8} style={({ pressed }) => ({ alignSelf: 'center', opacity: pressed ? 0.6 : 1, paddingVertical: 6 })}>
+          <Text style={{ color: C.bad, fontWeight: '700', fontSize: 15 }}>Διαγραφή υπηρεσίας</Text>
+        </Pressable>
+      )}
     </View>
   );
 }

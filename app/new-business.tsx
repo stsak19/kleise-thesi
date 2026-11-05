@@ -9,8 +9,8 @@ import { PagePreview, upper } from '../lib/owner/PagePreview';
 import { screenFor } from '../lib/bizscreen';
 import { THEMES, styleOf } from '../lib/presets';
 import { Btn, C, DAYS, Icon, Input, alpha, catEmoji, catLabel, price, s, shadow } from '../lib/ui';
-import { EMPTY_BIZ, Hours, Svc, WEEK, badHours, loadBusiness, presetData, saveBusiness } from '../lib/owner/save';
-import { Choice, HoursEditor, ServicesEditor, Swatches, ToggleCard, TypeGrid } from '../lib/owner/steps';
+import { EMPTY_BIZ, Hours, Svc, WEEK, newKey, badHours, loadBusiness, presetData, saveBusiness } from '../lib/owner/save';
+import { Choice, HoursEditor, ServiceForm, ServiceList, Swatches, ToggleCard, TypeGrid } from '../lib/owner/steps';
 
 /* Οδηγός «Νέα επιχείρηση»: ο ιδιοκτήτης φτιάχνει τη σελίδα του μία επιλογή τη φορά.
    Είδος → όνομα → πού είστε → φωτογραφίες & χρώμα → υπηρεσίες → ωράριο → κανόνες → τελικός έλεγχος.
@@ -41,6 +41,7 @@ export default function NewBusiness() {
   const [up, setUp] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<string | null>(null); // id καταστήματος όταν αποθηκευτεί
+  const [svcEdit, setSvcEdit] = useState<{ key: string; fresh: boolean; before?: Svc } | null>(null); // μία υπηρεσία ανοιχτή
 
   // Αν ο χρήστης έχει ήδη κατάστημα, ο οδηγός ξεκινά με τα στοιχεία του (και δεν φτιάχνει δεύτερο).
   useEffect(() => { loadBusiness(uid).then((r) => {
@@ -56,7 +57,7 @@ export default function NewBusiness() {
     anim.setValue(0);
     Animated.timing(anim, { toValue: 1, duration: 260, useNativeDriver: Platform.OS !== 'web' }).start();
     scroll.current?.scrollTo({ y: 0, animated: false });
-  }, [i, done]);
+  }, [i, done, svcEdit?.key]);
 
   const step = STEPS[i];
   const cat: string = b.category ?? 'other';
@@ -64,7 +65,33 @@ export default function NewBusiness() {
   const look = styleOf(b);
   const named = svcs.filter((x) => x.name.trim());
   const go = (n: number) => { dir.current = n > i ? 1 : -1; setI(n); };
-  const back = () => (i === 0 ? router.back() : go(i - 1));
+  const back = () => {
+    if (svcEdit) return closeSvc(true);
+    return i === 0 ? router.back() : go(i - 1);
+  };
+
+  /* Υπηρεσίες: κάθε μία ανοίγει μόνη της. */
+  const editing = svcEdit ? svcs.find((x) => x.key === svcEdit.key) : undefined;
+  const openSvc = (key: string) => { dir.current = 1; setSvcEdit({ key, fresh: false, before: svcs.find((x) => x.key === key) }); };
+  const addSvc = () => {
+    const n: Svc = { key: newKey(), name: '', duration_min: '30', price: '', capacity: '1' };
+    setSvcs([...svcs, n]); dir.current = 1; setSvcEdit({ key: n.key, fresh: true });
+  };
+  const patchSvc = (p: Partial<Svc>) => svcEdit && setSvcs((list) => list.map((x) => (x.key === svcEdit.key ? { ...x, ...p } : x)));
+  const dropSvc = (key: string) => {
+    const x = svcs.find((y) => y.key === key);
+    if (x?.id) setRemoved((r) => [...r, x.id!]);
+    setSvcs((list) => list.filter((y) => y.key !== key));
+    setHours((h) => h.filter((y) => y.svc !== key));
+  };
+  /* cancel = «πίσω»: μια νέα υπηρεσία φεύγει, μια παλιά γυρίζει όπως ήταν. */
+  const closeSvc = (cancel: boolean) => {
+    if (!svcEdit) return;
+    if (cancel && svcEdit.fresh) dropSvc(svcEdit.key);
+    else if (cancel && svcEdit.before) setSvcs((list) => list.map((x) => (x.key === svcEdit.key ? svcEdit.before! : x)));
+    else if (!cancel && editing && !editing.name.trim()) dropSvc(svcEdit.key);
+    dir.current = -1; setSvcEdit(null);
+  };
 
   const pickType = (k: string) => {
     if (k === b.category) return;
@@ -82,6 +109,7 @@ export default function NewBusiness() {
 
   /* Τι λείπει για να πας στο επόμενο βήμα (κενό = όλα καλά). */
   const missing = (): string => {
+    if (svcEdit) return editing?.name.trim() ? '' : 'Γράψε όνομα υπηρεσίας';
     if (step === 'type' && !b.category) return 'Διάλεξε ένα είδος';
     if (step === 'name' && !b.name.trim()) return 'Γράψε το όνομα';
     if (step === 'place' && !b.city.trim()) return 'Γράψε την πόλη';
@@ -89,6 +117,7 @@ export default function NewBusiness() {
     return '';
   };
   const next = async () => {
+    if (svcEdit) return closeSvc(false);
     if (step === 'hours') { const bad = badHours(hours); if (bad) return say('Λάθος ωράριο', bad); }
     if (step !== 'review') return go(i + 1);
     setBusy(true);
@@ -133,12 +162,14 @@ export default function NewBusiness() {
     name: { title: 'Πώς λέγεται;', sub: 'Έτσι θα σε βρίσκουν οι πελάτες στην αναζήτηση.' },
     place: { title: 'Πού σε βρίσκουμε;', sub: 'Η πόλη χρειάζεται για την αναζήτηση. Τα υπόλοιπα βοηθούν τον πελάτη να έρθει.' },
     look: { title: 'Δώσε της πρόσωπο', sub: 'Ένα εξώφυλλο, το λογότυπό σου και ένα χρώμα. Μπορείς να τα βάλεις και αργότερα.' },
-    services: { title: `${scr.services}`, sub: 'Σου βάλαμε μερικές για αρχή. Άλλαξέ τες, σβήσε ή πρόσθεσε. «Άτομα» πάνω από 1 σημαίνει ομαδικό.' },
+    services: { title: `${scr.services}`, sub: 'Σου βάλαμε μερικές για αρχή. Πάτα μία για να την αλλάξεις ή να τη σβήσεις, ή πρόσθεσε καινούργια.' },
     hours: { title: 'Πότε είσαι ανοιχτά;', sub: 'Άνοιξε ή κλείσε κάθε μέρα. Για μεσημεριανό κενό πάτα «+ Διάλειμμα».' },
     rules: { title: 'Πώς κλείνουν θέση;', sub: 'Λίγοι κανόνες για τις κρατήσεις σου. Οι προτάσεις ταιριάζουν στο είδος σου.' },
     review: { title: 'Όλα έτοιμα;', sub: 'Ρίξε μια ματιά. Πάτα σε ό,τι θέλεις να αλλάξεις.' },
   };
-  const optional = step === 'look';
+  const optional = step === 'look' && !svcEdit;
+  const title = editing ? (svcEdit!.fresh ? 'Νέα υπηρεσία' : editing.name.trim() || 'Υπηρεσία') : head[step].title;
+  const sub = editing ? 'Μία υπηρεσία τη φορά: όνομα, διάρκεια, τιμή και πόσοι έρχονται μαζί.' : head[step].sub;
   const why = missing();
 
   const body = () => {
@@ -172,7 +203,9 @@ export default function NewBusiness() {
           </View>
         </View>
       );
-      case 'services': return <ServicesEditor svcs={svcs} setSvcs={setSvcs} category={cat} />;
+      case 'services': return editing
+        ? <ServiceForm svc={editing} onChange={patchSvc} onDelete={svcEdit?.fresh ? undefined : () => { dropSvc(editing.key); dir.current = -1; setSvcEdit(null); }} />
+        : <ServiceList svcs={svcs} onOpen={openSvc} onAdd={addSvc} category={cat} />;
       case 'hours': return <HoursEditor hours={hours} setHours={setHours} />;
       case 'rules': return (
         <View style={{ gap: 22 }}>
@@ -226,9 +259,9 @@ export default function NewBusiness() {
       {/* Πάνω: πίσω + πρόοδος */}
       <View style={{ paddingTop: top + 12, paddingHorizontal: 20, gap: 14 }}>
         <View style={[s.row, { gap: 14 }]}>
-          <Pressable onPress={back} accessibilityLabel={i === 0 ? 'Κλείσιμο' : 'Πίσω'} hitSlop={6}
+          <Pressable onPress={back} accessibilityLabel={i === 0 && !svcEdit ? 'Κλείσιμο' : 'Πίσω'} hitSlop={6}
             style={({ pressed }) => [{ width: 44, height: 44, borderRadius: 22, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.75 : 1 }]}>
-            <Icon name={i === 0 ? 'close' : 'back'} size={i === 0 ? 16 : 20} color={C.text} />
+            <Icon name={i === 0 && !svcEdit ? 'close' : 'back'} size={i === 0 && !svcEdit ? 16 : 20} color={C.text} />
           </Pressable>
           <View style={{ flex: 1, flexDirection: 'row', gap: 5 }}>
             {STEPS.map((_, k) => (
@@ -244,8 +277,8 @@ export default function NewBusiness() {
             <Text style={{ color: C.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.3 }}>
               ΒΗΜΑ {i + 1} ΑΠΟ {STEPS.length}{i > 0 && b.category ? `  ·  ${catEmoji(cat)} ${upper(scr.kicker)}` : ''}
             </Text>
-            <Text style={[s.title, { fontSize: 30 }]}>{head[step].title}</Text>
-            <Text style={{ color: C.mute, fontSize: 16, lineHeight: 23 }}>{head[step].sub}</Text>
+            <Text style={[s.title, { fontSize: 30 }]}>{title}</Text>
+            <Text style={{ color: C.mute, fontSize: 16, lineHeight: 23 }}>{sub}</Text>
           </View>
           {body()}
         </Animated.View>
@@ -254,7 +287,7 @@ export default function NewBusiness() {
       {/* Κάτω: συνέχεια */}
       <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: bottom + 16, gap: 10, backgroundColor: C.bg,
         borderTopWidth: 1, borderTopColor: alpha(C.text, 0.06) }}>
-        <Btn title={busy ? 'Μια στιγμή…' : step === 'review' ? 'Δημιουργία σελίδας' : why || 'Συνέχεια'} onPress={next} disabled={!!why || busy} />
+        <Btn title={busy ? 'Μια στιγμή…' : svcEdit ? why || (svcEdit.fresh ? 'Προσθήκη' : 'Έτοιμο') : step === 'review' ? 'Δημιουργία σελίδας' : why || 'Συνέχεια'} onPress={next} disabled={!!why || busy} />
         {optional && !b.cover_url && !b.logo_url && (
           <Pressable onPress={() => go(i + 1)} hitSlop={8} style={({ pressed }) => ({ alignSelf: 'center', opacity: pressed ? 0.6 : 1 })}>
             <Text style={{ color: C.mute, fontWeight: '700', fontSize: 15 }}>Θα τις βάλω αργότερα</Text>
