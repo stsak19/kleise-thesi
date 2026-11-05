@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { sb } from '../../../lib/supabase';
-import { C, CATEGORIES, Card, Empty, Icon, Input, alpha, catLabel, s, shadow } from '../../../lib/ui';
+import { rpc, sb } from '../../../lib/supabase';
+import { C, CATEGORIES, Card, DAYS, Empty, Icon, Input, alpha, catLabel, iso, s, shadow } from '../../../lib/ui';
+import type { IconName } from '../../../lib/Icon';
 
 import { styleOf } from '../../../lib/presets';
 import { Photo } from '../../../lib/Photo';
 type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null };
 
-const hello = () => { const h = new Date().getHours(); return h < 12 ? 'Καλημέρα ☀️' : h < 19 ? 'Καλησπέρα 👋' : 'Καλό βράδυ 🌙'; };
 
 /* Κάρτα καταστήματος: εξώφυλλο (ή το χρώμα του με το σύμβολο της κατηγορίας) και στοιχεία. */
 function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
@@ -36,6 +36,53 @@ function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
   );
 }
 
+
+/* Το όνομα της εφαρμογής ως λογότυπο-κείμενο. */
+const Logo = () => (
+  <Text style={{ fontSize: 26, fontWeight: '900', letterSpacing: -0.8, color: C.text }}>
+    Spot<Text style={{ color: C.accent }}>On</Text>
+  </Text>
+);
+
+/* Στρογγυλό κουμπί με εικονίδιο. */
+const RoundBtn = ({ icon, onPress, label }: { icon: IconName; onPress: () => void; label: string }) => (
+  <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={6}
+    style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
+      backgroundColor: C.soft, opacity: pressed ? 0.75 : 1 })}>
+    <Icon name={icon} size={20} color={C.accent} />
+  </Pressable>
+);
+
+type Next = { date: string; time: string; service: string; business: string };
+/* Η πιο κοντινή επερχόμενη κράτηση του χρήστη (ή τίποτα). */
+function useNextBooking() {
+  const [n, setN] = useState<Next | null>(null);
+  useFocusEffect(useCallback(() => {
+    rpc('my_bookings').then((m: any) => {
+      const today = iso(new Date());
+      setN(((m?.bookings ?? []) as any[]).find((b) => b.status === 'booked' && b.date >= today) ?? null);
+    }).catch(() => {});
+  }, []));
+  return n;
+}
+
+/* Μικρή κάρτα «Επόμενη κράτηση». */
+const NextBooking = ({ b, onPress }: { b: Next; onPress: () => void }) => (
+  <Pressable onPress={onPress} style={({ pressed }) => [s.row, { gap: 12, padding: 12, paddingRight: 14, borderRadius: 18,
+    backgroundColor: alpha(C.accent, 0.08), opacity: pressed ? 0.8 : 1 }]}>
+    <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: C.accent, alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ color: '#ffffff', fontSize: 11, fontWeight: '700' }}>{DAYS[new Date(b.date + 'T00:00').getDay()]}</Text>
+      <Text style={{ color: '#ffffff', fontSize: 17, fontWeight: '800', marginTop: -2 }}>{new Date(b.date + 'T00:00').getDate()}</Text>
+    </View>
+    <View style={{ flex: 1, gap: 1 }}>
+      <Text style={{ color: C.accent, fontSize: 12, fontWeight: '700' }}>Επόμενη κράτηση · {b.time}</Text>
+      <Text style={{ color: C.text, fontSize: 15, fontWeight: '700' }} numberOfLines={1}>{b.business}</Text>
+      <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{b.service}</Text>
+    </View>
+    <Icon name="chevron" size={16} color={C.mute} />
+  </Pressable>
+);
+
 export default function Home() {
   const router = useRouter();
   const [cat, setCat] = useState<string | null>(null);
@@ -54,25 +101,18 @@ export default function Home() {
 
   const top = useSafeAreaInsets().top;
   const cats = [{ key: null as string | null, label: 'Όλα', emoji: '✨' }, ...CATEGORIES];
+  const next = useNextBooking();
 
   const head = (
     <View style={{ gap: 16 }}>
-      {/* Πάνω μέρος: απαλή ζώνη στο κύριο χρώμα με χαιρετισμό, τίτλο και αναζήτηση. */}
-      <View style={{ marginHorizontal: -20, paddingTop: top + 16, paddingHorizontal: 20, paddingBottom: 22, gap: 16,
-        backgroundColor: alpha(C.accent, 0.07), borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
-        <View style={[s.row, { alignItems: 'flex-start', gap: 12 }]}>
-          <View style={{ flex: 1, gap: 4 }}>
-            <Text style={{ color: C.mute, fontSize: 14, fontWeight: '600' }}>{hello()}</Text>
-            <Text style={{ color: C.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.6 }}>Πού θα κλείσεις;</Text>
-          </View>
-          <Pressable onPress={() => router.push('/bookings')} accessibilityRole="button" accessibilityLabel="Οι κρατήσεις μου" hitSlop={6}
-            style={({ pressed }) => [{ width: 44, height: 44, borderRadius: 22, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center',
-              opacity: pressed ? 0.75 : 1 }, shadow(1)]}>
-            <Icon name="calendar" size={20} color={C.accent} />
-          </Pressable>
+      <View style={{ paddingTop: top + 12, gap: 14 }}>
+        <View style={s.row}>
+          <Logo />
+          <View style={{ flex: 1 }} />
+          <RoundBtn icon="calendar" onPress={() => router.push('/bookings')} label="Οι κρατήσεις μου" />
         </View>
-        <Input icon="search" placeholder="Κομμωτήριο, γυμναστήριο, ιατρείο…" value={q} onChangeText={setQ} returnKeyType="search"
-          style={{ fontSize: 15 }} box={{ backgroundColor: C.bg, borderColor: C.bg, ...shadow(1) }} />
+        <Input icon="search" placeholder="Κομμωτήριο, γυμναστήριο, ιατρείο…" value={q} onChangeText={setQ} returnKeyType="search" style={{ fontSize: 15 }} />
+        {next && <NextBooking b={next} onPress={() => router.push('/bookings')} />}
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }}
         contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
