@@ -14,9 +14,9 @@ export function FloatBar({ items, state, navigateToTab }: { items: TabItems; sta
   const bottom = useSafeAreaInsets().bottom;
   const light = isLight(C.bg);
   return (
-    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingBottom: Math.max(bottom, 10) + 6 }}>
+    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'center', paddingHorizontal: 16, paddingBottom: Math.max(bottom, 10) + 6 }}>
       <BlurView intensity={light ? 40 : 30} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
-        style={{ height: 64, borderRadius: 32, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 6,
+        style={{ height: 64, borderRadius: 32, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 8,
           backgroundColor: light ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1, borderColor: light ? alpha('#ffffff', 0.9) : alpha('#ffffff', 0.1),
           boxShadow: `0px 10px 30px ${alpha(C.shade, light ? 0.12 : 0.4)}, inset 0px 1px 0px ${alpha('#ffffff', light ? 0.9 : 0.08)}` }}>
         {state.routes.map((r, i) => {
