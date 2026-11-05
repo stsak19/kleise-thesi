@@ -2,10 +2,10 @@ import { say } from '../../../lib/alert';
 import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { isDemo, setDemo } from '../../../lib/demo';
+import { setDemo } from '../../../lib/demo';
 import { sb } from '../../../lib/supabase';
 import { useAuth } from '../../../lib/auth';
-import { Btn, C, Card, Group, Input, Pill, Row, ScreenHeader, Section, T, alpha, s } from '../../../lib/ui';
+import { Btn, C, Card, Group, Input, Row, ScreenHeader, Section, T, alpha, s } from '../../../lib/ui';
 
 export default function Profile() {
   const { session } = useAuth();
@@ -33,10 +33,8 @@ export default function Profile() {
         <View style={{ flex: 1, gap: 4 }}>
           <Text style={{ color: C.text, fontWeight: '900', fontSize: 20, letterSpacing: -0.4 }} numberOfLines={1}>{name || 'Χωρίς όνομα'}</Text>
           <T mute style={{ fontSize: 14 }}>{session!.user.email}</T>
-          {isDemo() && <Pill text="👀 Demo" tone="accent" />}
         </View>
       </Card>
-      {isDemo() && <T mute style={{ fontSize: 13, marginHorizontal: 4 }}>Βρίσκεσαι στο demo — τα δεδομένα είναι δοκιμαστικά και χάνονται όταν βγεις.</T>}
 
       <Section title="Τα στοιχεία μου" sub="Τα βλέπει η επιχείρηση όταν κλείνεις θέση." />
       <Card style={{ gap: 14 }}>
@@ -55,7 +53,7 @@ export default function Profile() {
 
       <View style={{ marginTop: 10 }}>
         <Group>
-          <Row title={isDemo() ? 'Έξοδος από το demo' : 'Αποσύνδεση'} danger last onPress={async () => { await sb.auth.signOut(); setDemo(false); }} right={<View />} />
+          <Row title="Αποσύνδεση" danger last onPress={async () => { await sb.auth.signOut(); setDemo(false); }} right={<View />} />
         </Group>
       </View>
     </ScrollView>

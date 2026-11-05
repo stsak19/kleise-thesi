@@ -40,7 +40,7 @@ export default function Login() {
     const ds = demoSession();
     const { error } = await sb.auth.setSession({ access_token: ds.access_token, refresh_token: ds.refresh_token });
     setBusy(false);
-    if (error) { setDemo(false); setErr('Δεν άνοιξε το demo'); }
+    if (error) { setDemo(false); setErr('Κάτι πήγε στραβά, δοκίμασε ξανά'); }
   };
 
   const Tab = ({ m, label }: { m: 'in' | 'up'; label: string }) => (
@@ -95,7 +95,7 @@ export default function Login() {
             <T mute style={{ fontSize: 13 }}>ή</T>
             <View style={{ flex: 1, height: 1, backgroundColor: C.line }} />
           </View>
-          <Btn kind="tint" title="👀  Δες το demo χωρίς λογαριασμό" disabled={busy} onPress={demo} />
+          <Btn kind="tint" title="Συνέχεια χωρίς λογαριασμό" disabled={busy} onPress={demo} />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
