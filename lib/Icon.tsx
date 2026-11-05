@@ -3,7 +3,7 @@ import { C } from './theme';
 
 /* Μικρά εικονίδια γραμμής, φτιαγμένα μόνο με View (χωρίς βιβλιοθήκη εικονιδίων).
    Παίρνουν το χρώμα τους από το θέμα, οπότε αλλάζουν μαζί με το 🎨. */
-export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close';
+export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'back';
 
 export function Icon({ name, size = 22, color = C.text, style }: { name: IconName; size?: number; color?: string; style?: ViewStyle }) {
   const s = size, w = Math.max(1.6, Math.round(s * 0.09 * 10) / 10);
@@ -51,6 +51,9 @@ export function Icon({ name, size = 22, color = C.text, style }: { name: IconNam
       </>; break;
     case 'chevron':
       body = <View style={abs(s * 0.24, s * 0.32, { width: s * 0.36, height: s * 0.36, borderTopWidth: w, borderRightWidth: w, borderColor: color, borderTopRightRadius: 2, transform: [{ rotate: '45deg' }] })} />;
+      break;
+    case 'back':
+      body = <View style={abs(s * 0.38, s * 0.32, { width: s * 0.36, height: s * 0.36, borderBottomWidth: w, borderLeftWidth: w, borderColor: color, borderBottomLeftRadius: 2, transform: [{ rotate: '45deg' }] })} />;
       break;
     case 'bell':
       body = <>

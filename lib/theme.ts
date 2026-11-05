@@ -9,6 +9,8 @@ export const DEFAULT = {
   ok: '#1fa971', bad: '#ed1d51',
 };
 export type Theme = typeof DEFAULT;
+/* Σκούρα σελίδα καταστήματος (κουρεία, tattoo): μόνο για τη σελίδα του καταστήματος, όχι για όλη την εφαρμογή. */
+export const NIGHT = { bg: '#111113', card: '#1c1c1f', line: '#2a2a2e', text: '#ffffff', mute: '#a1a1aa' };
 export const LABELS: Record<keyof Theme, string> = {
   bg: 'Φόντο', card: 'Κάρτες', soft: 'Πεδία / απαλό φόντο', line: 'Περιγράμματα', text: 'Κείμενο', mute: 'Δευτερεύον κείμενο',
   accent: 'Κύριο χρώμα', onAccent: 'Κείμενο πάνω στο κύριο',
