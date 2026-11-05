@@ -3,7 +3,7 @@ import { C } from './theme';
 
 /* Μικρά εικονίδια γραμμής, φτιαγμένα μόνο με View (χωρίς βιβλιοθήκη εικονιδίων).
    Παίρνουν το χρώμα τους από το θέμα, οπότε αλλάζουν μαζί με το 🎨. */
-export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear';
+export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack';
 
 export function Icon({ name, size = 22, color = C.text, style }: { name: IconName; size?: number; color?: string; style?: ViewStyle }) {
   const s = size, w = Math.max(1.6, Math.round(s * 0.09 * 10) / 10);
@@ -89,6 +89,14 @@ export function Icon({ name, size = 22, color = C.text, style }: { name: IconNam
         <View style={abs(s * 0.06, s * 0.14, { width: s * 0.88, height: s * 0.24, borderRadius: s * 0.08, backgroundColor: color })} />
         <View style={abs(s * 0.14, s * 0.34, { width: s * 0.72, height: s * 0.54, borderWidth: w, borderTopWidth: 0, borderColor: color, borderBottomLeftRadius: s * 0.08, borderBottomRightRadius: s * 0.08 })} />
         <View style={abs(s * 0.4, s * 0.58, { width: s * 0.2, height: s * 0.3, borderWidth: w, borderBottomWidth: 0, borderColor: color, borderTopLeftRadius: 3, borderTopRightRadius: 3 })} />
+      </>; break;
+    case 'pack':
+      /* Πακέτο/καρνέ: δύο κάρτες τη μία πίσω από την άλλη. */
+      body = <>
+        <View style={abs(s * 0.22, s * 0.1, { width: s * 0.7, height: s * 0.5, borderRadius: s * 0.12, borderWidth: w, borderColor: color, borderBottomWidth: 0, borderLeftWidth: 0 })} />
+        <View style={abs(s * 0.08, s * 0.28, { width: s * 0.7, height: s * 0.56, borderRadius: s * 0.12, borderWidth: w, borderColor: color })} />
+        <View style={abs(s * 0.2, s * 0.5, { width: s * 0.3, height: w, borderRadius: w, backgroundColor: color })} />
+        <View style={abs(s * 0.2, s * 0.64, { width: s * 0.46, height: w, borderRadius: w, backgroundColor: color })} />
       </>; break;
     case 'gear':
       body = <>

@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { Card, Empty, ScreenHeader, s } from '../../lib/ui';
 import { useMyBookings } from '../../lib/bookings/data';
-import { Extras, History, Notices, Segmented } from '../../lib/bookings/parts';
+import { Extras, History, Segmented } from '../../lib/bookings/parts';
 import Upcoming from '../../lib/bookings/Upcoming';
 
 let lastTab: 'up' | 'past' = 'up';
 
-/* Κρατήσεις: δύο καρτέλες, «Επερχόμενες» (ραντεβού, αναμονή, πακέτα) και «Ιστορικό» (αρχείο ανά κατάστημα). */
+/* Κρατήσεις: δύο καρτέλες, «Επερχόμενες» (ραντεβού και αναμονή) και «Ιστορικό» (αρχείο ανά κατάστημα). */
 export default function Bookings() {
   const D = useMyBookings();
   const [tab, setTabS] = useState(lastTab);
@@ -25,7 +25,6 @@ export default function Bookings() {
       ]} />
 
       {tab === 'up' ? <>
-        <Notices notes={D.notes} />
         {D.ready && n === 0 && (
           <Card><Empty emoji="📅" title="Καμία επερχόμενη κράτηση" text="Βρες ένα κατάστημα και κλείσε θέση σε λίγα δευτερόλεπτα."
             action="Βρες κατάστημα" onAction={D.find} /></Card>

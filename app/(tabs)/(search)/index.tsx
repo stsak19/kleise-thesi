@@ -93,8 +93,10 @@ export default function Home() {
   const cats = [{ key: null as string | null, label: 'Όλα', emoji: '✨' }, ...CATEGORIES];
   const next = useNextBooking();
 
-  const head = (
-    <View style={{ gap: 16 }}>
+  /* Πάνω μέρος σταθερό: λογότυπο, αναζήτηση, επόμενη κράτηση και κατηγορίες μένουν στη θέση τους όσο κυλάει η λίστα. */
+  const fixed = (
+    <View style={{ backgroundColor: C.bg, paddingHorizontal: 20, paddingBottom: 12, gap: 14, zIndex: 1,
+      boxShadow: `0px 6px 14px ${alpha(C.shade, 0.06)}` }}>
       <View style={{ paddingTop: top + 12, gap: 14 }}>
         <View style={s.row}>
           <Logo />
@@ -102,8 +104,8 @@ export default function Home() {
         <Input icon="search" placeholder="Κομμωτήριο, γυμναστήριο, ιατρείο…" value={q} onChangeText={setQ} returnKeyType="search" style={{ fontSize: 15 }} />
         {next && <NextBooking b={next} onPress={() => router.push('/bookings')} />}
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }}
-        contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20, flexGrow: 0 }}
+        contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }} keyboardShouldPersistTaps="handled">
         {cats.map((c) => {
           const on = cat === c.key;
           return (
@@ -117,18 +119,24 @@ export default function Home() {
           );
         })}
       </ScrollView>
-      <View style={s.row}>
-        <Text style={[s.h, { flex: 1 }]}>{cat ? catLabel(cat) : q.trim() ? 'Αποτελέσματα' : 'Όλα τα καταστήματα'}</Text>
-        {loaded && <Text style={{ color: C.mute, fontWeight: '600' }}>{list.length}</Text>}
-      </View>
+    </View>
+  );
+
+  const head = (
+    <View style={s.row}>
+      <Text style={[s.h, { flex: 1 }]}>{cat ? catLabel(cat) : q.trim() ? 'Αποτελέσματα' : 'Όλα τα καταστήματα'}</Text>
+      {loaded && <Text style={{ color: C.mute, fontWeight: '600' }}>{list.length}</Text>}
     </View>
   );
 
   return (
-    <FlatList style={s.screen} data={list} keyExtractor={(b) => b.id} contentContainerStyle={[s.pad, { paddingTop: 0, gap: 16 }]}
-      ListHeaderComponent={head} keyboardShouldPersistTaps="handled"
-      ListEmptyComponent={loaded ? <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα ή άλλη κατηγορία."
-        action={cat || q ? 'Καθαρισμός φίλτρων' : undefined} onAction={() => { setCat(null); setQ(''); }} /> : undefined}
-      renderItem={({ item }) => <BizCard b={item} onPress={() => router.push(`/business/${item.id}`)} />} />
+    <View style={s.screen}>
+      {fixed}
+      <FlatList style={{ flex: 1 }} data={list} keyExtractor={(b) => b.id} contentContainerStyle={[s.pad, { paddingTop: 16, gap: 16 }]}
+        ListHeaderComponent={head} keyboardShouldPersistTaps="handled"
+        ListEmptyComponent={loaded ? <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα ή άλλη κατηγορία."
+          action={cat || q ? 'Καθαρισμός φίλτρων' : undefined} onAction={() => { setCat(null); setQ(''); }} /> : undefined}
+        renderItem={({ item }) => <BizCard b={item} onPress={() => router.push(`/business/${item.id}`)} />} />
+    </View>
   );
 }

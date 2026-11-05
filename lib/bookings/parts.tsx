@@ -55,20 +55,7 @@ export function Segmented<K extends string>({ value, onChange, items }: { value:
   );
 }
 
-/* Αδιάβαστες ειδοποιήσεις. */
-export const Notices = ({ notes }: { notes: any[] }) => <>
-  {notes.filter((n) => !n.read).map((n) => (
-    <View key={n.id} style={[s.row, { gap: 12, alignItems: 'flex-start', backgroundColor: alpha(C.accent, 0.08), borderRadius: 18, padding: 14 }]}>
-      <IconBubble name="bell" size={38} />
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{n.title}</Text>
-        <T mute style={{ fontSize: 14 }}>{n.body}</T>
-      </View>
-    </View>
-  ))}
-</>;
-
-/* Λίστα ενδιαφέροντος και πακέτα (κάτω από τα επερχόμενα, σε όλες τις εκδοχές). */
+/* Λίστα ενδιαφέροντος (κάτω από τα επερχόμενα). Τα πακέτα έχουν δική τους καρτέλα. */
 export const Extras = ({ D }: { D: BookingsData }) => <>
   {D.waitlist.length > 0 && <>
     <Section title="Σε αναμονή" sub="Αν ελευθερωθεί θέση, σου κλείνεται αυτόματα." />
@@ -76,16 +63,6 @@ export const Extras = ({ D }: { D: BookingsData }) => <>
       {D.waitlist.map((w: any, i: number) => (
         <Row key={w.id} icon="bell" title={`${w.business} · ${w.service}`} sub={`${fmtLong(w.date)} · ${w.time}`} last={i === D.waitlist.length - 1}
           right={<Pill text="Αναμονή" tone="accent" />} />
-      ))}
-    </Group>
-  </>}
-  {D.packs.length > 0 && <>
-    <Section title="Πακέτα" />
-    <Group>
-      {D.packs.map((m: any, i: number) => (
-        <Row key={m.business_id} icon="store" title={m.business} last={i === D.packs.length - 1} color={D.color(m)} onPress={() => D.open(m)}
-          sub={m.status === 'pending' ? 'Περιμένει έγκριση' : `${m.credits} κρατήσεις · έως ${fmtDay(m.expires)}`}
-          right={m.status === 'pending' ? <Pill text="Σε αναμονή" tone="accent" /> : <Pill text={`${m.credits}`} tone="ok" />} />
       ))}
     </Group>
   </>}

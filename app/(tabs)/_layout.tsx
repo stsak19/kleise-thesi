@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C, Icon, alpha } from '../../lib/ui';
 import type { IconName } from '../../lib/Icon';
 
-/* Η κάτω μπάρα: Αναζήτηση · Κρατήσεις · Προφίλ. Πάντα ορατή, και μέσα σε ένα κατάστημα.
+/* Η κάτω μπάρα: Αναζήτηση · Κρατήσεις · Πακέτα · Προφίλ. Πάντα ορατή, και μέσα σε ένα κατάστημα.
    Το ενεργό εικονίδιο κάθεται σε ένα απαλό «χάπι» στο κύριο χρώμα. */
 const icon = (name: IconName) => ({ focused }: { focused: boolean }) => (
   <View style={{ width: 52, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
@@ -23,6 +23,7 @@ export default function TabsLayout() {
     }}>
       <Tabs.Screen name="(search)" options={{ title: 'Αναζήτηση', tabBarIcon: icon('search') }} />
       <Tabs.Screen name="bookings" options={{ title: 'Κρατήσεις', tabBarIcon: icon('calendar') }} />
+      <Tabs.Screen name="packs" options={{ title: 'Πακέτα', tabBarIcon: icon('pack') }} />
       <Tabs.Screen name="(profile)" options={{ title: 'Προφίλ', tabBarIcon: icon('user') }} />
     </Tabs>
   );
