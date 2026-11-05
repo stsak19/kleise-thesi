@@ -586,7 +586,7 @@ export default function Business() {
             </View>
             {stt === 'mine' ? <Btn kind="danger" title="Ακύρωση" disabled={dis} onPress={() => cancel(picked)} />
               : stt === 'wait' ? <Btn kind="ghost" title="Απόσυρση" disabled={dis} onPress={() => unwait(picked)} />
-              : stt === 'full' ? <Btn kind="tint" color="#ffffff" title="🙋 Αναμονή" disabled={dis} onPress={() => wait(picked.sv, picked.time)} />
+              : stt === 'full' ? <Btn kind="tint" color={C.tint} title="🙋 Αναμονή" disabled={dis} onPress={() => wait(picked.sv, picked.time)} />
               : <Btn title={scr.cta} disabled={dis} onPress={() => book(picked.sv, picked.time)} />}
           </View>
         );
