@@ -6,6 +6,8 @@ import { View } from 'react-native';
 import { C } from '../lib/ui';
 import { isDark, loadTheme, onTheme } from '../lib/theme';
 import Intro, { useIntroSeen } from '../lib/Intro';
+import { useFonts } from 'expo-font';
+import { FONTS } from '../lib/Txt';
 
 /* Η αλλαγή εμφάνισης ξαναστήνει την εφαρμογή· κρατάμε την οθόνη που ήταν ανοιχτή για να γυρίσουμε σε αυτή. */
 let here = '/';
@@ -45,7 +47,9 @@ function Gate() {
 export default function Root() {
   // Κάθε αλλαγή χρώματος ξαναζωγραφίζει την εφαρμογή.
   const [v, setV] = useState(0);
+  const [fonts] = useFonts(FONTS);
   useEffect(() => { const off = onTheme(() => { restore = here; setV((x) => x + 1); }); loadTheme(); return off; }, []);
+  if (!fonts) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
   return (
     <AuthProvider>
       <StatusBar style={isDark() ? 'light' : 'dark'} />

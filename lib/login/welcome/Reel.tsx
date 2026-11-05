@@ -1,4 +1,5 @@
-import { Animated, Text, View, useWindowDimensions } from 'react-native';
+import { Animated, View, useWindowDimensions } from 'react-native';
+import { Text, AText } from '../../Txt';
 import { C } from '../../ui';
 import { CATS, GAP, TH, TW, Tile, k, rise, useLoop, useStagger, type V } from '../motion';
 import { Actions, LetterLogo, SUB, Shell, TITLE, WelcomeProps, subStyle, titleStyle } from './common';
@@ -67,7 +68,7 @@ export default function Reel(p: WelcomeProps) {
             <View key={li} style={{ flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', columnGap: 8 }}>
               {line.map((word) => {
                 const v = wv[w++];
-                return <Animated.Text key={word} style={[titleStyle, { opacity: v, transform: [{ translateY: k(v, [0, 1], [22, 0]) }] }]}>{word}</Animated.Text>;
+                return <AText key={word} style={[titleStyle, { opacity: v, transform: [{ translateY: k(v, [0, 1], [22, 0]) }] }]}>{word}</AText>;
               })}
             </View>
           ))}

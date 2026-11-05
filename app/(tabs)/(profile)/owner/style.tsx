@@ -1,6 +1,7 @@
 import { say } from '../../../../lib/alert';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import { Text } from '../../../../lib/Txt';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { sb } from '../../../../lib/supabase';
 import { useAuth } from '../../../../lib/auth';

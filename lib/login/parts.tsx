@@ -1,13 +1,18 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '../Txt';
 import { C, Icon, Input, alpha } from '../ui';
+import { isLight } from '../theme';
 import type { LoginState } from './useLogin';
 
 /* Κοινά κομμάτια των οθονών σύνδεσης. */
 
-export const Logo = ({ size = 26, color = C.text, accent = C.accent }: { size?: number; color?: string; accent?: string }) => (
-  <Text style={{ fontSize: size, fontWeight: '900', letterSpacing: -size * 0.03, color }}>
-    Spot<Text style={{ color: accent }}>On</Text>
-  </Text>
+export const Logo = ({ size = 26, color = C.text }: { size?: number; color?: string }) => (
+  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+    <Text style={{ fontSize: size, fontWeight: '800', letterSpacing: -size * 0.04, color }}>Spot</Text>
+    <View style={isLight(C.bg) ? { backgroundColor: C.ink, borderRadius: size * 0.3, paddingHorizontal: size * 0.2 } : null}>
+      <Text style={{ fontSize: size, fontWeight: '800', letterSpacing: -size * 0.04, color: C.neon }}>On</Text>
+    </View>
+  </View>
 );
 
 /* Τα πεδία: όνομα (μόνο στην εγγραφή), email, κωδικός με «εμφάνιση». */

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, Easing, Platform, Text, View, ViewStyle } from 'react-native';
+import { AccessibilityInfo, Animated, Easing, Platform, View, ViewStyle } from 'react-native';
+import { Text } from '../Txt';
 import { C, CATEGORIES, alpha } from '../ui';
 import { usePrefs } from '../prefs';
 

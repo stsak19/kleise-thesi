@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '../Txt';
 import { Photo } from '../Photo';
 import { Btn, C, DAYS, Group, Icon, IconBubble, MONTHS, Pill, Row, Section, T, type Tone, alpha, catLabel, fmtDay, fmtLong, s, shadow } from '../ui';
 import type { Biz, Booking, BookingsData } from './data';

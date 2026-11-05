@@ -27,7 +27,8 @@
           "cameraPermission": false,
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "supabaseUrl": "https://tfuuleuzsahipzgtbuuo.supabase.co",

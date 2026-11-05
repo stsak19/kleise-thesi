@@ -1,30 +1,50 @@
 import { Tabs } from 'expo-router';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C, Icon, alpha } from '../../lib/ui';
 import type { IconName } from '../../lib/Icon';
 
 /* Η κάτω μπάρα: Αναζήτηση · Κρατήσεις · Πακέτα · Προφίλ. Πάντα ορατή, και μέσα σε ένα κατάστημα.
-   Το ενεργό εικονίδιο κάθεται σε ένα απαλό «χάπι» στο κύριο χρώμα. */
-const icon = (name: IconName) => ({ focused }: { focused: boolean }) => (
-  <View style={{ width: 52, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: focused ? alpha(C.accent, 0.14) : 'transparent' }}>
-    <Icon name={name} size={21} color={focused ? C.accent : C.mute} />
-  </View>
-);
+   Είναι ένα πλωτό «χάπι» πάνω από το περιεχόμενο· η ενεργή καρτέλα είναι ένας πράσινος κύκλος.
+   Οι οθόνες αφήνουν κάτω κενό TAB_SPACE ώστε το τελευταίο στοιχείο να μην κρύβεται πίσω της. */
+const ICONS: Record<string, { icon: IconName; label: string }> = {
+  '(search)': { icon: 'search', label: 'Αναζήτηση' },
+  bookings: { icon: 'calendar', label: 'Κρατήσεις' },
+  packs: { icon: 'pack', label: 'Πακέτα' },
+  '(profile)': { icon: 'user', label: 'Προφίλ' },
+};
 
-export default function TabsLayout() {
+function FloatBar({ state, navigateToTab }: { state: { index: number; routes: { key: string; name: string }[] }; navigateToTab: (key: string) => void }) {
   const bottom = useSafeAreaInsets().bottom;
   return (
-    <Tabs screenOptions={{
-      headerShown: false, tabBarActiveTintColor: C.accent, tabBarInactiveTintColor: C.mute,
-      tabBarStyle: { backgroundColor: C.card, borderTopColor: C.line, height: 70 + bottom, paddingTop: 6, paddingBottom: bottom + 6, boxShadow: `0px -4px 20px ${alpha(C.shade, 0.05)}` },
-      tabBarLabelStyle: { fontWeight: '700', fontSize: 11, lineHeight: 15, height: 15, marginTop: 3 },
-    }}>
-      <Tabs.Screen name="(search)" options={{ title: 'Αναζήτηση', tabBarIcon: icon('search') }} />
-      <Tabs.Screen name="bookings" options={{ title: 'Κρατήσεις', tabBarIcon: icon('calendar') }} />
-      <Tabs.Screen name="packs" options={{ title: 'Πακέτα', tabBarIcon: icon('pack') }} />
-      <Tabs.Screen name="(profile)" options={{ title: 'Προφίλ', tabBarIcon: icon('user') }} />
+    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingBottom: Math.max(bottom, 10) + 6 }}>
+      <View style={{ height: 64, borderRadius: 32, backgroundColor: C.ink, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
+        paddingHorizontal: 6, borderWidth: 1, borderColor: C.inkLine, boxShadow: `0px 10px 30px ${alpha(C.shade, 0.22)}` }}>
+        {state.routes.map((r, i) => {
+          const on = state.index === i, it = ICONS[r.name];
+          if (!it) return null;
+          const press = () => navigateToTab(r.key);
+          return (
+            <Pressable key={r.key} onPress={press} accessibilityRole="tab" accessibilityLabel={it.label} accessibilityState={{ selected: on }}
+              style={({ pressed }) => ({ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center',
+                backgroundColor: on ? C.neon : 'transparent', opacity: pressed ? 0.75 : 1,
+                boxShadow: on ? `0px 4px 16px ${alpha(C.neon, 0.45)}` : undefined })}>
+              <Icon name={it.icon} size={21} color={on ? '#0a0a0a' : alpha(C.inkText, 0.6)} />
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+export default function TabsLayout() {
+  return (
+    <Tabs tabBar={(p) => <FloatBar {...p} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: C.bg } }}>
+      <Tabs.Screen name="(search)" options={{ title: 'Αναζήτηση' }} />
+      <Tabs.Screen name="bookings" options={{ title: 'Κρατήσεις' }} />
+      <Tabs.Screen name="packs" options={{ title: 'Πακέτα' }} />
+      <Tabs.Screen name="(profile)" options={{ title: 'Προφίλ' }} />
     </Tabs>
   );
 }

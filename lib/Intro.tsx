@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Platform, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Animated, Easing, Platform, Pressable, View, useWindowDimensions } from 'react-native';
+import { Text } from './Txt';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Btn, C } from './ui';
 import { H as SH, SCENES, W as SW } from './IntroScenes';

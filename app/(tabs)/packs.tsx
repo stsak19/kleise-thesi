@@ -1,4 +1,5 @@
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { Text } from '../../lib/Txt';
 import { C, Card, Empty, Icon, Pill, ScreenHeader, alpha, catLabel, fmtDay, s, shadow } from '../../lib/ui';
 import { useMyBookings } from '../../lib/bookings/data';
 import { BizLogo } from '../../lib/bookings/parts';

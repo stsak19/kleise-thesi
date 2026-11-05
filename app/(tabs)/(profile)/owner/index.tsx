@@ -1,6 +1,7 @@
 import { say, promptText } from '../../../../lib/alert';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { Text } from '../../../../lib/Txt';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { rpc, sb } from '../../../../lib/supabase';
 import { useAuth } from '../../../../lib/auth';

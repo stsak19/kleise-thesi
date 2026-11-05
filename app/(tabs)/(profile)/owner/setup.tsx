@@ -1,6 +1,7 @@
 import { say, promptText } from '../../../../lib/alert';
 import { useEffect, useState } from 'react';
-import { Image, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Switch, View } from 'react-native';
+import { Text } from '../../../../lib/Txt';
 import { pickAndUpload } from '../../../../lib/upload';
 import { useRouter } from 'expo-router';
 import { sb } from '../../../../lib/supabase';

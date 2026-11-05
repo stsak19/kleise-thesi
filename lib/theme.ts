@@ -1,29 +1,35 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appearance } from 'react-native';
 
-/* Τα οριστικά χρώματα της εφαρμογής: μια ανοιχτή και μια σκούρα παλέτα.
+/* Τα χρώματα της εφαρμογής: μαύρο, λευκό και πράσινο νέον, σε ανοιχτή και σκούρα εμφάνιση.
+   Ανοιχτή = λευκό φόντο, μαύρα κομμάτια με πράσινες λεπτομέρειες. Σκούρα = μαύρο φόντο με πράσινο νέον.
+   accent/onAccent = ό,τι είναι «επιλεγμένο» (chip, μέρα, ώρα). btn = κύριο κουμπί (πάντα πράσινο με μαύρο κείμενο).
+   ink/inkText = οι «μαύρες» επιφάνειες (επόμενη κράτηση, μπάρα κράτησης, κάτω μπάρα).
    Οι ημιδιάφανες αποχρώσεις (σκιές, φόντα επιλογής) βγαίνουν από αυτά με το alpha(). */
+export const NEON = '#00e676';
 export const LIGHT = {
-  bg: '#ffffff', card: '#f5f6f8', soft: '#f5f6f8', line: '#ffffff', text: '#000000', mute: '#4d4d4d',
-  accent: '#1d85ed', onAccent: '#ffffff',
-  btn: '#1d85ed', btnText: '#ffffff', btn2: '#ffffff', btn2Text: '#840b29', btn2Line: '#b3b3b3',
-  ok: '#1fa971', bad: '#ed1d51',
+  bg: '#ffffff', card: '#f6f6f6', soft: '#f1f1f1', line: '#ececec', text: '#0a0a0a', mute: '#6b6b6b',
+  accent: '#0a0a0a', onAccent: NEON,
+  btn: NEON, btnText: '#0a0a0a', btn2: '#ffffff', btn2Text: '#0a0a0a', btn2Line: '#dedede',
+  ok: '#00a855', bad: '#ff3b5c',
   shade: '#000000',
+  neon: NEON, glow: '#00a855', ink: '#0a0a0a', inkText: '#ffffff', inkLine: '#262626',
 };
 export type Theme = typeof LIGHT;
 /* Σκούρα εμφάνιση (Ρυθμίσεις → Εμφάνιση). */
 export const DARK: Theme = {
-  bg: '#0e0f12', card: '#1a1b20', soft: '#24252b', line: '#2c2d33', text: '#f4f5f7', mute: '#a3a6ad',
-  accent: '#3b95f0', onAccent: '#ffffff',
-  btn: '#3b95f0', btnText: '#ffffff', btn2: '#1a1b20', btn2Text: '#f58aa3', btn2Line: '#44464d',
-  ok: '#2fc488', bad: '#ff4d73',
+  bg: '#0a0a0a', card: '#151515', soft: '#1c1c1c', line: '#262626', text: '#f5f5f5', mute: '#9a9a9a',
+  accent: NEON, onAccent: '#0a0a0a',
+  btn: NEON, btnText: '#0a0a0a', btn2: '#151515', btn2Text: '#f5f5f5', btn2Line: '#2e2e2e',
+  ok: NEON, bad: '#ff4d6d',
   shade: '#000000',
+  neon: NEON, glow: '#00a855', ink: '#1c1c1c', inkText: '#ffffff', inkLine: '#2e2e2e',
 };
 export const DEFAULT = LIGHT;
 /* Σκούρο κείμενο πάνω σε ανοιχτές επιφάνειες (π.χ. κίτρινο χρώμα καταστήματος), ίδιο και στις δύο εμφανίσεις. */
 export const INK = '#000000';
 /* Σκούρα σελίδα καταστήματος (κουρεία, tattoo): μόνο για τη σελίδα του καταστήματος, όχι για όλη την εφαρμογή. */
-export const NIGHT = { bg: '#111113', card: '#1c1c1f', line: '#2a2a2e', text: '#ffffff', mute: '#a1a1aa' };
+export const NIGHT = { bg: '#0a0a0a', card: '#161616', line: '#262626', text: '#ffffff', mute: '#9a9a9a' };
 export const C: Theme = { ...LIGHT };
 
 const subs = new Set<() => void>();
@@ -63,3 +69,11 @@ const lum = (hex: string) => { const [r, g, b] = rgb(hex); return 0.299 * r + 0.
 /* Πολύ ανοιχτό χρώμα (π.χ. κίτρινο, λευκό): το κείμενο πάνω του γίνεται σκούρο. */
 export const isLight = (hex: string) => lum(hex) > 186;
 export const isDark = () => lum(C.bg) < 128;
+
+/* Διαβάθμιση χρώματος (linear-/radial-gradient σε CSS). Στον browser γίνεται backgroundImage,
+   στο κινητό experimental_backgroundImage του React Native. */
+import { Platform } from 'react-native';
+export const grad = (css: string): any => (Platform.OS === 'web' ? { backgroundImage: css } : { experimental_backgroundImage: css });
+/* Η «λάμψη» του νέου design: πράσινο φως πάνω δεξιά και κάτω αριστερά πάνω σε σκούρο φόντο. */
+export const glow = (base = '#0a0a0a', c1 = NEON, c2 = '#00a855', s1 = 0.5, s2 = 0.38) =>
+  grad(`radial-gradient(circle at 88% 12%, ${alpha(c1, s1)} 0%, transparent 58%), radial-gradient(circle at 6% 96%, ${alpha(c2, s2)} 0%, transparent 62%), linear-gradient(${base}, ${base})`);

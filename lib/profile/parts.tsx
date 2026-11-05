@@ -1,4 +1,5 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '../Txt';
 import { Btn, C, Card, Input, alpha, s } from '../ui';
 import { usePerson } from './data';
 

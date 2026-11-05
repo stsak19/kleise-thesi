@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, Text, View } from 'react-native';
+import { Animated, Easing, View } from 'react-native';
+import { Text, AText } from './Txt';
 import { C } from './ui';
 
 /* Οι 4 κινούμενες σκηνές της ξενάγησης. Κάθε σκηνή είναι ένα «φιλμάκι» που παίζει σε loop
@@ -89,9 +90,9 @@ export function SceneSearch({ active }: { active: boolean }) {
           Animated.multiply(Animated.subtract(ly, cy(i)), Animated.subtract(ly, cy(i))));
         const lit = near.interpolate({ inputRange: [0, 900, 2500], outputRange: [1, 0.8, 0.12], extrapolate: 'clamp' });
         return (
-          <Animated.Text key={i} style={{ position: 'absolute', left: cx(i) - 20, top: cy(i) - 22, fontSize: 34, width: 40, textAlign: 'center',
+          <AText key={i} style={{ position: 'absolute', left: cx(i) - 20, top: cy(i) - 22, fontSize: 34, width: 40, textAlign: 'center',
             opacity: target ? Animated.add(lit, Animated.multiply(Animated.subtract(1, dark), 1)) : Animated.add(Animated.multiply(lit, dark), k(t, [found, found + 0.08, 0.9, 1], [0, 0.25, 0.25, 0])),
-            transform: target ? [{ scale: k(t, [found, found + 0.06, found + 0.1, 0.9, 1], [1, 1.9, 1.6, 1.6, 1]) }] : [] }}>{e}</Animated.Text>
+            transform: target ? [{ scale: k(t, [found, found + 0.06, found + 0.1, 0.9, 1], [1, 1.9, 1.6, 1.6, 1]) }] : [] }}>{e}</AText>
         );
       })}
       <Animated.View style={{ position: 'absolute', left: cx(4) - 42, top: cy(4) - 42, width: 84, height: 84, borderRadius: 42, borderWidth: 3, borderColor: C.accent,
@@ -125,8 +126,8 @@ export function SceneCalendar({ active }: { active: boolean }) {
         <Text key={n} style={{ position: 'absolute', left: dx(n) - 15, top: dy(n) - 8, width: 30, textAlign: 'center', fontSize: 12, fontWeight: '600',
           color: n === pick ? C.text : n < 5 ? C.line : C.text }}>{n + 1}</Text>
       ))}
-      <Animated.Text style={{ position: 'absolute', left: dx(pick) - 15, top: dy(pick) - 8, width: 30, textAlign: 'center', fontSize: 12, fontWeight: '800', color: C.onAccent,
-        opacity: k(t, [0.2, 0.24, 0.9, 0.95], [0, 1, 1, 0]) }}>{pick + 1}</Animated.Text>
+      <AText style={{ position: 'absolute', left: dx(pick) - 15, top: dy(pick) - 8, width: 30, textAlign: 'center', fontSize: 12, fontWeight: '800', color: C.onAccent,
+        opacity: k(t, [0.2, 0.24, 0.9, 0.95], [0, 1, 1, 0]) }}>{pick + 1}</AText>
       {times.map((h, i) => (
         <Animated.View key={i} style={{ position: 'absolute', top: TY, left: 22 + i * 82, width: 74, height: 34, borderRadius: 17, borderWidth: 1, borderColor: C.line,
           backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center',
@@ -167,7 +168,7 @@ export function SceneAll({ active }: { active: boolean }) {
         flexDirection: 'row', alignItems: 'center', gap: 10, zIndex: 10,
         opacity: k(t, [0.44, 0.48, 0.9, 0.95], [0, 1, 1, 0]),
         transform: [{ translateY: k(t, [0.44, 0.5, 0.53], [-90, 6, 0]) }] }}>
-        <Animated.Text style={{ fontSize: 24, transform: [{ rotate: bell.interpolate({ inputRange: [-1, 1], outputRange: ['-25deg', '25deg'] }) }] }}>🔔</Animated.Text>
+        <AText style={{ fontSize: 24, transform: [{ rotate: bell.interpolate({ inputRange: [-1, 1], outputRange: ['-25deg', '25deg'] }) }] }}>🔔</AText>
         <View style={{ flex: 1 }}>
           <Text style={{ color: C.bg, fontWeight: '800' }}>Υπενθύμιση</Text>
           <Text style={{ color: C.bg, opacity: 0.8, fontSize: 12 }}>Αύριο 18:00 · Κομμωτήριο Ελένη</Text>

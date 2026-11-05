@@ -1,4 +1,5 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '../Txt';
 import { C, Icon, alpha, s, shadow } from '../ui';
 import { NIGHT } from '../theme';
 import { screenFor } from '../bizscreen';

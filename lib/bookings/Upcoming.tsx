@@ -1,4 +1,5 @@
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import { Text } from '../Txt';
 import { Photo, Scrim } from '../Photo';
 import { C, Icon, alpha, fmtLong, s, shadow } from '../ui';
 import { type Booking, type BookingsData, countdown } from './data';

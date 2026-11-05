@@ -1,11 +1,12 @@
 import { say } from '../../../../lib/alert';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Linking, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, ScrollView, View } from 'react-native';
+import { Text } from '../../../../lib/Txt';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { rpc, sb } from '../../../../lib/supabase';
-import { Btn, C, DAYS, Icon, MONTHS, alpha, fmtLong, iso, onColor, price, s, shadow } from '../../../../lib/ui';
-import { INK, NIGHT } from '../../../../lib/theme';
+import { Btn, C, DAYS, Icon, MONTHS, TAB_SPACE, alpha, fmtLong, iso, onColor, price, s, shadow } from '../../../../lib/ui';
+import { NEON, NIGHT, glow, isLight } from '../../../../lib/theme';
 import { styleOf } from '../../../../lib/presets';
 import { Fact, screenFor } from '../../../../lib/bizscreen';
 import { Photo, Scrim } from '../../../../lib/Photo';
@@ -36,7 +37,7 @@ const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρ�
 export default function Business() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const top = useSafeAreaInsets().top;
+  const { top, bottom } = useSafeAreaInsets();
   const [biz, setBiz] = useState<any>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [service, setService] = useState<Service | null>(null);
@@ -145,13 +146,15 @@ export default function Business() {
 
   const night = scr.hero === 'night';
   const brand = st?.color ?? C.accent;
-  // Στη σκούρα σελίδα ένα σκούρο χρώμα καταστήματος δεν θα φαινόταν: τότε τονίζουμε με λευκό.
-  const accent = night && lum(brand) < 110 ? NIGHT.text : brand;
+  /* Το χρώμα του καταστήματος δίνει την ταυτότητα (κορυφή, λογότυπο, λάμψη). Οι επιλογές (μέρα, ώρα, υπηρεσία)
+     και το κουμπί κράτησης ακολουθούν την εφαρμογή: μαύρο/πράσινο, ή πράσινο στις σκούρες σελίδες. */
+  const accent = night ? NEON : C.accent;
   const P = night ? NIGHT : { bg: C.bg, card: C.card, line: alpha(C.text, 0.08), text: C.text, mute: C.mute };
 
   if (!biz || !st) return <View style={[s.screen, night && { backgroundColor: NIGHT.bg }]}><Stack.Screen options={{ headerShown: false }} /></View>;
   const r = st.radius;
   const today = days[0];
+  const barBottom = Math.max(bottom, 10) + 6 + 64 + 10; // πάνω από την πλωτή κάτω μπάρα
   const state = (sl: Slot) => (myAt(sl.sv, date, sl.time) ? 'mine' : waitAt(sl.sv, sl.time) ? 'wait' : sl.free > 0 ? 'free' : 'full');
   const dayLabel = (d: string) => (d === today ? 'Σήμερα' : fmtLong(d));
   const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
@@ -195,7 +198,7 @@ export default function Business() {
   const Hero = () => {
     if (scr.hero === 'profile') return (
       <View>
-        <View style={{ height: top + 150, backgroundColor: brand, overflow: 'hidden' }}>
+        <View style={{ height: top + 150, backgroundColor: '#0d0d0d', overflow: 'hidden' }}>
           <Photo uri={biz.cover_url} color={brand} />
           <Scrim strength={0.55} />
         </View>
@@ -229,14 +232,14 @@ export default function Business() {
     // photo & night: μεγάλη φωτογραφία από άκρη σε άκρη, με το όνομα πάνω της
     const h = night ? 300 : 340;
     return (
-      <View style={{ height: top + h, backgroundColor: night ? NIGHT.card : brand }}>
-        <Photo uri={biz.cover_url} color={night ? NIGHT.card : brand} />
+      <View style={{ height: top + h, backgroundColor: '#0d0d0d' }}>
+        <Photo uri={biz.cover_url} color={brand} />
         <Scrim strength={night ? 0.95 : 0.7} />
         <BackBtn light />
         <View style={{ position: 'absolute', left: 20, right: 20, bottom: 20, gap: 10 }}>
           <View style={[s.row, { gap: 12 }]}>
             <Logo size={night ? 52 : 58} round={night} />
-            <Text style={{ color: night ? accent : '#ffffff', fontWeight: '800', fontSize: 13, letterSpacing: 1, opacity: night ? 1 : 0.9 }}>{upper(scr.kicker)}</Text>
+            <Text style={{ color: NEON, fontWeight: '800', fontSize: 13, letterSpacing: 1.4 }}>{upper(scr.kicker)}</Text>
           </View>
           <Text style={{ color: '#ffffff', fontWeight: '900', fontSize: night ? 34 : 32, letterSpacing: night ? 0.5 : -0.8, lineHeight: night ? 38 : 36 }}
             numberOfLines={2}>{night ? upper(String(biz.name)) : biz.name}</Text>
@@ -259,7 +262,7 @@ export default function Business() {
     </View>
   );
   const Box = ({ children, style }: { children: React.ReactNode; style?: any }) => (
-    <View style={[{ backgroundColor: P.card, borderRadius: r + 4, overflow: 'hidden' }, !night && shadow(1), style]}>{children}</View>
+    <View style={[{ backgroundColor: P.card, borderRadius: r + 6, overflow: 'hidden', borderWidth: 1, borderColor: P.line }, style]}>{children}</View>
   );
   const Nothing = ({ text }: { text: string }) => (
     <Box style={{ padding: 22, alignItems: 'center', gap: 6 }}>
@@ -275,8 +278,8 @@ export default function Business() {
           const dd = new Date(d + 'T00:00'), on = d === date;
           return (
             <Pressable key={d} onPress={() => setDate(d)}
-              style={({ pressed }) => [{ width: 56, paddingVertical: 10, borderRadius: r + 4, alignItems: 'center', gap: 2, borderWidth: 1 },
-                on ? { backgroundColor: accent, borderColor: accent } : { backgroundColor: P.card, borderColor: P.line },
+              style={({ pressed }) => [{ width: 56, paddingVertical: 10, borderRadius: 18, alignItems: 'center', gap: 2, borderWidth: 1 },
+                on ? { backgroundColor: accent, borderColor: accent, boxShadow: `0px 6px 18px ${alpha(NEON, 0.3)}` } : { backgroundColor: P.card, borderColor: P.line },
                 { transform: [{ scale: pressed ? 0.96 : 1 }] }]}>
               <Text style={{ color: on ? onColor(accent) : P.mute, fontSize: 12, fontWeight: '600' }}>{d === today ? 'Σήμ.' : DAYS[dd.getDay()]}</Text>
               <Text style={{ color: on ? onColor(accent) : P.text, fontWeight: '800', fontSize: 19 }}>{dd.getDate()}</Text>
@@ -302,7 +305,7 @@ export default function Business() {
     const barColor = stt === 'mine' ? accent : stt === 'full' ? C.bad : pct >= 0.75 ? '#f59e0b' : C.ok;
     const btn = stt === 'mine' ? <Btn size="sm" kind="danger" title="Ακύρωση" disabled={dis} onPress={() => cancel(sl)} />
       : stt === 'wait' ? <Btn size="sm" kind="ghost" title="Απόσυρση" disabled={dis} onPress={() => unwait(sl)} />
-      : stt === 'free' ? <Btn size="sm" title="Κράτηση" color={accent} disabled={dis} onPress={() => book(sl.sv, sl.time)} />
+      : stt === 'free' ? <Btn size="sm" title="Κράτηση" disabled={dis} onPress={() => book(sl.sv, sl.time)} />
       : <Btn size="sm" kind="tint" color={accent} title="🙋 Αναμονή" disabled={dis} onPress={() => wait(sl.sv, sl.time)} />;
     return (
       <View style={[s.row, { gap: 12, paddingVertical: 14, paddingHorizontal: 12, backgroundColor: stt === 'mine' ? alpha(accent, 0.08) : 'transparent' },
@@ -348,13 +351,13 @@ export default function Business() {
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap }}>
               {list.map((sl) => {
                 const stt = state(sl), key = sl.sv.id + sl.time, on = pick === key;
-                const bg = stt === 'mine' ? accent : on ? alpha(accent, 0.12) : stt === 'wait' ? alpha(accent, 0.1) : stt === 'full' ? 'transparent' : P.card;
-                const fg = stt === 'mine' ? onColor(accent) : stt === 'full' ? P.mute : on || stt === 'wait' ? accent : P.text;
+                const bg = on ? accent : stt === 'mine' ? alpha(NEON, 0.16) : stt === 'wait' ? alpha(accent, 0.1) : stt === 'full' ? 'transparent' : P.card;
+                const fg = on ? onColor(accent) : stt === 'mine' ? (night || !isLight(C.bg) ? NEON : '#00703a') : stt === 'full' ? P.mute : stt === 'wait' ? accent : P.text;
                 return (
                   <Pressable key={key} onPress={() => setPick(on ? null : key)}
-                    style={({ pressed }) => ({ width: chipW, paddingVertical: 12, borderRadius: r, alignItems: 'center', backgroundColor: bg,
-                      borderWidth: on ? 2 : 1, borderColor: on ? accent : stt === 'mine' ? accent : P.line, opacity: pressed ? 0.75 : 1,
-                      borderStyle: stt === 'full' ? 'dashed' : 'solid' })}>
+                    style={({ pressed }) => ({ width: chipW, paddingVertical: 12, borderRadius: 999, alignItems: 'center', backgroundColor: bg,
+                      borderWidth: 1, borderColor: on ? accent : stt === 'mine' ? NEON : P.line, opacity: pressed ? 0.75 : 1,
+                      borderStyle: stt === 'full' ? 'dashed' : 'solid', boxShadow: on ? `0px 6px 18px ${alpha(NEON, 0.3)}` : undefined })}>
                     <Text style={{ color: fg, fontWeight: '800', fontSize: 16, textDecorationLine: stt === 'full' ? 'line-through' : 'none' }}>{sl.time}</Text>
                     {stt === 'mine' && <Text style={{ color: fg, fontSize: 10, fontWeight: '700' }}>δική σου</Text>}
                     {stt === 'wait' && <Text style={{ color: fg, fontSize: 10, fontWeight: '700' }}>αναμονή</Text>}
@@ -438,7 +441,7 @@ export default function Business() {
   return (
     <View style={[s.screen, { backgroundColor: P.bg }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView contentContainerStyle={{ paddingBottom: picked ? 130 : 40 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: picked ? TAB_SPACE + 90 : TAB_SPACE }}>
         {Hero()}
 
         <View style={{ paddingHorizontal: 20, gap: 12, paddingTop: 18 }}>
@@ -446,8 +449,8 @@ export default function Business() {
           {facts.length > 0 && (
             <View style={[s.row, { gap: 8, alignItems: 'stretch' }]}>
               {facts.map((f) => (
-                <View key={f.l} style={{ flex: 1, backgroundColor: night ? P.card : alpha(brand, 0.07), borderRadius: r + 2, paddingVertical: 12, paddingHorizontal: 10, gap: 2 }}>
-                  <Text style={{ color: P.text, fontWeight: '900', fontSize: 16 }} numberOfLines={1}>{f.v}</Text>
+                <View key={f.l} style={{ flex: 1, backgroundColor: P.card, borderWidth: 1, borderColor: P.line, borderRadius: 16, paddingVertical: 11, paddingHorizontal: 12, gap: 1 }}>
+                  <Text style={{ color: P.text, fontWeight: '800', fontSize: 17 }} numberOfLines={1}>{f.v}</Text>
                   <Text style={{ color: P.mute, fontSize: 12 }} numberOfLines={1}>{f.l}</Text>
                 </View>
               ))}
@@ -507,21 +510,21 @@ export default function Business() {
             <H2 title={scr.services} />
             {night ? PriceList() : Radios()}
             {service && (
-              <View style={{ backgroundColor: accent, borderRadius: r + 4, padding: 18, gap: 12 }}>
+              <View style={[{ borderRadius: 24, padding: 18, gap: 12, overflow: 'hidden' }, glow('#0a0a0a', NEON, '#00a855', 0.45, 0.3)]}>
                 <View style={[s.row, { gap: 8 }]}>
-                  <Icon name="clock" size={16} color={onColor(accent)} />
-                  <Text style={{ color: onColor(accent), fontWeight: '800', fontSize: 12, letterSpacing: 0.6, opacity: 0.9 }}>ΠΙΟ ΚΟΝΤΙΝΟ ΕΛΕΥΘΕΡΟ</Text>
+                  <Icon name="clock" size={16} color={'#ffffff'} />
+                  <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 12, letterSpacing: 0.6, opacity: 0.9 }}>ΠΙΟ ΚΟΝΤΙΝΟ ΕΛΕΥΘΕΡΟ</Text>
                 </View>
-                {next === undefined ? <Text style={{ color: onColor(accent), opacity: 0.85 }}>Αναζήτηση…</Text>
-                  : next === null ? <Text style={{ color: onColor(accent), opacity: 0.85 }}>Δεν υπάρχει ελεύθερο ραντεβού τις επόμενες μέρες.</Text>
+                {next === undefined ? <Text style={{ color: '#ffffff', opacity: 0.85 }}>Αναζήτηση…</Text>
+                  : next === null ? <Text style={{ color: '#ffffff', opacity: 0.85 }}>Δεν υπάρχει ελεύθερο ραντεβού τις επόμενες μέρες.</Text>
                   : <View style={[s.row, { gap: 12 }]}>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ color: onColor(accent), fontWeight: '900', fontSize: 22, letterSpacing: -0.5 }}>{dayLabel(next.date)} · {next.time}</Text>
-                        <Text style={{ color: onColor(accent), opacity: 0.85, fontSize: 13 }}>{service.name} · {service.duration_min} λεπτά</Text>
+                        <Text style={{ color: '#ffffff', fontWeight: '900', fontSize: 22, letterSpacing: -0.5 }}>{dayLabel(next.date)} · {next.time}</Text>
+                        <Text style={{ color: '#ffffff', opacity: 0.85, fontSize: 13 }}>{service.name} · {service.duration_min} λεπτά</Text>
                       </View>
                       <Pressable onPress={() => book(service, next.time, next.date)} disabled={busy === service.id + next.time}
-                        style={({ pressed }) => ({ backgroundColor: '#ffffff', borderRadius: r, paddingVertical: 12, paddingHorizontal: 16, opacity: pressed ? 0.85 : 1 })}>
-                        <Text style={{ color: lum(accent) > 186 ? INK : accent, fontWeight: '800', fontSize: 15 }}>Κλείσε το</Text>
+                        style={({ pressed }) => ({ backgroundColor: NEON, borderRadius: 999, paddingVertical: 12, paddingHorizontal: 18, opacity: pressed ? 0.85 : 1 })}>
+                        <Text style={{ color: '#0a0a0a', fontWeight: '800', fontSize: 15 }}>Κλείσε το</Text>
                       </Pressable>
                     </View>}
               </View>
@@ -572,18 +575,18 @@ export default function Business() {
       {picked && (() => {
         const stt = state(picked), dis = busy === picked.sv.id + picked.time;
         return (
-          <View style={{ position: 'absolute', left: 12, right: 12, bottom: 12, backgroundColor: night ? NIGHT.card : C.bg, borderRadius: r + 6, padding: 14,
-            flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: P.line, ...shadow(3) }}>
+          <View style={{ position: 'absolute', left: 12, right: 12, bottom: barBottom, backgroundColor: night ? '#1c1c1c' : C.ink, borderRadius: 30, padding: 10, paddingLeft: 20,
+            flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: C.inkLine, ...shadow(3) }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: P.text, fontWeight: '900', fontSize: 17 }}>{dayLabel(date)} · {picked.time}</Text>
-              <Text style={{ color: P.mute, fontSize: 13 }} numberOfLines={2}>
+              <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 17 }}>{dayLabel(date)} · {picked.time}</Text>
+              <Text style={{ color: alpha('#ffffff', 0.65), fontSize: 13 }} numberOfLines={2}>
                 {picked.sv.name} · έως {endOf(picked.time, picked.sv.duration_min)}{stt === 'full' ? ' · γεμάτο' : ''}
               </Text>
             </View>
             {stt === 'mine' ? <Btn kind="danger" title="Ακύρωση" disabled={dis} onPress={() => cancel(picked)} />
               : stt === 'wait' ? <Btn kind="ghost" title="Απόσυρση" disabled={dis} onPress={() => unwait(picked)} />
-              : stt === 'full' ? <Btn kind="tint" color={accent} title="🙋 Αναμονή" disabled={dis} onPress={() => wait(picked.sv, picked.time)} />
-              : <Btn color={accent} title={scr.cta} disabled={dis} onPress={() => book(picked.sv, picked.time)} />}
+              : stt === 'full' ? <Btn kind="tint" color={NEON} title="🙋 Αναμονή" disabled={dis} onPress={() => wait(picked.sv, picked.time)} />
+              : <Btn title={scr.cta} disabled={dis} onPress={() => book(picked.sv, picked.time)} />}
           </View>
         );
       })()}

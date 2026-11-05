@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '../Txt';
 import { C, CATEGORIES, Card, Icon, Input, Toggle, alpha, onColor, s, shadow } from '../ui';
 import { screenFor } from '../bizscreen';
 import { DAYNAME, Hours, Svc, WEEK, newKey } from './save';

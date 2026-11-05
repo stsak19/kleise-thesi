@@ -1,4 +1,5 @@
-import { Image, Text, View } from 'react-native';
+import { Image, View } from 'react-native';
+import { Text } from './Txt';
 import { C, Pill, T, alpha, catEmoji, catLabel, onColor, s, shadow } from './ui';
 import { Header } from './presets';
 import { Photo, Scrim } from './Photo';

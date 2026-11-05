@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
+import { Text, TextInput } from './Txt';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { C, INK, alpha, isLight, onTheme } from './theme';
@@ -32,7 +33,9 @@ export const fmtLong = (s: string) => { const d = new Date(s + 'T00:00'); return
 export const price = (cents: number | null | undefined) => (cents == null ? '' : `${(cents / 100).toFixed(cents % 100 ? 2 : 0)}€`);
 
 /* ---------- μεγέθη ---------- */
-export const R = { sm: 10, md: 14, lg: 20, xl: 28 };
+export const R = { sm: 12, md: 16, lg: 22, xl: 28 };
+/* Κενό στο κάτω μέρος κάθε οθόνης με καρτέλες, για την πλωτή κάτω μπάρα. */
+export const TAB_SPACE = 110;
 /* Απαλή σκιά (το χρώμα της, C.shade, ορίζεται στο θέμα). */
 export const shadow = (lvl: 1 | 2 | 3 = 1): ViewStyle => ({
   boxShadow: lvl === 1 ? `0px 1px 2px ${alpha(C.shade, 0.05)}, 0px 4px 14px ${alpha(C.shade, 0.05)}`
@@ -55,7 +58,7 @@ export function Btn({ title, onPress, kind = 'primary', disabled, style, color, 
     <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button"
       style={({ pressed }) => [s.btn, sm && s.btnSm, { backgroundColor: bg, borderColor: border, opacity: disabled ? 0.45 : pressed ? 0.88 : 1,
         transform: [{ scale: pressed ? 0.98 : 1 }] },
-        kind === 'primary' && !disabled && { boxShadow: `0px 6px 16px ${alpha(main, 0.28)}` }, style]}>
+        kind === 'primary' && !disabled && { boxShadow: `0px 8px 22px ${alpha(main, 0.35)}` }, style]}>
       {icon && <Icon name={icon} size={sm ? 15 : 18} color={fg} />}
       <Text style={{ color: fg, fontWeight: '700', fontSize: sm ? 14 : 16, letterSpacing: -0.1 }} numberOfLines={1}>{title}</Text>
     </Pressable>
@@ -87,7 +90,7 @@ export function Input({ label, icon, style, box, ...p }: TextInputProps & { labe
 
 /* ---------- επιφάνειες ---------- */
 export const Card = ({ children, style, flat, onPress }: { children: React.ReactNode; style?: ViewStyle | ViewStyle[]; flat?: boolean; onPress?: () => void }) => {
-  const base = [s.card, flat ? { backgroundColor: C.soft, borderColor: C.soft } : shadow(1), style];
+  const base = [s.card, flat ? { backgroundColor: C.soft, borderColor: C.soft } : isLight(C.bg) ? shadow(1) : null, style];
   if (!onPress) return <View style={base}>{children}</View>;
   return <Pressable onPress={onPress} style={({ pressed }) => [...base, { transform: [{ scale: pressed ? 0.985 : 1 }] }]}>{children}</Pressable>;
 };
@@ -185,8 +188,8 @@ export const Group = ({ children }: { children: React.ReactNode }) =>
 
 /* Διακόπτης στο χρώμα της εφαρμογής (και στον browser). */
 export const Toggle = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
-  <Switch value={value} onValueChange={onChange} trackColor={{ true: C.accent, false: C.line }} thumbColor="#ffffff"
-    {...({ activeThumbColor: '#ffffff', activeTrackColor: C.accent } as any)} />
+  <Switch value={value} onValueChange={onChange} trackColor={{ true: C.neon, false: C.line }} thumbColor="#ffffff"
+    {...({ activeThumbColor: '#ffffff', activeTrackColor: C.neon } as any)} />
 );
 export const SwitchRow = ({ label, sub, value, onChange, last }: { label: string; sub?: string; value: boolean; onChange: (v: boolean) => void; last?: boolean }) => (
   <Row title={label} sub={sub} last={last} right={<Toggle value={value} onChange={onChange} />} />
@@ -214,8 +217,8 @@ export function DayStrip({ days, value, onChange, color }: { days: string[]; val
         const dd = new Date(d + 'T00:00'), on = d === value;
         return (
           <Pressable key={d} onPress={() => onChange(d)}
-            style={({ pressed }) => [{ width: 56, paddingVertical: 10, borderRadius: 16, alignItems: 'center', gap: 2, borderWidth: 1 },
-              on ? { backgroundColor: c, borderColor: c, boxShadow: `0px 6px 14px ${alpha(c, 0.3)}` } : { backgroundColor: C.card, borderColor: C.line },
+            style={({ pressed }) => [{ width: 56, paddingVertical: 10, borderRadius: 18, alignItems: 'center', gap: 2, borderWidth: 1 },
+              on ? { backgroundColor: c, borderColor: c, boxShadow: `0px 6px 18px ${alpha(c === C.accent ? C.neon : c, 0.35)}` } : { backgroundColor: C.card, borderColor: C.line },
               { transform: [{ scale: pressed ? 0.96 : 1 }] }]}>
             <Text style={{ color: on ? onColor(c) : C.mute, fontSize: 12, fontWeight: '600' }}>{d === today ? 'Σήμ.' : DAYS[dd.getDay()]}</Text>
             <Text style={{ color: on ? onColor(c) : C.text, fontWeight: '800', fontSize: 19 }}>{dd.getDate()}</Text>
@@ -229,16 +232,16 @@ export function DayStrip({ days, value, onChange, color }: { days: string[]; val
 
 const make = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg },
-  pad: { padding: 20, gap: 12, paddingBottom: 40 },
-  btn: { minHeight: 52, paddingHorizontal: 18, borderRadius: R.md, borderWidth: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 },
-  btnSm: { minHeight: 38, paddingHorizontal: 14, borderRadius: 11 },
+  pad: { padding: 20, gap: 12, paddingBottom: TAB_SPACE },
+  btn: { minHeight: 52, paddingHorizontal: 20, borderRadius: 999, borderWidth: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 },
+  btnSm: { minHeight: 38, paddingHorizontal: 16, borderRadius: 999 },
   input: { backgroundColor: C.soft, borderRadius: R.md, paddingHorizontal: 14, minHeight: 52, borderWidth: 1.5, borderColor: C.soft,
     flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12 },
   inputText: { flex: 1, color: C.text, fontSize: 16, padding: 0, minWidth: 0 },
   label: { color: C.mute, fontSize: 13, fontWeight: '600', marginLeft: 2 },
   card: { backgroundColor: C.card, borderRadius: R.lg, padding: 16, gap: 6, borderWidth: 1, borderColor: C.line },
-  title: { color: C.text, fontSize: 30, fontWeight: '800', letterSpacing: -0.8 },
-  h: { color: C.text, fontSize: 19, fontWeight: '800', letterSpacing: -0.3 },
+  title: { color: C.text, fontSize: 32, fontWeight: '800', letterSpacing: -1 },
+  h: { color: C.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.4 },
   chip: { paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: C.line, flexDirection: 'row', alignItems: 'center', gap: 6 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, Text, View } from 'react-native';
+import { Animated, Easing, View } from 'react-native';
+import { Text } from '../../../lib/Txt';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Btn, C, Icon, alpha, fmtLong, onColor, shadow } from '../../../lib/ui';
 

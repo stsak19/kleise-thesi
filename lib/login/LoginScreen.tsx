@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
+import { Text } from '../Txt';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Btn, C, Icon, s, shadow } from '../ui';
 import { useLogin } from './useLogin';
