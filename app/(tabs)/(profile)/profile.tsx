@@ -1,7 +1,7 @@
 import { say } from '../../../lib/alert';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { setDemo } from '../../../lib/demo';
 import { sb } from '../../../lib/supabase';
 import { useAuth } from '../../../lib/auth';
@@ -13,6 +13,11 @@ export default function Profile() {
   const uid = session!.user.id;
   const [p, setP] = useState({ first_name: '', last_name: '', phone: '' });
   useEffect(() => { sb.from('profiles').select('*').eq('id', uid).maybeSingle().then(({ data }) => data && setP(data)); }, [uid]);
+  // Έχει ήδη επιχείρηση; Αν όχι, το κουμπί ανοίγει τον οδηγό βήμα-βήμα.
+  const [hasBiz, setHasBiz] = useState<boolean | null>(null);
+  useFocusEffect(useCallback(() => {
+    sb.from('businesses').select('id').eq('owner_id', uid).maybeSingle().then(({ data }) => setHasBiz(!!data));
+  }, [uid]));
   const save = async () => {
     const { error } = await sb.from('profiles').upsert({ id: uid, first_name: p.first_name.trim(), last_name: p.last_name.trim(), phone: p.phone.replace(/\D/g, '').slice(0, 10) });
     say(error ? 'Δεν αποθηκεύτηκε' : 'Αποθηκεύτηκε');
@@ -48,7 +53,9 @@ export default function Profile() {
 
       <Section title="Για επιχειρήσεις" />
       <Group>
-        <Row icon="store" title="Η επιχείρησή μου" sub="Ωράριο, υπηρεσίες, χρώμα και κρατήσεις" onPress={() => router.push('/owner')} last />
+        {hasBiz === false
+          ? <Row icon="store" title="Έχω επιχείρηση" sub="Φτιάξε τη σελίδα σου βήμα-βήμα, σε λίγα λεπτά" onPress={() => router.push('/new-business')} last />
+          : <Row icon="store" title="Η επιχείρησή μου" sub="Ωράριο, υπηρεσίες, χρώμα και κρατήσεις" onPress={() => router.push('/owner')} last />}
       </Group>
 
       <View style={{ marginTop: 10 }}>
