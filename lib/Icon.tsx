@@ -3,7 +3,7 @@ import { C } from './theme';
 
 /* Μικρά εικονίδια γραμμής, φτιαγμένα μόνο με View (χωρίς βιβλιοθήκη εικονιδίων).
    Παίρνουν το χρώμα τους από το θέμα, οπότε αλλάζουν μαζί με το 🎨. */
-export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack' | 'home';
+export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack' | 'home' | 'chat';
 
 export function Icon({ name, size = 22, color = C.text, style }: { name: IconName; size?: number; color?: string; style?: ViewStyle }) {
   const s = size, w = Math.max(1.6, Math.round(s * 0.09 * 10) / 10);
@@ -103,6 +103,12 @@ export function Icon({ name, size = 22, color = C.text, style }: { name: IconNam
         <View style={abs(s * 0.08, s * 0.28, { width: s * 0.7, height: s * 0.56, borderRadius: s * 0.12, borderWidth: w, borderColor: color })} />
         <View style={abs(s * 0.2, s * 0.5, { width: s * 0.3, height: w, borderRadius: w, backgroundColor: color })} />
         <View style={abs(s * 0.2, s * 0.64, { width: s * 0.46, height: w, borderRadius: w, backgroundColor: color })} />
+      </>; break;
+    case 'chat':
+      /* Συννεφάκι μηνύματος: στρογγυλεμένο κουτί με μικρή «ουρά» κάτω αριστερά. */
+      body = <>
+        <View style={abs(s * 0.08, s * 0.12, { width: s * 0.84, height: s * 0.62, borderRadius: s * 0.22, borderWidth: w, borderColor: color })} />
+        {bar(s * 0.27, s * 0.8, s * 0.2, -55)}
       </>; break;
     case 'gear':
       body = <>

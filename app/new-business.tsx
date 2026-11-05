@@ -153,7 +153,7 @@ export default function NewBusiness() {
         <PagePreview biz={b} />
       </Animated.View>
       <View style={{ gap: 10 }}>
-        <Btn title="Δες τη σελίδα σου" onPress={() => router.replace(`/business/${done}`)} />
+        <Btn title="Δες τη σελίδα σου" onPress={() => router.replace(`/store/${done}`)} />
         <Btn kind="ghost" title="Πήγαινε στο πρόγραμμά μου" onPress={() => switchMode('biz', () => goHome(router, 'biz'))} />
       </View>
     </View>

@@ -139,7 +139,7 @@ export default function Home() {
     <View key={x.title} style={{ gap: 10 }}>
       <Text style={[s.h, { paddingHorizontal: 16 }]}>{x.title}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 }}>
-        {x.items.map((b) => <View key={b.id} style={{ width: 270 }}><BizCard b={b} onPress={() => router.push(`/business/${b.id}`)} /></View>)}
+        {x.items.map((b) => <View key={b.id} style={{ width: 270 }}><BizCard b={b} onPress={() => router.push(`/store/${b.id}`)} /></View>)}
       </ScrollView>
     </View>
   );
@@ -160,7 +160,7 @@ export default function Home() {
                 <Text style={[s.h, { flex: 1 }]}>{cat ? catLabel(cat) : 'Αποτελέσματα'}</Text>
                 <Text style={{ color: C.mute, fontWeight: '600', fontSize: 14 }}>{list.length} {list.length === 1 ? 'κατάστημα' : 'καταστήματα'}</Text>
               </View>
-              {list.map((b) => <BizCard key={b.id} b={b} onPress={() => router.push(`/business/${b.id}`)} />)}
+              {list.map((b) => <BizCard key={b.id} b={b} onPress={() => router.push(`/store/${b.id}`)} />)}
             </View>
           ) : sections.map(row)}
       </ScrollView>

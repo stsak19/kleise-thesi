@@ -42,7 +42,7 @@ export default function Page() {
       <Group>
         <Row icon="gear" title="Υπηρεσίες, ωράριο και κανόνες" sub="Τα στοιχεία του καταστήματος" onPress={() => router.push('/owner/setup')} />
         <Row icon="eye" title="Εμφάνιση σελίδας" sub={`${LAYOUTS.find((l) => l.key === st.layout)?.name ?? ''} · ${st.theme.name}`} onPress={() => router.push('/owner/style')} />
-        <Row icon="store" title="Δες τη σελίδα σαν πελάτης" sub="Έτσι τη βλέπουν όσοι κλείνουν θέση" onPress={() => router.push(`/business/${biz.id}`)} last />
+        <Row icon="store" title="Δες τη σελίδα σαν πελάτης" sub="Έτσι τη βλέπουν όσοι κλείνουν θέση" onPress={() => router.push(`/store/${biz.id}`)} last />
       </Group>
       <Text style={{ color: C.mute, fontSize: 13, textAlign: 'center', marginTop: 4 }}>Οι αλλαγές φαίνονται αμέσως στους πελάτες.</Text>
     </ScrollView>

@@ -37,7 +37,7 @@ export function useMyBookings() {
   const packs: any[] = (d?.memberships ?? []).filter((m: any) => m.expires || m.status === 'pending');
 
   const color = (b: { business_id?: string }) => (b.business_id && biz[b.business_id]?.color) || C.tint;
-  const open = (b: { business_id?: string }) => { if (b.business_id) router.push(`/business/${b.business_id}`); };
+  const open = (b: { business_id?: string }) => { if (b.business_id) router.push(`/store/${b.business_id}`); };
   const cancel = (b: Booking) => say('Ακύρωση κράτησης', `${b.business} · ${fmtDay(b.date)} ${b.time}`, [
     { text: 'Όχι' },
     { text: 'Ακύρωση', style: 'destructive', onPress: async () => { const r = await rpc('cancel_booking', { p_booking: b.id }); if (!r.ok) say(r.error); load(); } },
