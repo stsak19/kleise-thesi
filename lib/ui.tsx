@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { C, alpha, isLight, onTheme } from './theme';
+import { C, INK, alpha, isLight, onTheme } from './theme';
 import { Icon, IconName } from './Icon';
 export { C, alpha, Icon };
 
@@ -33,14 +33,14 @@ export const price = (cents: number | null | undefined) => (cents == null ? '' :
 
 /* ---------- μεγέθη ---------- */
 export const R = { sm: 10, md: 14, lg: 20, xl: 28 };
-/* Απαλή σκιά από το χρώμα του κειμένου (ακολουθεί το θέμα). */
+/* Απαλή σκιά (το χρώμα της, C.shade, ορίζεται στο θέμα). */
 export const shadow = (lvl: 1 | 2 | 3 = 1): ViewStyle => ({
-  boxShadow: lvl === 1 ? `0px 1px 2px ${alpha(C.text, 0.05)}, 0px 4px 14px ${alpha(C.text, 0.05)}`
-    : lvl === 2 ? `0px 2px 4px ${alpha(C.text, 0.05)}, 0px 10px 30px ${alpha(C.text, 0.09)}`
-    : `0px 8px 20px ${alpha(C.text, 0.10)}, 0px 24px 60px ${alpha(C.text, 0.14)}`,
+  boxShadow: lvl === 1 ? `0px 1px 2px ${alpha(C.shade, 0.05)}, 0px 4px 14px ${alpha(C.shade, 0.05)}`
+    : lvl === 2 ? `0px 2px 4px ${alpha(C.shade, 0.05)}, 0px 10px 30px ${alpha(C.shade, 0.09)}`
+    : `0px 8px 20px ${alpha(C.shade, 0.10)}, 0px 24px 60px ${alpha(C.shade, 0.14)}`,
 });
 /* Χρώμα κειμένου πάνω σε ένα χρώμα φόντου. */
-export const onColor = (bg: string) => (bg === C.accent ? C.onAccent : isLight(bg) ? C.text : '#ffffff');
+export const onColor = (bg: string) => (bg === C.accent ? C.onAccent : isLight(bg) ? INK : '#ffffff');
 
 /* ---------- κουμπιά ---------- */
 type BtnKind = 'primary' | 'ghost' | 'danger' | 'tint';

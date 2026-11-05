@@ -1,9 +1,10 @@
+import { Fragment } from 'react';
 import { View, ViewStyle } from 'react-native';
 import { C } from './theme';
 
 /* Μικρά εικονίδια γραμμής, φτιαγμένα μόνο με View (χωρίς βιβλιοθήκη εικονιδίων).
    Παίρνουν το χρώμα τους από το θέμα, οπότε αλλάζουν μαζί με το 🎨. */
-export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back';
+export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'sun' | 'moon';
 
 export function Icon({ name, size = 22, color = C.text, style }: { name: IconName; size?: number; color?: string; style?: ViewStyle }) {
   const s = size, w = Math.max(1.6, Math.round(s * 0.09 * 10) / 10);
@@ -90,6 +91,22 @@ export function Icon({ name, size = 22, color = C.text, style }: { name: IconNam
         <View style={abs(s * 0.14, s * 0.34, { width: s * 0.72, height: s * 0.54, borderWidth: w, borderTopWidth: 0, borderColor: color, borderBottomLeftRadius: s * 0.08, borderBottomRightRadius: s * 0.08 })} />
         <View style={abs(s * 0.4, s * 0.58, { width: s * 0.2, height: s * 0.3, borderWidth: w, borderBottomWidth: 0, borderColor: color, borderTopLeftRadius: 3, borderTopRightRadius: 3 })} />
       </>; break;
+    case 'gear':
+      body = <>
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((d) => { const t = (d * Math.PI) / 180, cx = s * (0.5 + 0.34 * Math.cos(t)), cy = s * (0.5 + 0.34 * Math.sin(t));
+          return <View key={d} style={abs(cx - s * 0.08, cy - s * 0.08, { width: s * 0.16, height: s * 0.16, borderRadius: 2, backgroundColor: color, transform: [{ rotate: `${d}deg` }] })} />; })}
+        <View style={abs(s * 0.22, s * 0.22, { width: s * 0.56, height: s * 0.56, borderRadius: s, borderWidth: s * 0.14, borderColor: color })} />
+      </>; break;
+    case 'sun':
+      body = <>
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((d) => { const t = (d * Math.PI) / 180;
+          return <Fragment key={d}>{bar(s * (0.5 + 0.4 * Math.cos(t)), s * (0.5 + 0.4 * Math.sin(t)), s * 0.14, d)}</Fragment>; })}
+        <View style={abs(s * 0.3, s * 0.3, { width: s * 0.4, height: s * 0.4, borderRadius: s, borderWidth: w, borderColor: color })} />
+      </>; break;
+    case 'moon':
+      body = <View style={abs(s * 0.1, s * 0.1, { width: s * 0.8, height: s * 0.8, borderRadius: s, borderLeftWidth: s * 0.22, borderColor: 'transparent',
+        borderLeftColor: color, transform: [{ rotate: '-35deg' }] })} />;
+      break;
   }
   return <View style={[{ width: s, height: s }, style]} pointerEvents="none">{body}</View>;
 }

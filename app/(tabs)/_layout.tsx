@@ -18,7 +18,7 @@ export default function TabsLayout() {
   return (
     <Tabs screenOptions={{
       headerShown: false, tabBarActiveTintColor: C.accent, tabBarInactiveTintColor: C.mute,
-      tabBarStyle: { backgroundColor: C.card, borderTopColor: C.line, height: 70 + bottom, paddingTop: 6, paddingBottom: bottom + 6, boxShadow: `0px -4px 20px ${alpha(C.text, 0.05)}` },
+      tabBarStyle: { backgroundColor: C.card, borderTopColor: C.line, height: 70 + bottom, paddingTop: 6, paddingBottom: bottom + 6, boxShadow: `0px -4px 20px ${alpha(C.shade, 0.05)}` },
       tabBarLabelStyle: { fontWeight: '700', fontSize: 11, lineHeight: 15, height: 15, marginTop: 3 },
     }}>
       <Tabs.Screen name="(search)" options={{ title: 'Αναζήτηση', tabBarIcon: icon('search') }} />

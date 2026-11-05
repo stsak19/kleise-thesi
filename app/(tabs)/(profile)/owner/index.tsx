@@ -70,7 +70,7 @@ export default function Owner() {
   );
   const Seg = ({ on, label, onPress, color }: { on: boolean; label: string; onPress: () => void; color: string }) => (
     <Pressable onPress={onPress} style={{ flex: 1, paddingVertical: 10, borderRadius: 11, alignItems: 'center', backgroundColor: on ? C.card : 'transparent',
-      boxShadow: on ? `0px 1px 3px ${alpha(C.text, 0.1)}` : undefined }}>
+      boxShadow: on ? `0px 1px 3px ${alpha(C.shade, 0.1)}` : undefined }}>
       <Text style={{ color: on ? color : C.mute, fontWeight: '700' }}>{label}</Text>
     </Pressable>
   );

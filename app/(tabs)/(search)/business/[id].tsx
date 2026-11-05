@@ -5,7 +5,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { rpc, sb } from '../../../../lib/supabase';
 import { Btn, C, DAYS, Icon, MONTHS, alpha, fmtLong, iso, onColor, price, s, shadow } from '../../../../lib/ui';
-import { NIGHT } from '../../../../lib/theme';
+import { INK, NIGHT } from '../../../../lib/theme';
 import { styleOf } from '../../../../lib/presets';
 import { Fact, screenFor } from '../../../../lib/bizscreen';
 import { Photo, Scrim } from '../../../../lib/Photo';
@@ -521,7 +521,7 @@ export default function Business() {
                       </View>
                       <Pressable onPress={() => book(service, next.time, next.date)} disabled={busy === service.id + next.time}
                         style={({ pressed }) => ({ backgroundColor: '#ffffff', borderRadius: r, paddingVertical: 12, paddingHorizontal: 16, opacity: pressed ? 0.85 : 1 })}>
-                        <Text style={{ color: lum(accent) > 186 ? C.text : accent, fontWeight: '800', fontSize: 15 }}>Κλείσε το</Text>
+                        <Text style={{ color: lum(accent) > 186 ? INK : accent, fontWeight: '800', fontSize: 15 }}>Κλείσε το</Text>
                       </Pressable>
                     </View>}
               </View>

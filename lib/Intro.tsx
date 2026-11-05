@@ -15,9 +15,16 @@ const STEPS = [
   { title: 'Όλα σε ένα σημείο', text: 'Όλες οι κρατήσεις σου μαζί, με υπενθυμίσεις πριν το ραντεβού — και ακύρωση με ένα πάτημα.' },
 ];
 
+const replay = new Set<() => void>();
+/* Ρυθμίσεις → «Δες ξανά την ξενάγηση». */
+export const replayIntro = () => { AsyncStorage.removeItem(KEY).catch(() => {}); replay.forEach((f) => f()); };
+
 export function useIntroSeen(): [boolean | null, () => void] {
   const [seen, setSeen] = useState<boolean | null>(null);
-  useEffect(() => { AsyncStorage.getItem(KEY).then((v) => setSeen(v === '1')).catch(() => setSeen(true)); }, []);
+  useEffect(() => {
+    AsyncStorage.getItem(KEY).then((v) => setSeen(v === '1')).catch(() => setSeen(true));
+    const f = () => setSeen(false); replay.add(f); return () => { replay.delete(f); };
+  }, []);
   return [seen, () => { setSeen(true); AsyncStorage.setItem(KEY, '1').catch(() => {}); }];
 }
 

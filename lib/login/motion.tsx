@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Platform, Text, View, ViewStyle } from 'react-native';
 import { C, CATEGORIES, alpha } from '../ui';
+import { usePrefs } from '../prefs';
 
 /* Εργαλεία για την κίνηση στην οθόνη σύνδεσης (μόνο Animated του React Native). */
 
@@ -14,15 +15,16 @@ export const k = (t: Animated.Value | Animated.AnimatedInterpolation<number>, i:
 export const CATS = CATEGORIES.filter((c) => !['other', 'physio', 'medical', 'tattoo'].includes(c.key));
 export const TW = 88, TH = 74, GAP = 10;
 
-/* Αν ο χρήστης έχει ζητήσει λιγότερη κίνηση, οι επαναλαμβανόμενες κινήσεις σταματούν. */
+/* Αν ο χρήστης έχει ζητήσει λιγότερη κίνηση (στο κινητό ή στις Ρυθμίσεις), οι επαναλαμβανόμενες κινήσεις σταματούν. */
 export function useReduceMotion() {
+  const app = usePrefs().reduceMotion;
   const [r, setR] = useState(false);
   useEffect(() => {
     AccessibilityInfo.isReduceMotionEnabled?.().then(setR).catch(() => {});
     const sub = AccessibilityInfo.addEventListener?.('reduceMotionChanged', setR);
     return () => sub?.remove?.();
   }, []);
-  return r;
+  return r || app;
 }
 
 /* Ρολόι 0→1 που επαναλαμβάνεται συνεχώς (για κύματα, ταινίες κ.λπ.). */
