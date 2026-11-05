@@ -1,42 +1,16 @@
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
+import { FloatBar, type TabItems } from '../FloatBar';
 import { Text } from '../Txt';
 import { Photo } from '../Photo';
-import { isLight } from '../theme';
 import { C, Icon, alpha } from '../ui';
-import type { IconName } from '../Icon';
 import { useStore } from './data';
 
-/* Η κάτω μπάρα του καταστήματος (σχέδιο 2): γυάλινο «χάπι» όπου η ενεργή καρτέλα δείχνει εικονίδιο και όνομα. */
-export type StoreTabs = Record<string, { icon: IconName; label: string }>;
-export function StoreBar({ items, state, navigateToTab }: { items: StoreTabs; state: { index: number; routes: { key: string; name: string }[] }; navigateToTab: (key: string) => void }) {
-  const bottom = useSafeAreaInsets().bottom;
-  const light = isLight(C.bg);
-  const activeKey = state.routes[state.index]?.key;
-  return (
-    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'center', paddingHorizontal: 16, paddingBottom: Math.max(bottom, 10) + 6 }}>
-      <BlurView intensity={light ? 40 : 30} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
-        style={{ height: 58, borderRadius: 29, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6,
-          backgroundColor: light ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1, borderColor: light ? alpha('#000000', 0.06) : alpha('#ffffff', 0.1),
-          boxShadow: `0px 10px 30px ${alpha(C.shade, light ? 0.12 : 0.4)}, inset 0px 1px 0px ${alpha('#ffffff', light ? 0.9 : 0.08)}` }}>
-        {state.routes.filter((r) => items[r.name]).map((r) => {
-          const on = r.key === activeKey, it = items[r.name];
-          return (
-            <Pressable key={r.key} onPress={() => { if (!on) navigateToTab(r.key); }}
-              accessibilityRole="tab" accessibilityLabel={it.label} accessibilityState={{ selected: on }}
-              style={({ pressed }) => ({ height: 46, borderRadius: 23, paddingHorizontal: on ? 16 : 13, flexDirection: 'row', alignItems: 'center', gap: 7,
-                backgroundColor: on ? C.accent : 'transparent', opacity: pressed ? 0.75 : 1 })}>
-              <Icon name={it.icon} size={19} color={on ? C.onAccent : alpha(C.text, 0.5)} />
-              {on && <Text style={{ color: C.onAccent, fontWeight: '700', fontSize: 14 }}>{it.label}</Text>}
-            </Pressable>
-          );
-        })}
-      </BlurView>
-    </View>
-  );
-}
+/* Η κάτω μπάρα του καταστήματος: η ίδια γυάλινη μπάρα του SpotOn (lib/FloatBar), με τη λέξη της ενεργής καρτέλας
+   και πλάτος που αλλάζει με κίνηση. */
+export type StoreTabs = TabItems;
+export const StoreBar = (p: { items: StoreTabs; state: any; navigateToTab: (key: string) => void }) => <FloatBar {...p} labels />;
 
 /* «‹ SpotOn»: βγαίνει από το κατάστημα και γυρίζει στην εφαρμογή. */
 export function ExitPill() {
