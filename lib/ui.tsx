@@ -70,10 +70,10 @@ export const TextBtn = ({ title, onPress, color }: { title: string; onPress: () 
 );
 
 /* ---------- πεδία ---------- */
-export function Input({ label, icon, style, ...p }: TextInputProps & { label?: string; icon?: IconName }) {
+export function Input({ label, icon, style, box, ...p }: TextInputProps & { label?: string; icon?: IconName; box?: ViewStyle }) {
   const [focus, setFocus] = useState(false);
   const field = (
-    <View style={[s.input, focus && { borderColor: C.accent, backgroundColor: C.card, boxShadow: `0px 0px 0px 4px ${alpha(C.accent, 0.12)}` },
+    <View style={[s.input, box, focus && { borderColor: C.accent, backgroundColor: C.card, boxShadow: `0px 0px 0px 4px ${alpha(C.accent, 0.12)}` },
       p.multiline && { alignItems: 'flex-start', minHeight: 96 }]}>
       {icon && <Icon name={icon} size={18} color={focus ? C.accent : C.mute} />}
       <TextInput placeholderTextColor={C.mute} {...p}

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { sb } from '../../../lib/supabase';
-import { C, CATEGORIES, Card, Empty, Icon, Input, ScreenHeader, alpha, catEmoji, catLabel, s, shadow } from '../../../lib/ui';
+import { C, CATEGORIES, Card, Empty, Icon, Input, alpha, catLabel, s, shadow } from '../../../lib/ui';
 
 import { styleOf } from '../../../lib/presets';
 import { Photo } from '../../../lib/Photo';
@@ -51,27 +52,45 @@ export default function Home() {
   }, [cat, q]);
   useEffect(() => { const t = setTimeout(load, 250); return () => clearTimeout(t); }, [load]);
 
+  const top = useSafeAreaInsets().top;
+  const cats = [{ key: null as string | null, label: 'Όλα', emoji: '✨' }, ...CATEGORIES];
+
   const head = (
-    <View style={{ gap: 14 }}>
-      <View style={{ marginHorizontal: -20 }}><ScreenHeader eyebrow={hello()} title="Πού θα κλείσεις;" /></View>
-      <Input icon="search" placeholder="Αναζήτηση καταστήματος" value={q} onChangeText={setQ} returnKeyType="search" />
+    <View style={{ gap: 16 }}>
+      {/* Πάνω μέρος: απαλή ζώνη στο κύριο χρώμα με χαιρετισμό, τίτλο και αναζήτηση. */}
+      <View style={{ marginHorizontal: -20, paddingTop: top + 16, paddingHorizontal: 20, paddingBottom: 22, gap: 16,
+        backgroundColor: alpha(C.accent, 0.07), borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+        <View style={[s.row, { alignItems: 'flex-start', gap: 12 }]}>
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text style={{ color: C.mute, fontSize: 14, fontWeight: '600' }}>{hello()}</Text>
+            <Text style={{ color: C.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.6 }}>Πού θα κλείσεις;</Text>
+          </View>
+          <Pressable onPress={() => router.push('/bookings')} accessibilityRole="button" accessibilityLabel="Οι κρατήσεις μου" hitSlop={6}
+            style={({ pressed }) => [{ width: 44, height: 44, borderRadius: 22, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center',
+              opacity: pressed ? 0.75 : 1 }, shadow(1)]}>
+            <Icon name="calendar" size={20} color={C.accent} />
+          </Pressable>
+        </View>
+        <Input icon="search" placeholder="Κομμωτήριο, γυμναστήριο, ιατρείο…" value={q} onChangeText={setQ} returnKeyType="search"
+          style={{ fontSize: 15 }} box={{ backgroundColor: C.bg, borderColor: C.bg, ...shadow(1) }} />
+      </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }}
-        contentContainerStyle={{ gap: 4, paddingHorizontal: 14 }}>
-        {CATEGORIES.map((c) => {
+        contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
+        {cats.map((c) => {
           const on = cat === c.key;
           return (
-            <Pressable key={c.key} onPress={() => setCat(on ? null : c.key)} style={({ pressed }) => ({ width: 78, alignItems: 'center', gap: 7, opacity: pressed ? 0.7 : 1 })}>
-              <View style={{ width: 58, height: 58, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 2,
-                backgroundColor: on ? alpha(C.accent, 0.14) : C.soft, borderColor: on ? C.accent : C.soft }}>
-                <Text style={{ fontSize: 26 }}>{c.emoji}</Text>
-              </View>
-              <Text style={{ color: on ? C.accent : C.text, fontSize: 12, fontWeight: on ? '800' : '600', textAlign: 'center' }} numberOfLines={2}>{c.label}</Text>
+            <Pressable key={c.key ?? 'all'} onPress={() => setCat(c.key === null || on ? null : c.key)}
+              style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingLeft: 12, paddingRight: 14,
+                borderRadius: 999, borderWidth: 1.5, backgroundColor: on ? alpha(C.accent, 0.12) : C.soft, borderColor: on ? C.accent : C.soft,
+                opacity: pressed ? 0.75 : 1 }]}>
+              <Text style={{ fontSize: 16 }}>{c.emoji}</Text>
+              <Text style={{ color: on ? C.accent : C.text, fontSize: 14, fontWeight: on ? '800' : '600' }}>{c.label}</Text>
             </Pressable>
           );
         })}
       </ScrollView>
-      <View style={[s.row, { marginTop: 6 }]}>
-        <Text style={[s.h, { flex: 1 }]}>{cat ? catLabel(cat) : q.trim() ? 'Αποτελέσματα' : 'Καταστήματα'}</Text>
+      <View style={s.row}>
+        <Text style={[s.h, { flex: 1 }]}>{cat ? catLabel(cat) : q.trim() ? 'Αποτελέσματα' : 'Όλα τα καταστήματα'}</Text>
         {loaded && <Text style={{ color: C.mute, fontWeight: '600' }}>{list.length}</Text>}
       </View>
     </View>
