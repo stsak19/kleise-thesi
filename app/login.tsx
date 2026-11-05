@@ -4,10 +4,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { sb } from '../lib/supabase';
 import { demoSession, setDemo } from '../lib/demo';
 import { Btn, C, Icon, Input, T, alpha, s, shadow } from '../lib/ui';
+import { useLocalSearchParams } from 'expo-router';
+import LoginA from '../lib/login/LoginA';
+import LoginB from '../lib/login/LoginB';
+import LoginC from '../lib/login/LoginC';
+
+/* ΠΡΟΣΩΡΙΝΟ (μόνο στο branch των προτάσεων): /login?v=A|B|C δείχνει τις νέες εκδοχές. */
+export default function Login() {
+  const { v, m } = useLocalSearchParams<{ v?: string; m?: string }>();
+  if (v === 'A') return <LoginA />;
+  if (v === 'B') return <LoginB />;
+  if (v === 'C') return <LoginC start={m === 'in' || m === 'up' ? m : 'welcome'} />;
+  return <Current />;
+}
 
 /* Σύνδεση με email + κωδικό (χωρίς email επιβεβαίωσης για τις δοκιμές).
    Στην κυκλοφορία μπορεί να γίνει κωδικός μίας χρήσης με email/SMS. */
-export default function Login() {
+function Current() {
   const top = useSafeAreaInsets().top;
   const [mode, setMode] = useState<'in' | 'up'>('in');
   const [email, setEmail] = useState('');

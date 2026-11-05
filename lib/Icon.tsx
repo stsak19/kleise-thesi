@@ -3,7 +3,7 @@ import { C } from './theme';
 
 /* Μικρά εικονίδια γραμμής, φτιαγμένα μόνο με View (χωρίς βιβλιοθήκη εικονιδίων).
    Παίρνουν το χρώμα τους από το θέμα, οπότε αλλάζουν μαζί με το 🎨. */
-export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'back';
+export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back';
 
 export function Icon({ name, size = 22, color = C.text, style }: { name: IconName; size?: number; color?: string; style?: ViewStyle }) {
   const s = size, w = Math.max(1.6, Math.round(s * 0.09 * 10) / 10);
@@ -69,6 +69,21 @@ export function Icon({ name, size = 22, color = C.text, style }: { name: IconNam
       body = <>{bar(s * 0.5, s * 0.5, s * 0.64, 0)}{bar(s * 0.5, s * 0.5, s * 0.64, 90)}</>; break;
     case 'close':
       body = <>{bar(s * 0.5, s * 0.5, s * 0.64, 45)}{bar(s * 0.5, s * 0.5, s * 0.64, -45)}</>; break;
+    case 'mail':
+      body = <>
+        <View style={abs(s * 0.08, s * 0.2, { width: s * 0.84, height: s * 0.6, borderRadius: s * 0.12, borderWidth: w, borderColor: color })} />
+        {bar(s * 0.32, s * 0.4, s * 0.42, 34)}{bar(s * 0.68, s * 0.4, s * 0.42, -34)}
+      </>; break;
+    case 'lock':
+      body = <>
+        <View style={abs(s * 0.28, s * 0.08, { width: s * 0.44, height: s * 0.48, borderTopLeftRadius: s, borderTopRightRadius: s, borderWidth: w, borderBottomWidth: 0, borderColor: color })} />
+        <View style={abs(s * 0.14, s * 0.42, { width: s * 0.72, height: s * 0.5, borderRadius: s * 0.12, backgroundColor: color })} />
+      </>; break;
+    case 'eye':
+      body = <>
+        <View style={abs(s * 0.06, s * 0.24, { width: s * 0.88, height: s * 0.52, borderRadius: s, borderWidth: w, borderColor: color })} />
+        <View style={abs(s * 0.38, s * 0.38, { width: s * 0.24, height: s * 0.24, borderRadius: s, backgroundColor: color })} />
+      </>; break;
     case 'store':
       body = <>
         <View style={abs(s * 0.06, s * 0.14, { width: s * 0.88, height: s * 0.24, borderRadius: s * 0.08, backgroundColor: color })} />
