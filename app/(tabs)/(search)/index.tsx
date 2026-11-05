@@ -4,7 +4,6 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { rpc, sb } from '../../../lib/supabase';
 import { C, CATEGORIES, Card, DAYS, Empty, Icon, Input, alpha, catLabel, iso, s, shadow } from '../../../lib/ui';
-import type { IconName } from '../../../lib/Icon';
 
 import { styleOf } from '../../../lib/presets';
 import { Photo } from '../../../lib/Photo';
@@ -42,15 +41,6 @@ const Logo = () => (
   <Text style={{ fontSize: 26, fontWeight: '900', letterSpacing: -0.8, color: C.text }}>
     Spot<Text style={{ color: C.accent }}>On</Text>
   </Text>
-);
-
-/* Στρογγυλό κουμπί με εικονίδιο. */
-const RoundBtn = ({ icon, onPress, label }: { icon: IconName; onPress: () => void; label: string }) => (
-  <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={6}
-    style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
-      backgroundColor: C.soft, opacity: pressed ? 0.75 : 1 })}>
-    <Icon name={icon} size={20} color={C.accent} />
-  </Pressable>
 );
 
 type Next = { date: string; time: string; service: string; business: string };
@@ -108,8 +98,6 @@ export default function Home() {
       <View style={{ paddingTop: top + 12, gap: 14 }}>
         <View style={s.row}>
           <Logo />
-          <View style={{ flex: 1 }} />
-          <RoundBtn icon="calendar" onPress={() => router.push('/bookings')} label="Οι κρατήσεις μου" />
         </View>
         <Input icon="search" placeholder="Κομμωτήριο, γυμναστήριο, ιατρείο…" value={q} onChangeText={setQ} returnKeyType="search" style={{ fontSize: 15 }} />
         {next && <NextBooking b={next} onPress={() => router.push('/bookings')} />}
