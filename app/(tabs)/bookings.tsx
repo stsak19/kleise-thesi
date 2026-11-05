@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
-import { Card, Empty, ScreenHeader, s } from '../../lib/ui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Card, Empty, s } from '../../lib/ui';
 import { useMyBookings } from '../../lib/bookings/data';
 import { Extras, History, Segmented } from '../../lib/bookings/parts';
 import Upcoming from '../../lib/bookings/Upcoming';
@@ -13,14 +14,12 @@ export default function Bookings() {
   const [tab, setTabS] = useState(lastTab);
   const setTab = (t: typeof tab) => { lastTab = t; setTabS(t); };
   const n = D.upcoming.length;
+  const top = useSafeAreaInsets().top;
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0 }]} refreshControl={<RefreshControl refreshing={D.loading} onRefresh={D.load} />}>
-      <View style={{ marginHorizontal: -20 }}>
-        <ScreenHeader title="Κρατήσεις" sub={n ? `${n} ${n === 1 ? 'επερχόμενο ραντεβού' : 'επερχόμενα ραντεβού'}` : undefined} />
-      </View>
+    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: top + 12 }]} refreshControl={<RefreshControl refreshing={D.loading} onRefresh={D.load} />}>
       <Segmented value={tab} onChange={setTab} items={[
-        { key: 'up', label: 'Επερχόμενες', count: n },
+        { key: 'up', label: 'Επερχόμενες', count: n, alert: true },
         { key: 'past', label: 'Ιστορικό', count: D.past.length },
       ]} />
 

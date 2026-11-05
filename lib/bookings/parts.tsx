@@ -33,7 +33,7 @@ export const CancelBtn = ({ onPress }: { onPress: () => void }) => (
 );
 
 /* Δύο καρτέλες: Επερχόμενες / Ιστορικό. */
-export function Segmented<K extends string>({ value, onChange, items }: { value: K; onChange: (k: K) => void; items: { key: K; label: string; count?: number }[] }) {
+export function Segmented<K extends string>({ value, onChange, items }: { value: K; onChange: (k: K) => void; items: { key: K; label: string; count?: number; alert?: boolean }[] }) {
   return (
     <View style={{ flexDirection: 'row', backgroundColor: C.soft, borderRadius: 14, padding: 4, gap: 4 }}>
       {items.map((it) => {
@@ -45,8 +45,8 @@ export function Segmented<K extends string>({ value, onChange, items }: { value:
             <Text style={{ color: on ? C.text : C.mute, fontWeight: '800', fontSize: 14 }}>{it.label}</Text>
             {it.count != null && it.count > 0 && (
               <View style={{ minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center',
-                backgroundColor: on ? C.accent : alpha(C.mute, 0.18) }}>
-                <Text style={{ color: on ? C.onAccent : C.mute, fontWeight: '800', fontSize: 11 }}>{it.count}</Text>
+                backgroundColor: it.alert ? '#ff3b30' : on ? C.accent : alpha(C.mute, 0.18) }}>
+                <Text style={{ color: it.alert ? '#ffffff' : on ? C.onAccent : C.mute, fontWeight: '800', fontSize: 11 }}>{it.count}</Text>
               </View>
             )}
           </Pressable>

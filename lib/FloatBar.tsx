@@ -35,10 +35,8 @@ export function FloatBar({ items, state, navigateToTab }: { items: TabItems; sta
             τεντώνει όσο κινείται και φουσκώνει λίγο όταν πατάς. */}
         <Animated.View pointerEvents="none" style={{ position: 'absolute', left: 8, top: 8, width: 48, height: 48, borderRadius: 24,
           transform: [{ translateX: x }, { scaleX: Animated.multiply(stretch, press) }, { scaleY: Animated.multiply(Animated.divide(1, stretch), press) }],
-          backgroundColor: light ? alpha('#d8d8de', 0.55) : alpha('#ffffff', 0.14), borderWidth: 1, borderColor: alpha('#ffffff', light ? 0.95 : 0.25),
-          boxShadow: `0px 6px 16px ${alpha('#000000', light ? 0.14 : 0.45)}, inset 0px 1px 1px ${alpha('#ffffff', light ? 1 : 0.35)}, inset 0px -2px 6px ${alpha(light ? '#000000' : '#ffffff', 0.06)}` }}>
-          <View style={{ position: 'absolute', left: 9, right: 9, top: 4, height: 14, borderRadius: 10, backgroundColor: alpha('#ffffff', light ? 0.8 : 0.18) }} />
-        </Animated.View>
+          backgroundColor: light ? alpha('#d8d8de', 0.55) : alpha('#ffffff', 0.14), borderWidth: 1, borderColor: light ? alpha('#000000', 0.06) : alpha('#ffffff', 0.12),
+          boxShadow: `0px 6px 16px ${alpha('#000000', light ? 0.14 : 0.45)}, inset 0px -2px 6px ${alpha(light ? '#000000' : '#ffffff', 0.06)}` }} />
         {shown.map((r, i) => {
           const on = r.key === activeKey, it = items[r.name];
           const go = () => navigateToTab(r.key);
