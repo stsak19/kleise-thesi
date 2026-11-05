@@ -17,13 +17,13 @@ export const LAYOUTS: { key: Layout; name: string; emoji: string; text: string }
 ];
 
 export const THEMES: ThemePreset[] = [
-  { key: 'energy', name: 'Ενέργεια', emoji: '⚡', color: '#f97316', header: 'cover', radius: 14 },
+  { key: 'energy', name: 'Ενέργεια', emoji: '⚡', color: '#a4552b', header: 'cover', radius: 12 },
   { key: 'sport', name: 'Σπορ', emoji: '🏁', color: '#16161a', header: 'compact', radius: 8 },
-  { key: 'clinic', name: 'Ιατρείο', emoji: '🩺', color: '#1d85ed', header: 'minimal', radius: 12 },
-  { key: 'fresh', name: 'Φρεσκάδα', emoji: '🌿', color: '#14b8a6', header: 'minimal', radius: 16 },
-  { key: 'elegance', name: 'Κομψό', emoji: '🌸', color: '#d946ef', header: 'cover', radius: 24 },
+  { key: 'clinic', name: 'Ιατρείο', emoji: '🩺', color: '#2f5878', header: 'minimal', radius: 12 },
+  { key: 'fresh', name: 'Φρεσκάδα', emoji: '🌿', color: '#3f6b6a', header: 'minimal', radius: 14 },
+  { key: 'elegance', name: 'Κομψό', emoji: '🌸', color: '#8a5a64', header: 'cover', radius: 18 },
   { key: 'classic', name: 'Κλασικό', emoji: '💈', color: '#840b29', header: 'compact', radius: 10 },
-  { key: 'calm', name: 'Χαλάρωση', emoji: '🕯️', color: '#a855f7', header: 'cover', radius: 26 },
+  { key: 'calm', name: 'Χαλάρωση', emoji: '🕯️', color: '#6b5b73', header: 'cover', radius: 18 },
   { key: 'bold', name: 'Έντονο', emoji: '🖋️', color: '#334155', header: 'compact', radius: 4 },
 ];
 export const themeOf = (key?: string | null) => THEMES.find((t) => t.key === key);

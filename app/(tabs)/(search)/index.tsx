@@ -5,6 +5,7 @@ import { sb } from '../../../lib/supabase';
 import { C, CATEGORIES, Card, Empty, Icon, Input, ScreenHeader, alpha, catEmoji, catLabel, s, shadow } from '../../../lib/ui';
 
 import { styleOf } from '../../../lib/presets';
+import { Photo } from '../../../lib/Photo';
 type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null };
 
 const hello = () => { const h = new Date().getHours(); return h < 12 ? 'Καλημέρα ☀️' : h < 19 ? 'Καλησπέρα 👋' : 'Καλό βράδυ 🌙'; };
@@ -14,26 +15,16 @@ function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
   const brand = styleOf(b).color;
   return (
     <Card onPress={onPress} style={{ padding: 0, gap: 0, overflow: 'hidden' }}>
-      <View style={{ height: 112, backgroundColor: brand, overflow: 'hidden' }}>
-        {b.cover_url
-          ? <Image source={{ uri: b.cover_url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-          : <>
-              <View style={{ position: 'absolute', right: -30, top: -40, width: 170, height: 170, borderRadius: 85, backgroundColor: 'rgba(255,255,255,0.12)' }} />
-              <View style={{ position: 'absolute', right: 60, bottom: -60, width: 110, height: 110, borderRadius: 55, backgroundColor: 'rgba(255,255,255,0.08)' }} />
-              <Text style={{ position: 'absolute', right: 22, top: 22, fontSize: 52 }}>{catEmoji(b.category)}</Text>
-            </>}
+      <View style={{ height: 150, backgroundColor: brand, overflow: 'hidden' }}>
+        <Photo uri={b.cover_url} color={brand} />
       </View>
       <View style={{ padding: 16, paddingTop: 12, flexDirection: 'row', gap: 12, alignItems: 'flex-end' }}>
-        <View style={{ marginTop: -40, width: 60, height: 60, borderRadius: 18, backgroundColor: C.card, padding: 3, ...shadow(1) }}>
-          {b.logo_url
-            ? <Image source={{ uri: b.logo_url }} style={{ width: '100%', height: '100%', borderRadius: 15 }} />
-            : <View style={{ flex: 1, borderRadius: 15, backgroundColor: alpha(brand, 0.14), alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ color: brand, fontWeight: '900', fontSize: 24 }}>{b.name.slice(0, 1)}</Text>
-              </View>}
+        <View style={{ marginTop: -40, width: 60, height: 60, borderRadius: 16, backgroundColor: '#ffffff', padding: 3, ...shadow(1) }}>
+          <Photo uri={b.logo_url} color={brand} letter={b.name.slice(0, 1)} style={{ borderRadius: 13 }} />
         </View>
         <View style={{ flex: 1, gap: 3 }}>
           <Text style={{ color: C.text, fontWeight: '800', fontSize: 17, letterSpacing: -0.2 }} numberOfLines={1}>{b.name}</Text>
-          <Text style={{ color: brand, fontWeight: '700', fontSize: 13 }}>{catLabel(b.category)}</Text>
+          <Text style={{ color: C.mute, fontWeight: '600', fontSize: 13 }}>{catLabel(b.category)}</Text>
         </View>
       </View>
       <View style={[s.row, { paddingHorizontal: 16, paddingBottom: 14, gap: 6 }]}>

@@ -8,8 +8,9 @@ import { Btn, C, Card, Group, Icon, Section, T, alpha, catLabel, onColor, s } fr
 import { BizHeader } from '../../../../lib/BizHeader';
 import { LAYOUTS, THEMES, presetFor, styleOf, themeOf } from '../../../../lib/presets';
 
-const COLORS = ['#1d85ed', '#2563eb', '#1e3a8a', '#6366f1', '#a855f7', '#d946ef', '#ec4899', '#ed1d51', '#840b29', '#f97316',
-  '#f59e0b', '#84cc16', '#1fa971', '#059669', '#14b8a6', '#0ea5e9', '#92400e', '#334155', '#16161a'];
+/* Ήπιοι, «σοβαροί» τόνοι — χωρίς φωσφοριζέ. */
+const COLORS = ['#2f5878', '#3a5a7a', '#3e4a6b', '#3d5f78', '#3f6b6a', '#2f5d50', '#3f6a52', '#5c6b3d',
+  '#7a5236', '#a4552b', '#8a6a5a', '#8a5a64', '#840b29', '#6b5b73', '#33383f', '#2b2b2e'];
 
 /* Εμφάνιση καταστήματος: διάταξη σελίδας κράτησης, θέμα (έτοιμα presets) και χρώμα, με ζωντανή προεπισκόπηση. */
 export default function Style() {

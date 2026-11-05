@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 /* Τα οριστικά χρώματα της εφαρμογής.
    Οι ημιδιάφανες αποχρώσεις (σκιές, φόντα επιλογής) βγαίνουν από αυτά με το alpha(). */
 export const DEFAULT = {
-  bg: '#ffffff', card: '#ecfefe', soft: '#fef9ec', line: '#ffffff', text: '#000000', mute: '#4d4d4d',
+  bg: '#ffffff', card: '#f5f6f8', soft: '#f5f6f8', line: '#ffffff', text: '#000000', mute: '#4d4d4d',
   accent: '#1d85ed', onAccent: '#ffffff',
   btn: '#1d85ed', btnText: '#ffffff', btn2: '#ffffff', btn2Text: '#840b29', btn2Line: '#b3b3b3',
   ok: '#1fa971', bad: '#ed1d51',
@@ -17,7 +17,7 @@ export const LABELS: Record<keyof Theme, string> = {
 export const C: Theme = { ...DEFAULT };
 
 // v3: οριστικά χρώματα· παλιές αποθηκευμένες επιλογές από το 🎨 δεν τα σκεπάζουν.
-const KEY = 'theme.v3';
+const KEY = 'theme.v4';
 const subs = new Set<() => void>();
 export const onTheme = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; };
 const emit = () => subs.forEach((f) => f());
