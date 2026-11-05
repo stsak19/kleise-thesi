@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { switchMode } from '../lib/mode';
+import { goHome } from '../lib/SwitchMode';
 import { Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../lib/Txt';
 import { useRouter } from 'expo-router';
@@ -152,7 +154,7 @@ export default function NewBusiness() {
       </Animated.View>
       <View style={{ gap: 10 }}>
         <Btn title="Δες τη σελίδα σου" onPress={() => router.replace(`/business/${done}`)} />
-        <Btn kind="ghost" title="Πήγαινε στο πρόγραμμά μου" onPress={() => router.replace('/owner')} />
+        <Btn kind="ghost" title="Πήγαινε στο πρόγραμμά μου" onPress={() => switchMode('biz', () => goHome(router, 'biz'))} />
       </View>
     </View>
   );

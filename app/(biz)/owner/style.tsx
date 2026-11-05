@@ -1,13 +1,13 @@
-import { say } from '../../../../lib/alert';
+import { say } from '../../../lib/alert';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { Text } from '../../../../lib/Txt';
+import { Text } from '../../../lib/Txt';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { sb } from '../../../../lib/supabase';
-import { useAuth } from '../../../../lib/auth';
-import { Btn, C, Card, Group, Icon, Section, T, alpha, catLabel, onColor, s } from '../../../../lib/ui';
-import { BizHeader } from '../../../../lib/BizHeader';
-import { LAYOUTS, THEMES, presetFor, styleOf, themeOf } from '../../../../lib/presets';
+import { sb } from '../../../lib/supabase';
+import { useAuth } from '../../../lib/auth';
+import { Btn, C, Card, Group, Icon, Section, T, alpha, catLabel, onColor, s } from '../../../lib/ui';
+import { BizHeader } from '../../../lib/BizHeader';
+import { LAYOUTS, THEMES, presetFor, styleOf, themeOf } from '../../../lib/presets';
 
 /* Ήπιοι, «σοβαροί» τόνοι — χωρίς φωσφοριζέ. */
 const COLORS = ['#2f5878', '#3a5a7a', '#3e4a6b', '#3d5f78', '#3f6b6a', '#2f5d50', '#3f6a52', '#5c6b3d',

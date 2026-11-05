@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { say } from '../alert';
 import { setDemo } from '../demo';
+import { setMode } from '../mode';
 import { rpc, sb } from '../supabase';
 import { useAuth } from '../auth';
 import { iso } from '../ui';
@@ -39,4 +40,4 @@ export function useProfileExtras(uid: string) {
   return { hasBiz, upcoming };
 }
 
-export const signOut = async () => { await sb.auth.signOut(); setDemo(false); };
+export const signOut = async () => { await sb.auth.signOut(); setDemo(false); setMode('client'); };

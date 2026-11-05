@@ -1,14 +1,14 @@
-import { say, promptText } from '../../../../lib/alert';
+import { say, promptText } from '../../../lib/alert';
 import { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, Switch, View } from 'react-native';
-import { Text } from '../../../../lib/Txt';
-import { pickAndUpload } from '../../../../lib/upload';
+import { Text } from '../../../lib/Txt';
+import { pickAndUpload } from '../../../lib/upload';
 import { useRouter } from 'expo-router';
-import { sb } from '../../../../lib/supabase';
-import { useAuth } from '../../../../lib/auth';
-import { LAYOUTS, styleOf } from '../../../../lib/presets';
-import { DAYNAME, EMPTY_BIZ, HEX, Hours, Slot, Svc, WEEK, badHours, loadBusiness, newKey, presetData, saveBusiness } from '../../../../lib/owner/save';
-import { Btn, C, CATEGORIES, catLabel, Card, Chip, DAYS, Group, Icon, Input, Section, SwitchRow, T, TextBtn, Toggle, alpha, catEmoji, onColor, s, shadow } from '../../../../lib/ui';
+import { sb } from '../../../lib/supabase';
+import { useAuth } from '../../../lib/auth';
+import { LAYOUTS, styleOf } from '../../../lib/presets';
+import { DAYNAME, EMPTY_BIZ, HEX, Hours, Slot, Svc, WEEK, badHours, loadBusiness, newKey, presetData, saveBusiness } from '../../../lib/owner/save';
+import { Btn, C, CATEGORIES, catLabel, Card, Chip, DAYS, Group, Icon, Input, Section, SwitchRow, T, TextBtn, Toggle, alpha, catEmoji, onColor, s, shadow } from '../../../lib/ui';
 
 const DEFAULT_HOURS: Hours = [1, 2, 3, 4, 5].map((d) => ({ weekday: d, opens: '09:00', closes: '21:00', svc: null }));
 

@@ -1,0 +1,38 @@
+import { Pressable, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
+import { isLight } from './theme';
+import { C, Icon, alpha } from './ui';
+import type { IconName } from './Icon';
+
+/* Η πλωτή γυάλινη κάτω μπάρα («χάπι»), κοινή για τη λειτουργία πελάτη και τη λειτουργία επιχείρησης.
+   Λευκή στο ανοιχτό θέμα, σκούρα στο σκούρο· η ενεργή καρτέλα είναι ένας απλός κύκλος.
+   Οι οθόνες αφήνουν κάτω κενό TAB_SPACE ώστε το τελευταίο στοιχείο να μην κρύβεται πίσω της. */
+export type TabItems = Record<string, { icon: IconName; label: string }>;
+
+export function FloatBar({ items, state, navigateToTab }: { items: TabItems; state: { index: number; routes: { key: string; name: string }[] }; navigateToTab: (key: string) => void }) {
+  const bottom = useSafeAreaInsets().bottom;
+  const light = isLight(C.bg);
+  return (
+    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingBottom: Math.max(bottom, 10) + 6 }}>
+      <BlurView intensity={light ? 40 : 30} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
+        style={{ height: 64, borderRadius: 32, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 6,
+          backgroundColor: light ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1, borderColor: light ? alpha('#ffffff', 0.9) : alpha('#ffffff', 0.1),
+          boxShadow: `0px 10px 30px ${alpha(C.shade, light ? 0.12 : 0.4)}, inset 0px 1px 0px ${alpha('#ffffff', light ? 0.9 : 0.08)}` }}>
+        {state.routes.map((r, i) => {
+          const on = state.index === i, it = items[r.name];
+          if (!it) return null;
+          const press = () => navigateToTab(r.key);
+          return (
+            <Pressable key={r.key} onPress={press} accessibilityRole="tab" accessibilityLabel={it.label} accessibilityState={{ selected: on }}
+              style={({ pressed }) => ({ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center',
+                backgroundColor: on ? (light ? '#e3e3e8' : '#4a4a45') : 'transparent', opacity: pressed ? 0.75 : 1,
+                boxShadow: on ? `0px 4px 12px ${alpha('#000000', light ? 0.18 : 0.4)}` : undefined })}>
+              <Icon name={it.icon} size={21} color={on ? (light ? '#0a0a0a' : '#f0eee6') : light ? alpha('#0a0a0a', 0.55) : alpha('#f0eee6', 0.6)} />
+            </Pressable>
+          );
+        })}
+      </BlurView>
+    </View>
+  );
+}

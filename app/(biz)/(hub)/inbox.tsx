@@ -1,12 +1,12 @@
-import { say } from '../../../../lib/alert';
-import { useCallback, useState } from 'react';
+import { say } from '../../../lib/alert';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { Text } from '../../../../lib/Txt';
+import { Text } from '../../../lib/Txt';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { rpc, sb } from '../../../../lib/supabase';
-import { useAuth } from '../../../../lib/auth';
-import { Avatar, Btn, C, Card, Chip, Empty, Group, Icon, Input, Section, T, alpha, fmtDay, s } from '../../../../lib/ui';
-import { styleOf } from '../../../../lib/presets';
+import { rpc, sb } from '../../../lib/supabase';
+import { useAuth } from '../../../lib/auth';
+import { Avatar, Btn, C, Card, Chip, Empty, Group, Icon, Input, ScreenHeader, Section, T, alpha, fmtDay, s } from '../../../lib/ui';
+import { styleOf } from '../../../lib/presets';
 
 type Client = { user_id: string; name: string; phone: string | null; last: string | null };
 
@@ -17,7 +17,7 @@ const TEMPLATES: { label: string; title: string; body: string }[] = [
   { label: '⏰ Υπενθύμιση', title: 'Υπενθύμιση', body: 'Σε περιμένουμε στο ραντεβού σου. Αν δεν μπορείς να έρθεις, ακύρωσέ το από την εφαρμογή.' },
 ];
 
-/* Μηνύματα και ειδοποιήσεις από την επιχείρηση στους πελάτες της: σε όλους ή σε έναν.
+/* Καρτέλα «Μηνύματα» της λειτουργίας επιχείρησης. Μηνύματα και ειδοποιήσεις από την επιχείρηση στους πελάτες της: σε όλους ή σε έναν.
    Φτάνουν στον πελάτη στις «Ειδοποιήσεις» της καρτέλας Κρατήσεις. */
 export default function Messages() {
   const { session } = useAuth();
@@ -29,6 +29,8 @@ export default function Messages() {
   const [body, setBody] = useState('');
   const [q, setQ] = useState('');
   const [sending, setSending] = useState(false);
+  // «Μήνυμα» από το πρόγραμμα: ανοίγει την καρτέλα με τον πελάτη ήδη επιλεγμένο.
+  useEffect(() => { if (params.to) setTo(params.to); }, [params.to]);
 
   useFocusEffect(useCallback(() => {
     (async () => {
@@ -64,7 +66,10 @@ export default function Messages() {
   };
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={s.pad} keyboardShouldPersistTaps="handled">
+    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0 }]} keyboardShouldPersistTaps="handled">
+      <View style={{ marginHorizontal: -20 }}>
+        <ScreenHeader title="Μηνύματα" sub="Σε όλους τους πελάτες σου ή σε έναν" />
+      </View>
       <Section title="Προς" />
       <View style={{ flexDirection: 'row', backgroundColor: C.soft, borderRadius: 14, padding: 4 }}>
         {[{ k: false, label: `👥 Όλοι (${list.length})` }, { k: true, label: target ? `👤 ${target.name.split(' ')[0]}` : '👤 Ένας πελάτης' }].map((o) => {
