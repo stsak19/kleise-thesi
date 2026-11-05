@@ -16,7 +16,7 @@ export function setDemo(v: boolean) {
 }
 
 export const DEMO_UID = '00000000-0000-4000-8000-00000000d3e0';
-const user = { id: DEMO_UID, aud: 'authenticated', role: 'authenticated', email: 'demo@spoton.gr',
+const user = { id: DEMO_UID, aud: 'authenticated', role: 'authenticated', email: 'christina.antoniou@gmail.com',
   app_metadata: { provider: 'email' }, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' };
 const b64 = (o: object) => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
 export function demoSession() {
@@ -71,8 +71,8 @@ const db: Record<string, any[]> = {
   bookings: [] as any[],
   waitlist: [] as any[],
   day_overrides: [] as any[],
-  notifications: [{ id: 'n1', user_id: DEMO_UID, title: 'Καλώς ήρθες στο demo 👋', body: 'Όλα εδώ είναι δοκιμαστικά. Κλείσε θέση, άλλαξε ρυθμίσεις — τίποτα δεν αποθηκεύεται πραγματικά.', read: false, created_at: new Date().toISOString() }],
-  profiles: [{ id: DEMO_UID, first_name: 'Demo', last_name: 'Χρήστης', phone: '6900000000' }],
+  notifications: [{ id: 'n1', user_id: DEMO_UID, title: 'Καλώς ήρθες στο SpotOn 👋', body: 'Βρες το κατάστημα που θέλεις, κλείσε θέση σε λίγα δευτερόλεπτα και θα σου θυμίσουμε το ραντεβού σου.', read: false, created_at: new Date().toISOString() }],
+  profiles: [{ id: DEMO_UID, first_name: 'Χριστίνα', last_name: 'Αντωνίου', phone: '6945812304' }],
   memberships: [] as any[],
 };
 let seq = 1;
@@ -177,7 +177,7 @@ const RPC: Record<string, (a: any) => any> = {
   owner_day: (a) => db.bookings.filter((b) => b.business_id === a.p_business && b.date === a.p_date && b.status !== 'cancelled')
     .sort((x, y) => x.time.localeCompare(y.time)).map((b) => ({
       id: b.id, time: b.time.slice(0, 5), status: b.status, service: svc(b.service_id).name, user_id: b.user_id,
-      client: b.user_id === DEMO_UID ? 'Demo Χρήστης' : CLIENTS[b.user_id]?.name ?? ['Μαρία Π.', 'Γιώργος Κ.', 'Ελένη Δ.', 'Νίκος Α.'][b.id.charCodeAt(0) % 4],
+      client: b.user_id === DEMO_UID ? 'Χριστίνα Αντωνίου' : CLIENTS[b.user_id]?.name ?? ['Μαρία Π.', 'Γιώργος Κ.', 'Ελένη Δ.', 'Νίκος Α.'][b.id.charCodeAt(0) % 4],
       phone: CLIENTS[b.user_id]?.phone ?? '6900000000' })),
   owner_pending: (a) => (a.p_business === 'b-eleni' ? pending : []),
   owner_set_status: (a) => { const b = db.bookings.find((x) => x.id === a.p_booking); if (b) b.status = a.p_status; return { ok: true }; },
@@ -187,7 +187,7 @@ const RPC: Record<string, (a: any) => any> = {
     const last: Record<string, string> = {};
     db.bookings.filter((b) => b.business_id === a.p_business).forEach((b) => { if (!last[b.user_id] || b.date > last[b.user_id]) last[b.user_id] = b.date; });
     return Object.entries(last).filter(([u]) => u === DEMO_UID || CLIENTS[u]).sort((x, y) => y[1].localeCompare(x[1]))
-      .map(([u, d]) => ({ user_id: u, name: u === DEMO_UID ? 'Demo Χρήστης' : CLIENTS[u].name, phone: u === DEMO_UID ? '6900000000' : CLIENTS[u].phone, last: d }));
+      .map(([u, d]) => ({ user_id: u, name: u === DEMO_UID ? 'Χριστίνα Αντωνίου' : CLIENTS[u].name, phone: u === DEMO_UID ? '6945812304' : CLIENTS[u].phone, last: d }));
   },
   owner_notify: (a) => {
     if (!String(a.p_body ?? '').trim()) return { ok: false, error: 'Γράψε μήνυμα' };
