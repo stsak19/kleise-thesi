@@ -45,8 +45,8 @@ export function AppearancePicker() {
               {o.P.map((P, i) => <Mini key={i} P={P} />)}
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: on ? C.accent : C.mute, alignItems: 'center', justifyContent: 'center' }}>
-                {on && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: C.accent }} />}
+              <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: on ? C.tint : C.mute, alignItems: 'center', justifyContent: 'center' }}>
+                {on && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: C.tint }} />}
               </View>
               <Text style={{ color: C.text, fontWeight: on ? '800' : '600', fontSize: 14 }}>{o.label}</Text>
             </View>

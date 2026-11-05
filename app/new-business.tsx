@@ -237,7 +237,7 @@ export default function NewBusiness() {
             <View style={[s.card, shadow(1), { padding: 0, gap: 0, overflow: 'hidden' }]}>
               {rows.map((r, k) => (
                 <Pressable key={r.label} onPress={() => go(STEPS.indexOf(r.to))}
-                  style={({ pressed }) => [s.row, { gap: 12, padding: 14, backgroundColor: pressed ? alpha(C.accent, 0.06) : 'transparent' },
+                  style={({ pressed }) => [s.row, { gap: 12, padding: 14, backgroundColor: pressed ? alpha(C.tint, 0.06) : 'transparent' },
                     k < rows.length - 1 && { borderBottomWidth: 1, borderBottomColor: C.bg }]}>
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={{ color: C.mute, fontSize: 12, fontWeight: '700' }}>{r.label}</Text>
@@ -275,7 +275,7 @@ export default function NewBusiness() {
       <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 22, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
         <Animated.View style={[{ gap: 22 }, fade]}>
           <View style={{ gap: 6 }}>
-            <Text style={{ color: C.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.3 }}>
+            <Text style={{ color: C.tint, fontSize: 13, fontWeight: '800', letterSpacing: 0.3 }}>
               ΒΗΜΑ {i + 1} ΑΠΟ {STEPS.length}{i > 0 && b.category ? `  ·  ${catEmoji(cat)} ${upper(scr.kicker)}` : ''}
             </Text>
             <Text style={[s.title, { fontSize: 30 }]}>{title}</Text>

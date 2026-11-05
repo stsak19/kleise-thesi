@@ -101,7 +101,7 @@ export default function Owner() {
         ))}
       </View>
       {!biz.is_published && (
-        <View style={{ backgroundColor: alpha(C.accent, 0.08), borderRadius: 16, padding: 14 }}>
+        <View style={{ backgroundColor: alpha(C.tint, 0.08), borderRadius: 16, padding: 14 }}>
           <T style={{ fontSize: 14 }}>Η επιχείρηση δεν φαίνεται ακόμα στην αναζήτηση. Ενεργοποίησε τη «Δημοσίευση» στις Ρυθμίσεις.</T>
         </View>
       )}

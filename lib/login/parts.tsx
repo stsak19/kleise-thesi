@@ -30,7 +30,7 @@ export function Fields({ L, labels = true }: { L: LoginState; labels?: boolean }
           secureTextEntry={!L.show} value={L.pass} onChangeText={L.setPass} onSubmitEditing={L.go} style={{ paddingRight: 34 }} />
         <Pressable onPress={() => L.setShow(!L.show)} hitSlop={10} accessibilityLabel={L.show ? 'Απόκρυψη κωδικού' : 'Εμφάνιση κωδικού'}
           style={{ position: 'absolute', right: 14, bottom: 15, opacity: L.show ? 1 : 0.55 }}>
-          <Icon name="eye" size={20} color={L.show ? C.accent : C.mute} />
+          <Icon name="eye" size={20} color={L.show ? C.tint : C.mute} />
         </Pressable>
       </View>
     </View>
@@ -48,7 +48,7 @@ export function Notice({ L }: { L: LoginState }) {
   );
 }
 
-export const LinkText = ({ title, onPress, color = C.accent, align = 'center' }:
+export const LinkText = ({ title, onPress, color = C.tint, align = 'center' }:
   { title: string; onPress: () => void; color?: string; align?: 'center' | 'flex-end' | 'flex-start' }) => (
   <Pressable onPress={onPress} hitSlop={8} style={({ pressed }) => ({ alignSelf: align, opacity: pressed ? 0.6 : 1 })}>
     <Text style={{ color, fontWeight: '700', fontSize: 15 }}>{title}</Text>

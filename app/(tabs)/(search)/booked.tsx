@@ -8,7 +8,7 @@ import { Btn, C, Icon, alpha, fmtLong, onColor, shadow } from '../../../lib/ui';
 export default function Booked() {
   const router = useRouter();
   const p = useLocalSearchParams<{ biz: string; service: string; date: string; time: string; color?: string }>();
-  const color = p.color || C.accent;
+  const color = p.color || C.tint;
   const a = useRef(new Animated.Value(0)).current;
   useEffect(() => { Animated.spring(a, { toValue: 1, friction: 4, tension: 60, useNativeDriver: false }).start(); }, []);
   const easeIn = (d: number) => { const v = new Animated.Value(0);

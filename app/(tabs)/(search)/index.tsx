@@ -79,16 +79,16 @@ const NextBooking = ({ b, onPress }: { b: Next; onPress: () => void }) => {
     <Pressable onPress={onPress} style={({ pressed }) => [s.row, { gap: 14, padding: 12, paddingRight: 16, borderRadius: 22, opacity: pressed ? 0.85 : 1,
       boxShadow: `0px 8px 24px ${alpha('#000000', light ? 0.12 : 0.3)}` },
       { backgroundColor: C.ink, borderWidth: 1, borderColor: C.inkLine }]}>
-      <View style={{ width: 50, height: 54, borderRadius: 16, backgroundColor: alpha('#ffffff', 0.14), alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: '600' }}>{DAYS[d.getDay()]}</Text>
-        <Text style={{ color: '#ffffff', fontSize: 21, fontWeight: '800', marginTop: -3 }}>{d.getDate()}</Text>
+      <View style={{ width: 50, height: 54, borderRadius: 16, backgroundColor: alpha(C.inkText, 0.08), alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: C.inkText, fontSize: 12, fontWeight: '600' }}>{DAYS[d.getDay()]}</Text>
+        <Text style={{ color: C.inkText, fontSize: 21, fontWeight: '800', marginTop: -3 }}>{d.getDate()}</Text>
       </View>
       <View style={{ flex: 1, gap: 1 }}>
-        <Text style={{ color: alpha('#ffffff', 0.8), fontSize: 11.5, fontWeight: '700', letterSpacing: 0.4 }}>ΕΠΟΜΕΝΗ ΚΡΑΤΗΣΗ · {b.time}</Text>
-        <Text style={{ color: '#ffffff', fontSize: 17, fontWeight: '700' }} numberOfLines={1}>{b.business}</Text>
-        <Text style={{ color: alpha('#ffffff', 0.72), fontSize: 13 }} numberOfLines={1}>{b.service}</Text>
+        <Text style={{ color: alpha(C.inkText, 0.7), fontSize: 11.5, fontWeight: '700', letterSpacing: 0.4 }}>ΕΠΟΜΕΝΗ ΚΡΑΤΗΣΗ · {b.time}</Text>
+        <Text style={{ color: C.inkText, fontSize: 17, fontWeight: '700' }} numberOfLines={1}>{b.business}</Text>
+        <Text style={{ color: alpha(C.inkText, 0.72), fontSize: 13 }} numberOfLines={1}>{b.service}</Text>
       </View>
-      <Icon name="chevron" size={16} color="#ffffff" />
+      <Icon name="chevron" size={16} color={C.inkText} />
     </Pressable>
   );
 };

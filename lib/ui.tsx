@@ -50,8 +50,8 @@ type BtnKind = 'primary' | 'ghost' | 'danger' | 'tint';
 export function Btn({ title, onPress, kind = 'primary', disabled, style, color, size = 'md', icon }:
   { title: string; onPress: () => void; kind?: BtnKind; disabled?: boolean; style?: ViewStyle; color?: string; size?: 'md' | 'sm'; icon?: IconName }) {
   const main = color ?? C.btn;
-  const bg = kind === 'primary' ? main : kind === 'danger' ? alpha(C.bad, 0.1) : kind === 'tint' ? alpha(color ?? C.accent, 0.12) : C.btn2;
-  const fg = kind === 'primary' ? (color ? onColor(color) : C.btnText) : kind === 'danger' ? C.bad : kind === 'tint' ? (color ?? C.accent) : C.btn2Text;
+  const bg = kind === 'primary' ? main : kind === 'danger' ? alpha(C.bad, 0.1) : kind === 'tint' ? alpha(color ?? C.tint, 0.08) : C.btn2;
+  const fg = kind === 'primary' ? (color ? onColor(color) : C.btnText) : kind === 'danger' ? C.bad : kind === 'tint' ? (color ?? C.tint) : C.btn2Text;
   const border = kind === 'ghost' ? C.btn2Line : 'transparent';
   const sm = size === 'sm';
   return (
@@ -68,7 +68,7 @@ export function Btn({ title, onPress, kind = 'primary', disabled, style, color, 
 /* Κουμπί-κείμενο (π.χ. «+ Διάλειμμα», «Όλες»). */
 export const TextBtn = ({ title, onPress, color }: { title: string; onPress: () => void; color?: string }) => (
   <Pressable onPress={onPress} hitSlop={8} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-    <Text style={{ color: color ?? C.accent, fontWeight: '700', fontSize: 15 }}>{title}</Text>
+    <Text style={{ color: color ?? C.tint, fontWeight: '700', fontSize: 15 }}>{title}</Text>
   </Pressable>
 );
 
@@ -76,9 +76,9 @@ export const TextBtn = ({ title, onPress, color }: { title: string; onPress: () 
 export function Input({ label, icon, style, box, ...p }: TextInputProps & { label?: string; icon?: IconName; box?: ViewStyle }) {
   const [focus, setFocus] = useState(false);
   const field = (
-    <View style={[s.input, box, focus && { borderColor: C.accent, backgroundColor: C.card, boxShadow: `0px 0px 0px 4px ${alpha(C.accent, 0.12)}` },
+    <View style={[s.input, box, focus && { borderColor: C.tint, backgroundColor: C.card, boxShadow: `0px 0px 0px 4px ${alpha(C.tint, 0.12)}` },
       p.multiline && { alignItems: 'flex-start', minHeight: 96 }]}>
-      {icon && <Icon name={icon} size={18} color={focus ? C.accent : C.mute} />}
+      {icon && <Icon name={icon} size={18} color={focus ? C.tint : C.mute} />}
       <TextInput placeholderTextColor={C.mute} {...p}
         onFocus={(e) => { setFocus(true); p.onFocus?.(e); }} onBlur={(e) => { setFocus(false); p.onBlur?.(e); }}
         style={[s.inputText, { outlineStyle: 'none' } as any, p.multiline && { textAlignVertical: 'top', paddingTop: 2 }, style]} />
@@ -141,7 +141,7 @@ export function Chip({ label, on, onPress, color, emoji }: { label: string; on?:
 
 export type Tone = 'ok' | 'bad' | 'mute' | 'accent';
 export const Pill = ({ text, tone = 'mute', color }: { text: string; tone?: Tone; color?: string }) => {
-  const c = color ?? (tone === 'ok' ? C.ok : tone === 'bad' ? C.bad : tone === 'accent' ? C.accent : C.mute);
+  const c = color ?? (tone === 'ok' ? C.ok : tone === 'bad' ? C.bad : tone === 'accent' ? C.tint : C.mute);
   return (
     <View style={{ alignSelf: 'flex-start', backgroundColor: alpha(c, 0.12), borderRadius: 999, paddingVertical: 4, paddingHorizontal: 10 }}>
       <Text style={{ color: c, fontWeight: '700', fontSize: 12 }}>{text}</Text>
@@ -150,7 +150,7 @@ export const Pill = ({ text, tone = 'mute', color }: { text: string; tone?: Tone
 };
 
 export function Avatar({ name, color, size = 48, emoji, radius }: { name?: string; color?: string; size?: number; emoji?: string; radius?: number }) {
-  const c = color ?? C.accent;
+  const c = color ?? C.tint;
   return (
     <View style={{ width: size, height: size, borderRadius: radius ?? size / 2, backgroundColor: alpha(c, 0.14), alignItems: 'center', justifyContent: 'center' }}>
       {emoji ? <Text style={{ fontSize: size * 0.44 }}>{emoji}</Text>
@@ -161,15 +161,15 @@ export function Avatar({ name, color, size = 48, emoji, radius }: { name?: strin
 
 /* Εικονίδιο μέσα σε απαλό κύκλο. */
 export const IconBubble = ({ name, color, size = 40 }: { name: IconName; color?: string; size?: number }) => (
-  <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: alpha(color ?? C.accent, 0.12), alignItems: 'center', justifyContent: 'center' }}>
-    <Icon name={name} size={size * 0.5} color={color ?? C.accent} />
+  <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: alpha(color ?? C.tint, 0.12), alignItems: 'center', justifyContent: 'center' }}>
+    <Icon name={name} size={size * 0.5} color={color ?? C.tint} />
   </View>
 );
 
 /* Γραμμή λίστας (ρυθμίσεις, στοιχεία επικοινωνίας). */
 export function Row({ icon, title, sub, onPress, right, danger, color, last }:
   { icon?: IconName; title: string; sub?: string; onPress?: () => void; right?: React.ReactNode; danger?: boolean; color?: string; last?: boolean }) {
-  const c = danger ? C.bad : color ?? C.accent;
+  const c = danger ? C.bad : color ?? C.tint;
   const inner = (
     <View style={[s.row, { gap: 14, paddingVertical: 13, paddingHorizontal: 14 }, !last && { borderBottomWidth: 1, borderBottomColor: C.line }]}>
       {icon && <IconBubble name={icon} color={c} size={36} />}

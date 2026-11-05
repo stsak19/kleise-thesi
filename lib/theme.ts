@@ -9,17 +9,17 @@ import { Appearance } from 'react-native';
 export const NEON = '#00e676';
 export const LIGHT = {
   bg: '#ffffff', card: '#f6f6f6', soft: '#f1f1f1', line: '#ececec', text: '#0a0a0a', mute: '#6b6b6b',
-  accent: '#0a0a0a', onAccent: '#ffffff',
-  btn: '#0a0a0a', btnText: '#ffffff', btn2: '#ffffff', btn2Text: '#0a0a0a', btn2Line: '#dedede',
+  accent: '#e3e3e8', onAccent: '#0a0a0a', tint: '#2b2b30',
+  btn: '#e3e3e8', btnText: '#0a0a0a', btn2: '#ffffff', btn2Text: '#0a0a0a', btn2Line: '#dedede',
   ok: '#00a855', bad: '#ff3b5c',
   shade: '#000000',
-  neon: '#0a0a0a', glow: '#000000', ink: '#0a0a0a', inkText: '#ffffff', inkLine: '#262626',
+  neon: '#e3e3e8', glow: '#000000', ink: '#ededf0', inkText: '#0a0a0a', inkLine: '#e0e0e5',
 };
 export type Theme = typeof LIGHT;
 /* Σκούρα εμφάνιση (Ρυθμίσεις → Εμφάνιση). */
 export const DARK: Theme = {
   bg: '#0a0a0a', card: '#151515', soft: '#1c1c1c', line: '#262626', text: '#f5f5f5', mute: '#9a9a9a',
-  accent: '#ffffff', onAccent: '#0a0a0a',
+  accent: '#ffffff', onAccent: '#0a0a0a', tint: '#ffffff',
   btn: '#ffffff', btnText: '#0a0a0a', btn2: '#151515', btn2Text: '#f5f5f5', btn2Line: '#2e2e2e',
   ok: '#34c77b', bad: '#ff4d6d',
   shade: '#000000',

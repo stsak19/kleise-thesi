@@ -79,10 +79,10 @@ export function ServiceList({ svcs, onOpen, onAdd, category }: { svcs: Svc[]; on
         <View style={[s.card, shadow(1), { padding: 0, gap: 0, overflow: 'hidden' }]}>
           {list.map((x, k) => (
             <Pressable key={x.key} onPress={() => onOpen(x.key)}
-              style={({ pressed }) => [s.row, { gap: 12, padding: 14, backgroundColor: pressed ? alpha(C.accent, 0.06) : 'transparent' },
+              style={({ pressed }) => [s.row, { gap: 12, padding: 14, backgroundColor: pressed ? alpha(C.tint, 0.06) : 'transparent' },
                 k < list.length - 1 && { borderBottomWidth: 1, borderBottomColor: C.bg }]}>
-              <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: alpha(C.accent, 0.12), alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ color: C.accent, fontWeight: '900' }}>{k + 1}</Text>
+              <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: alpha(C.tint, 0.12), alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: C.tint, fontWeight: '900' }}>{k + 1}</Text>
               </View>
               <View style={{ flex: 1, gap: 2 }}>
                 <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{x.name}</Text>
@@ -95,9 +95,9 @@ export function ServiceList({ svcs, onOpen, onAdd, category }: { svcs: Svc[]; on
       )}
       <Pressable onPress={onAdd}
         style={({ pressed }) => [s.row, { justifyContent: 'center', gap: 8, minHeight: 52, borderRadius: 16, borderWidth: 1.5, borderStyle: 'dashed',
-          borderColor: alpha(C.accent, 0.5), opacity: pressed ? 0.7 : 1 }]}>
-        <Icon name="plus" size={16} color={C.accent} />
-        <Text style={{ color: C.accent, fontWeight: '700', fontSize: 15 }}>{list.length ? `Πρόσθεσε κι άλλες ${unit}` : 'Πρόσθεσε την πρώτη'}</Text>
+          borderColor: alpha(C.tint, 0.5), opacity: pressed ? 0.7 : 1 }]}>
+        <Icon name="plus" size={16} color={C.tint} />
+        <Text style={{ color: C.tint, fontWeight: '700', fontSize: 15 }}>{list.length ? `Πρόσθεσε κι άλλες ${unit}` : 'Πρόσθεσε την πρώτη'}</Text>
       </Pressable>
     </View>
   );
@@ -174,7 +174,7 @@ export function HoursEditor({ hours, setHours }: { hours: Hours; setHours: (h: H
             ))}
             {rows.length > 0 && rows.length < 3 && (
               <Pressable onPress={() => addBreak(d)} hitSlop={6} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, alignSelf: 'flex-start' })}>
-                <Text style={{ color: C.accent, fontWeight: '700', fontSize: 14 }}>+ Διάλειμμα</Text>
+                <Text style={{ color: C.tint, fontWeight: '700', fontSize: 14 }}>+ Διάλειμμα</Text>
               </Pressable>
             )}
           </View>

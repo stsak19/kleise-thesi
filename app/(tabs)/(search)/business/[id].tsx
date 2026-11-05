@@ -126,7 +126,7 @@ export default function Business() {
       try {
         const r = await rpc('create_booking', { p_service: sv.id, p_date: d, p_time: t, p_backup_for: backup });
         if (r && r.ok === false) say(r.pending ? 'Σε αναμονή έγκρισης' : 'Δεν έγινε', r.error);
-        else router.push({ pathname: '/booked', params: { biz: biz.name, service: sv.name, date: d, time: t, color: accent } });
+        else router.push({ pathname: '/booked', params: { biz: biz.name, service: sv.name, date: d, time: t, color: tint } });
       } catch (e: any) { say('Κάτι πήγε στραβά', e.message); }
       setBusy(null); setPick(null); load();
     };
@@ -149,6 +149,7 @@ export default function Business() {
   /* Το χρώμα του καταστήματος δίνει την ταυτότητα (κορυφή, λογότυπο, λάμψη). Οι επιλογές (μέρα, ώρα, υπηρεσία)
      και το κουμπί κράτησης ακολουθούν την εφαρμογή: μαύρο/πράσινο, ή πράσινο στις σκούρες σελίδες. */
   const accent = night ? '#ffffff' : C.accent;
+  const tint = night ? '#ffffff' : C.tint; // κείμενο/εικονίδια στο χρώμα επιλογής
   const P = night ? NIGHT : { bg: C.bg, card: C.card, line: alpha(C.text, 0.08), text: C.text, mute: C.mute };
 
   if (!biz || !st) return <View style={[s.screen, night && { backgroundColor: NIGHT.bg }]}><Stack.Screen options={{ headerShown: false }} /></View>;
@@ -306,7 +307,7 @@ export default function Business() {
     const btn = stt === 'mine' ? <Btn size="sm" kind="danger" title="Ακύρωση" disabled={dis} onPress={() => cancel(sl)} />
       : stt === 'wait' ? <Btn size="sm" kind="ghost" title="Απόσυρση" disabled={dis} onPress={() => unwait(sl)} />
       : stt === 'free' ? <Btn size="sm" title="Κράτηση" disabled={dis} onPress={() => book(sl.sv, sl.time)} />
-      : <Btn size="sm" kind="tint" color={accent} title="🙋 Αναμονή" disabled={dis} onPress={() => wait(sl.sv, sl.time)} />;
+      : <Btn size="sm" kind="tint" color={tint} title="🙋 Αναμονή" disabled={dis} onPress={() => wait(sl.sv, sl.time)} />;
     return (
       <View style={[s.row, { gap: 12, paddingVertical: 14, paddingHorizontal: 12, backgroundColor: stt === 'mine' ? alpha(accent, 0.08) : 'transparent' },
         !last && { borderBottomWidth: 1, borderBottomColor: P.line }]}>
@@ -318,7 +319,7 @@ export default function Business() {
         <View style={{ flex: 1, gap: 5 }}>
           <Text style={{ color: P.text, fontWeight: '800', fontSize: 15 }} numberOfLines={1}>{sl.sv.name}</Text>
           <View style={[s.row, { justifyContent: 'space-between' }]}>
-            <Text style={{ color: stt === 'mine' || stt === 'wait' ? accent : stt === 'full' ? C.bad : P.mute, fontSize: 13, fontWeight: '700' }} numberOfLines={1}>{status}</Text>
+            <Text style={{ color: stt === 'mine' || stt === 'wait' ? tint : stt === 'full' ? C.bad : P.mute, fontSize: 13, fontWeight: '700' }} numberOfLines={1}>{status}</Text>
             {sl.capacity > 1 && <Text style={{ color: P.mute, fontSize: 12, fontWeight: '700' }}>{used}/{sl.capacity}</Text>}
           </View>
           {sl.capacity > 1 && (
@@ -352,7 +353,7 @@ export default function Business() {
               {list.map((sl) => {
                 const stt = state(sl), key = sl.sv.id + sl.time, on = pick === key;
                 const bg = on ? accent : stt === 'mine' ? alpha(C.ok, 0.14) : stt === 'wait' ? alpha(accent, 0.1) : stt === 'full' ? 'transparent' : P.card;
-                const fg = on ? onColor(accent) : stt === 'mine' ? C.ok : stt === 'full' ? P.mute : stt === 'wait' ? accent : P.text;
+                const fg = on ? onColor(accent) : stt === 'mine' ? C.ok : stt === 'full' ? P.mute : stt === 'wait' ? tint : P.text;
                 return (
                   <Pressable key={key} onPress={() => setPick(on ? null : key)}
                     style={({ pressed }) => ({ width: chipW, paddingVertical: 12, borderRadius: 999, alignItems: 'center', backgroundColor: bg,
@@ -381,12 +382,12 @@ export default function Business() {
           <Pressable key={sv.id} onPress={() => setService(sv)}
             style={[{ padding: 16, gap: 4, backgroundColor: on ? alpha(accent, 0.1) : 'transparent' }, i < services.length - 1 && { borderBottomWidth: 1, borderBottomColor: P.line }]}>
             <View style={[s.row, { gap: 10 }]}>
-              <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: on ? accent : P.mute, alignItems: 'center', justifyContent: 'center' }}>
-                {on && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: accent }} />}
+              <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: on ? tint : P.mute, alignItems: 'center', justifyContent: 'center' }}>
+                {on && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: tint }} />}
               </View>
               <Text style={{ color: P.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{sv.name}</Text>
               <View style={{ flex: 1, borderBottomWidth: 2, borderStyle: 'dotted', borderColor: P.line, marginTop: 10 }} />
-              <Text style={{ color: on ? accent : P.text, fontWeight: '900', fontSize: 17 }}>{sv.price_cents != null ? price(sv.price_cents) : '—'}</Text>
+              <Text style={{ color: on ? tint : P.text, fontWeight: '900', fontSize: 17 }}>{sv.price_cents != null ? price(sv.price_cents) : '—'}</Text>
             </View>
             <Text style={{ color: P.mute, fontSize: 13, marginLeft: 28 }}>{sv.duration_min} λεπτά</Text>
           </Pressable>
@@ -401,8 +402,8 @@ export default function Business() {
         return (
           <Pressable key={sv.id} onPress={() => setService(sv)}
             style={[s.row, { gap: 12, padding: 15, backgroundColor: on ? alpha(accent, 0.07) : 'transparent' }, i < services.length - 1 && { borderBottomWidth: 1, borderBottomColor: P.line }]}>
-            <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: on ? accent : alpha(P.text, 0.2), alignItems: 'center', justifyContent: 'center' }}>
-              {on && <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: accent }} />}
+            <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: on ? tint : alpha(P.text, 0.2), alignItems: 'center', justifyContent: 'center' }}>
+              {on && <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: tint }} />}
             </View>
             <Text style={{ flex: 1, color: P.text, fontWeight: '700', fontSize: 15 }}>{sv.name}</Text>
             <Text style={{ color: P.mute, fontSize: 13 }}>{sv.duration_min}′{sv.price_cents != null ? ` · ${price(sv.price_cents)}` : ''}</Text>
@@ -418,7 +419,7 @@ export default function Business() {
         return (
           <Pressable key={sv.id} onPress={() => setService(sv)}
             style={({ pressed }) => [s.row, { gap: 14, padding: 16, borderRadius: r + 4, backgroundColor: on ? alpha(accent, 0.08) : P.card,
-              borderWidth: on ? 2 : 1, borderColor: on ? accent : P.line, transform: [{ scale: pressed ? 0.98 : 1 }] }]}>
+              borderWidth: on ? 2 : 1, borderColor: on ? tint : P.line, transform: [{ scale: pressed ? 0.98 : 1 }] }]}>
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={{ color: P.text, fontWeight: '800', fontSize: 16 }}>{sv.name}</Text>
               <View style={[s.row, { gap: 5 }]}>
@@ -426,9 +427,9 @@ export default function Business() {
                 <Text style={{ color: P.mute, fontSize: 13 }}>{sv.duration_min} λεπτά{sv.capacity > 1 ? ` · έως ${sv.capacity} άτομα` : ''}</Text>
               </View>
             </View>
-            {sv.price_cents != null && <Text style={{ color: on ? accent : P.text, fontWeight: '900', fontSize: 20 }}>{price(sv.price_cents)}</Text>}
-            <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: on ? accent : 'transparent', borderWidth: on ? 0 : 1.5, borderColor: P.line, alignItems: 'center', justifyContent: 'center' }}>
-              {on && <Icon name="check" size={14} color={onColor(accent)} />}
+            {sv.price_cents != null && <Text style={{ color: on ? tint : P.text, fontWeight: '900', fontSize: 20 }}>{price(sv.price_cents)}</Text>}
+            <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: on ? tint : 'transparent', borderWidth: on ? 0 : 1.5, borderColor: P.line, alignItems: 'center', justifyContent: 'center' }}>
+              {on && <Icon name="check" size={14} color={night ? '#0a0a0a' : C.bg} />}
             </View>
           </Pressable>
         );
@@ -460,8 +461,8 @@ export default function Business() {
           {/* κλήση / οδηγίες */}
           {!!(biz.phone || biz.address) && (
             <View style={[s.row, { gap: 8 }]}>
-              {!!biz.phone && <Btn kind="tint" color={accent} icon="phone" title="Κλήση" onPress={call} style={{ flex: 1, minHeight: 46 }} />}
-              {!!biz.address && <Btn kind="tint" color={accent} icon="pin" title="Οδηγίες" onPress={directions} style={{ flex: 1, minHeight: 46 }} />}
+              {!!biz.phone && <Btn kind="tint" color={tint} icon="phone" title="Κλήση" onPress={call} style={{ flex: 1, minHeight: 46 }} />}
+              {!!biz.address && <Btn kind="tint" color={tint} icon="pin" title="Οδηγίες" onPress={directions} style={{ flex: 1, minHeight: 46 }} />}
             </View>
           )}
 
@@ -486,7 +487,7 @@ export default function Business() {
                   return (
                     <Pressable key={x.id ?? 'all'} onPress={() => setOnly(x.id)}
                       style={{ paddingVertical: 7, paddingHorizontal: 13, borderRadius: 999, backgroundColor: on ? accent : alpha(accent, 0.1) }}>
-                      <Text style={{ color: on ? onColor(accent) : accent, fontSize: 13, fontWeight: '800' }}>{x.name}</Text>
+                      <Text style={{ color: on ? onColor(accent) : tint, fontSize: 13, fontWeight: '800' }}>{x.name}</Text>
                     </Pressable>
                   );
                 })}
@@ -512,19 +513,19 @@ export default function Business() {
             {service && (
               <View style={[{ borderRadius: 24, padding: 18, gap: 12, overflow: 'hidden' }, glow(C.ink), { borderWidth: 1, borderColor: C.inkLine }]}>
                 <View style={[s.row, { gap: 8 }]}>
-                  <Icon name="clock" size={16} color={'#ffffff'} />
-                  <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 12, letterSpacing: 0.6, opacity: 0.9 }}>ΠΙΟ ΚΟΝΤΙΝΟ ΕΛΕΥΘΕΡΟ</Text>
+                  <Icon name="clock" size={16} color={C.inkText} />
+                  <Text style={{ color: C.inkText, fontWeight: '800', fontSize: 12, letterSpacing: 0.6, opacity: 0.9 }}>ΠΙΟ ΚΟΝΤΙΝΟ ΕΛΕΥΘΕΡΟ</Text>
                 </View>
-                {next === undefined ? <Text style={{ color: '#ffffff', opacity: 0.85 }}>Αναζήτηση…</Text>
-                  : next === null ? <Text style={{ color: '#ffffff', opacity: 0.85 }}>Δεν υπάρχει ελεύθερο ραντεβού τις επόμενες μέρες.</Text>
+                {next === undefined ? <Text style={{ color: C.inkText, opacity: 0.85 }}>Αναζήτηση…</Text>
+                  : next === null ? <Text style={{ color: C.inkText, opacity: 0.85 }}>Δεν υπάρχει ελεύθερο ραντεβού τις επόμενες μέρες.</Text>
                   : <View style={[s.row, { gap: 12 }]}>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ color: '#ffffff', fontWeight: '900', fontSize: 22, letterSpacing: -0.5 }}>{dayLabel(next.date)} · {next.time}</Text>
-                        <Text style={{ color: '#ffffff', opacity: 0.85, fontSize: 13 }}>{service.name} · {service.duration_min} λεπτά</Text>
+                        <Text style={{ color: C.inkText, fontWeight: '900', fontSize: 22, letterSpacing: -0.5 }}>{dayLabel(next.date)} · {next.time}</Text>
+                        <Text style={{ color: C.inkText, opacity: 0.85, fontSize: 13 }}>{service.name} · {service.duration_min} λεπτά</Text>
                       </View>
                       <Pressable onPress={() => book(service, next.time, next.date)} disabled={busy === service.id + next.time}
-                        style={({ pressed }) => ({ backgroundColor: '#ffffff', borderRadius: 999, paddingVertical: 12, paddingHorizontal: 18, opacity: pressed ? 0.85 : 1 })}>
-                        <Text style={{ color: '#0a0a0a', fontWeight: '800', fontSize: 15 }}>Κλείσε το</Text>
+                        style={({ pressed }) => ({ backgroundColor: C.btn, borderRadius: 999, paddingVertical: 12, paddingHorizontal: 18, opacity: pressed ? 0.85 : 1 })}>
+                        <Text style={{ color: C.btnText, fontWeight: '800', fontSize: 15 }}>Κλείσε το</Text>
                       </Pressable>
                     </View>}
               </View>
@@ -552,8 +553,8 @@ export default function Business() {
                 const isToday = wd === new Date().getDay();
                 return (
                   <View key={wd} style={[s.row, { paddingVertical: 11, paddingHorizontal: 14 }, i < 6 && { borderBottomWidth: 1, borderBottomColor: P.line }]}>
-                    <Text style={{ flex: 1, color: isToday ? accent : P.text, fontWeight: isToday ? '800' : '600', fontSize: 15 }}>{DAY_FULL[wd]}</Text>
-                    <Text style={{ color: list.length ? (isToday ? accent : P.text) : P.mute, fontWeight: isToday ? '800' : '500', fontSize: 14 }}>
+                    <Text style={{ flex: 1, color: isToday ? tint : P.text, fontWeight: isToday ? '800' : '600', fontSize: 15 }}>{DAY_FULL[wd]}</Text>
+                    <Text style={{ color: list.length ? (isToday ? tint : P.text) : P.mute, fontWeight: isToday ? '800' : '500', fontSize: 14 }}>
                       {list.length ? list.map((h) => `${h.opens.slice(0, 5)}–${h.closes.slice(0, 5)}`).join(', ') : 'Κλειστά'}
                     </Text>
                   </View>
@@ -575,11 +576,11 @@ export default function Business() {
       {picked && (() => {
         const stt = state(picked), dis = busy === picked.sv.id + picked.time;
         return (
-          <View style={{ position: 'absolute', left: 12, right: 12, bottom: barBottom, backgroundColor: night ? '#1c1c1c' : C.ink, borderRadius: 30, padding: 10, paddingLeft: 20,
+          <View style={{ position: 'absolute', left: 12, right: 12, bottom: barBottom, backgroundColor: C.ink, borderRadius: 30, padding: 10, paddingLeft: 20,
             flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: C.inkLine, ...shadow(3) }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 17 }}>{dayLabel(date)} · {picked.time}</Text>
-              <Text style={{ color: alpha('#ffffff', 0.65), fontSize: 13 }} numberOfLines={2}>
+              <Text style={{ color: C.inkText, fontWeight: '800', fontSize: 17 }}>{dayLabel(date)} · {picked.time}</Text>
+              <Text style={{ color: alpha(C.inkText, 0.65), fontSize: 13 }} numberOfLines={2}>
                 {picked.sv.name} · έως {endOf(picked.time, picked.sv.duration_min)}{stt === 'full' ? ' · γεμάτο' : ''}
               </Text>
             </View>
