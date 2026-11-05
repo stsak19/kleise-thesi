@@ -35,7 +35,7 @@ export const price = (cents: number | null | undefined) => (cents == null ? '' :
 /* ---------- μεγέθη ---------- */
 export const R = { sm: 12, md: 16, lg: 22, xl: 28 };
 /* Κενό στο κάτω μέρος κάθε οθόνης με καρτέλες, για την πλωτή κάτω μπάρα. */
-export const TAB_SPACE = 110;
+export const TAB_SPACE = 80;
 /* Απαλή σκιά (το χρώμα της, C.shade, ορίζεται στο θέμα). */
 export const shadow = (lvl: 1 | 2 | 3 = 1): ViewStyle => ({
   boxShadow: lvl === 1 ? `0px 1px 2px ${alpha(C.shade, 0.05)}, 0px 4px 14px ${alpha(C.shade, 0.05)}`
