@@ -31,7 +31,7 @@ export function useProfileExtras(uid: string) {
   const [hasBiz, setHasBiz] = useState<boolean | null>(null);
   const [upcoming, setUpcoming] = useState<number | null>(null);
   useFocusEffect(useCallback(() => {
-    sb.from('businesses').select('id').eq('owner_id', uid).maybeSingle().then(({ data }) => setHasBiz(!!data));
+    sb.from('businesses').select('id').eq('owner_id', uid).limit(1).then(({ data }) => setHasBiz(!!data?.length));
     rpc('my_bookings').then((m: any) => {
       const today = iso(new Date());
       setUpcoming(((m?.bookings ?? []) as any[]).filter((b) => b.status === 'booked' && b.date >= today).length);

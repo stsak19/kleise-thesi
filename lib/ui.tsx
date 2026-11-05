@@ -113,12 +113,12 @@ export const Section = ({ title, action, onAction, sub }: { title: string; actio
 );
 
 /* Επικεφαλίδα οθόνης με μεγάλο τίτλο (κάτω από την μπάρα κατάστασης). */
-export function ScreenHeader({ title, sub, right, eyebrow }: { title: string; sub?: string; right?: React.ReactNode; eyebrow?: string }) {
+export function ScreenHeader({ title, sub, right, eyebrow }: { title: string; sub?: string; right?: React.ReactNode; eyebrow?: React.ReactNode }) {
   const top = useSafeAreaInsets().top;
   return (
     <View style={{ paddingTop: top + 14, paddingHorizontal: 20, paddingBottom: 6, flexDirection: 'row', alignItems: 'flex-end', gap: 12 }}>
       <View style={{ flex: 1, gap: 2 }}>
-        {!!eyebrow && <Text style={{ color: C.mute, fontSize: 14, fontWeight: '600' }}>{eyebrow}</Text>}
+        {typeof eyebrow === 'string' ? <Text style={{ color: C.mute, fontSize: 14, fontWeight: '600' }}>{eyebrow}</Text> : eyebrow}
         <Title>{title}</Title>
         {!!sub && <T mute>{sub}</T>}
       </View>

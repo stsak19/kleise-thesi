@@ -3,21 +3,27 @@ import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { Text } from '../../../lib/Txt';
 import { sb } from '../../../lib/supabase';
 import { styleOf } from '../../../lib/presets';
-import { NoBiz, Schedule, Stat, useDay, useMyBiz } from '../../../lib/owner/hub';
-import { C, Card, DayStrip, Input, ScreenHeader, Section, alpha, fmtLong, iso, s } from '../../../lib/ui';
+import { NoBiz, Schedule, StaffFilter, Stat, dayStats, useDay, useMyBiz, useStaff } from '../../../lib/owner/hub';
+import { C, Card, DayStrip, Input, ScreenHeader, Section, alpha, fmtLong, iso, price, s } from '../../../lib/ui';
 
 /* «Ημερολόγιο»: διαλέγεις μέρα, βλέπεις το πρόγραμμα και ανοίγεις ή κλείνεις τη μέρα με ένα σημείωμα. */
 export default function Calendar() {
   const biz = useMyBiz();
   const [date, setDate] = useState(iso(new Date()));
   const D = useDay(biz, date);
+  const { staff } = useStaff(biz);
+  const [who, setWho] = useState<string | null>(null);
 
   if (biz === undefined) return <View style={s.screen} />;
   if (biz === null) return <NoBiz />;
 
   const brand: string = styleOf(biz).color;
   const days = Array.from({ length: 35 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i - 3); return iso(d); });
-  const live = D.day.filter((b) => b.status !== 'cancelled');
+  const day = who ? D.day.filter((b) => b.staff_id === who) : D.day;
+  const st = dayStats(day);
+  const live = st.live;
+  const counts: Record<string, number> = {};
+  D.day.forEach((b) => { if (b.staff_id && b.status !== 'cancelled') counts[b.staff_id] = (counts[b.staff_id] ?? 0) + 1; });
   const save = async (closed: boolean) => {
     await sb.from('day_overrides').upsert({ business_id: biz.id, date, closed, note: D.override.note || null }); D.load();
   };
@@ -34,10 +40,11 @@ export default function Calendar() {
         <ScreenHeader title="Ημερολόγιο" sub={fmtLong(date)} />
       </View>
       <DayStrip days={days} value={date} onChange={setDate} color={brand} />
+      <StaffFilter staff={staff} value={who} onChange={setWho} counts={counts} />
       <View style={[s.row, { gap: 10 }]}>
         <Stat n={live.length} label="Κρατήσεις" />
-        <Stat n={live.filter((b) => b.status === 'attended').length} label="Ήρθαν" color={C.ok} />
-        <Stat n={new Set(live.map((b) => b.time)).size} label="Ώρες" />
+        {st.classes ? <Stat n={`${st.fill}%`} label="Πληρότητα" /> : <Stat n={live.filter((b) => b.status === 'attended').length} label="Ήρθαν" color={C.ok} />}
+        {st.classes ? <Stat n={st.groups} label="Μαθήματα" /> : st.revenue != null ? <Stat n={price(st.revenue) || '0€'} label="Έσοδα" /> : <Stat n={new Set(live.map((b) => b.time)).size} label="Ώρες" />}
       </View>
 
       <Card style={{ gap: 10 }}>
@@ -50,7 +57,7 @@ export default function Calendar() {
       </Card>
 
       <Section title="Πρόγραμμα" />
-      <Schedule biz={biz} day={D.day} onChange={D.load} />
+      <Schedule biz={biz} day={day} onChange={D.load} />
     </ScrollView>
   );
 }

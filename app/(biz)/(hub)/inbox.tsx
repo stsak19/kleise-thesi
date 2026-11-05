@@ -7,6 +7,7 @@ import { rpc, sb } from '../../../lib/supabase';
 import { useAuth } from '../../../lib/auth';
 import { Avatar, Btn, C, Card, Chip, Empty, Group, Icon, Input, ScreenHeader, Section, T, alpha, fmtDay, s } from '../../../lib/ui';
 import { styleOf } from '../../../lib/presets';
+import { fetchMyBiz, useActiveBizId } from '../../../lib/owner/active';
 
 type Client = { user_id: string; name: string; phone: string | null; last: string | null };
 
@@ -22,6 +23,7 @@ const TEMPLATES: { label: string; title: string; body: string }[] = [
 export default function Messages() {
   const { session } = useAuth();
   const params = useLocalSearchParams<{ to?: string }>();
+  const active = useActiveBizId();
   const [biz, setBiz] = useState<any>(null);
   const [clients, setClients] = useState<Client[] | null>(null);
   const [to, setTo] = useState<string | null>(params.to ?? null); // null = όλοι
@@ -34,11 +36,11 @@ export default function Messages() {
 
   useFocusEffect(useCallback(() => {
     (async () => {
-      const { data } = await sb.from('businesses').select('*').eq('owner_id', session!.user.id).maybeSingle();
+      const data = await fetchMyBiz(session!.user.id);
       setBiz(data);
       if (data) setClients(await rpc<Client[]>('owner_clients', { p_business: data.id }).catch(() => []));
     })();
-  }, [session]));
+  }, [session, active]));
 
   if (!biz) return <View style={s.screen} />;
   const brand = styleOf(biz).color;

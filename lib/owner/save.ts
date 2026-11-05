@@ -1,4 +1,5 @@
 import { sb } from '../supabase';
+import { fetchMyBiz, setActiveBiz } from './active';
 import { DAYS } from '../ui';
 import { presetFor } from '../presets';
 
@@ -30,7 +31,7 @@ export function presetData(cat: string) {
 
 /* Φορτώνει το κατάστημα του χρήστη (αν έχει) μαζί με υπηρεσίες και ωράριο. */
 export async function loadBusiness(uid: string) {
-  const { data } = await sb.from('businesses').select('*').eq('owner_id', uid).maybeSingle();
+  const data = await fetchMyBiz(uid);
   if (!data) return null;
   const { data: sv } = await sb.from('services').select('*').eq('business_id', data.id).eq('active', true);
   const { data: h } = await sb.from('opening_hours').select('*').eq('business_id', data.id).order('weekday');
@@ -82,5 +83,6 @@ export async function saveBusiness(uid: string, b: any, svcs: Svc[], hours: Hour
     await sb.from('opening_hours').insert(rows.filter((r: any) => !r.service_id));
     warnings.push('Το ωράριο ανά υπηρεσία δεν αποθηκεύτηκε. Χρειάζεται ενημέρωση της βάσης (supabase/migrations/002).');
   }
+  setActiveBiz(data.id);
   return { ok: true, id: data.id, warnings };
 }

@@ -5,6 +5,7 @@ import { Text } from '../../../lib/Txt';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { sb } from '../../../lib/supabase';
 import { useAuth } from '../../../lib/auth';
+import { fetchMyBiz } from '../../../lib/owner/active';
 import { Btn, C, Card, Group, Icon, Section, T, alpha, catLabel, onColor, s } from '../../../lib/ui';
 import { BizHeader } from '../../../lib/BizHeader';
 import { LAYOUTS, THEMES, presetFor, styleOf, themeOf } from '../../../lib/presets';
@@ -21,7 +22,7 @@ export default function Style() {
   const [saving, setSaving] = useState(false);
 
   useFocusEffect(useCallback(() => {
-    sb.from('businesses').select('*').eq('owner_id', session!.user.id).maybeSingle().then(({ data }) => setB(data ?? null));
+    fetchMyBiz(session!.user.id).then(setB);
   }, [session]));
 
   if (!b) return <View style={s.screen} />;
