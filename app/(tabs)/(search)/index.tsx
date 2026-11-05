@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { sb } from '../../../lib/supabase';
-import { C, CATEGORIES, Card, Empty, Icon, Input, alpha, catLabel, s, shadow } from '../../../lib/ui';
+import { rpc, sb } from '../../../lib/supabase';
+import { C, CATEGORIES, Card, DAYS, Empty, Icon, Input, alpha, catLabel, iso, s, shadow } from '../../../lib/ui';
 
 import { styleOf } from '../../../lib/presets';
 import { Photo } from '../../../lib/Photo';
@@ -36,6 +36,60 @@ function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
   );
 }
 
+
+/* ΠΡΟΣΩΡΙΝΟ: επιλογή εκδοχής για σύγκριση (localStorage 'top.variant' στον browser). */
+const VARIANT: 'A' | 'B' | 'C' | 'D' = (() => {
+  try { const v = (globalThis as any).localStorage?.getItem('top.variant'); if (v && 'ABCD'.includes(v)) return v; } catch {}
+  return 'A';
+})();
+
+/* Το όνομα της εφαρμογής ως λογότυπο-κείμενο. */
+const Logo = ({ light }: { light?: boolean }) => (
+  <Text style={{ fontSize: 26, fontWeight: '900', letterSpacing: -0.8, color: light ? '#ffffff' : C.text }}>
+    Spot<Text style={{ color: light ? alpha('#ffffff', 0.8) : C.accent }}>On</Text>
+  </Text>
+);
+
+/* Στρογγυλό κουμπί με εικονίδιο. */
+const RoundBtn = ({ icon, onPress, label, glass, size = 44, square }:
+  { icon: 'calendar' | 'bell'; onPress: () => void; label: string; glass?: boolean; size?: number; square?: boolean }) => (
+  <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={6}
+    style={({ pressed }) => [{ width: size, height: size, borderRadius: square ? 14 : size / 2, alignItems: 'center', justifyContent: 'center',
+      backgroundColor: glass ? alpha('#ffffff', 0.18) : C.soft, opacity: pressed ? 0.75 : 1 }]}>
+    <Icon name={icon} size={20} color={glass ? '#ffffff' : C.accent} />
+  </Pressable>
+);
+
+type Next = { date: string; time: string; service: string; business: string };
+/* Η πιο κοντινή επερχόμενη κράτηση του χρήστη (ή τίποτα). */
+function useNextBooking() {
+  const [n, setN] = useState<Next | null>(null);
+  useFocusEffect(useCallback(() => {
+    rpc('my_bookings').then((m: any) => {
+      const today = iso(new Date());
+      setN(((m?.bookings ?? []) as any[]).find((b) => b.status === 'booked' && b.date >= today) ?? null);
+    }).catch(() => {});
+  }, []));
+  return n;
+}
+
+/* Μικρή κάρτα «Επόμενη κράτηση». */
+const NextBooking = ({ b, onPress }: { b: Next; onPress: () => void }) => (
+  <Pressable onPress={onPress} style={({ pressed }) => [s.row, { gap: 12, padding: 12, paddingRight: 14, borderRadius: 18,
+    backgroundColor: alpha(C.accent, 0.08), opacity: pressed ? 0.8 : 1 }]}>
+    <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: C.accent, alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ color: '#ffffff', fontSize: 11, fontWeight: '700' }}>{DAYS[new Date(b.date + 'T00:00').getDay()]}</Text>
+      <Text style={{ color: '#ffffff', fontSize: 17, fontWeight: '800', marginTop: -2 }}>{new Date(b.date + 'T00:00').getDate()}</Text>
+    </View>
+    <View style={{ flex: 1, gap: 1 }}>
+      <Text style={{ color: C.accent, fontSize: 12, fontWeight: '700' }}>Επόμενη κράτηση · {b.time}</Text>
+      <Text style={{ color: C.text, fontSize: 15, fontWeight: '700' }} numberOfLines={1}>{b.business}</Text>
+      <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{b.service}</Text>
+    </View>
+    <Icon name="chevron" size={16} color={C.mute} />
+  </Pressable>
+);
+
 export default function Home() {
   const router = useRouter();
   const [cat, setCat] = useState<string | null>(null);
@@ -54,26 +108,56 @@ export default function Home() {
 
   const top = useSafeAreaInsets().top;
   const cats = [{ key: null as string | null, label: 'Όλα', emoji: '✨' }, ...CATEGORIES];
+  const next = useNextBooking();
+  const V = VARIANT;
+  const goBookings = () => router.push('/bookings');
+  const search = (white: boolean) => (
+    <Input icon="search" placeholder={V === 'D' ? 'Αναζήτηση καταστήματος' : 'Κομμωτήριο, γυμναστήριο, ιατρείο…'} value={q} onChangeText={setQ} returnKeyType="search"
+      style={{ fontSize: 15 }} box={white ? { backgroundColor: '#ffffff', borderColor: '#ffffff', ...shadow(1) } : undefined} />
+  );
 
   const head = (
     <View style={{ gap: 16 }}>
-      {/* Πάνω μέρος: απαλή ζώνη στο κύριο χρώμα με χαιρετισμό, τίτλο και αναζήτηση. */}
-      <View style={{ marginHorizontal: -20, paddingTop: top + 16, paddingHorizontal: 20, paddingBottom: 22, gap: 16,
-        backgroundColor: alpha(C.accent, 0.07), borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
-        <View style={[s.row, { alignItems: 'flex-start', gap: 12 }]}>
-          <View style={{ flex: 1, gap: 4 }}>
-            <Text style={{ color: C.mute, fontSize: 14, fontWeight: '600' }}>{hello()}</Text>
-            <Text style={{ color: C.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.6 }}>Πού θα κλείσεις;</Text>
+      {V === 'A' && (
+        <View style={{ paddingTop: top + 12, gap: 14 }}>
+          <View style={s.row}>
+            <Logo />
+            <View style={{ flex: 1 }} />
+            <RoundBtn icon="calendar" onPress={goBookings} label="Οι κρατήσεις μου" />
           </View>
-          <Pressable onPress={() => router.push('/bookings')} accessibilityRole="button" accessibilityLabel="Οι κρατήσεις μου" hitSlop={6}
-            style={({ pressed }) => [{ width: 44, height: 44, borderRadius: 22, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center',
-              opacity: pressed ? 0.75 : 1 }, shadow(1)]}>
-            <Icon name="calendar" size={20} color={C.accent} />
-          </Pressable>
+          {search(false)}
+          {next && <NextBooking b={next} onPress={goBookings} />}
         </View>
-        <Input icon="search" placeholder="Κομμωτήριο, γυμναστήριο, ιατρείο…" value={q} onChangeText={setQ} returnKeyType="search"
-          style={{ fontSize: 15 }} box={{ backgroundColor: C.bg, borderColor: C.bg, ...shadow(1) }} />
-      </View>
+      )}
+      {V === 'B' && (
+        <View style={{ paddingTop: top + 12, gap: 14 }}>
+          <View style={s.row}>
+            <Text style={{ flex: 1, color: C.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.3 }}>{hello()}</Text>
+            <RoundBtn icon="bell" onPress={goBookings} label="Ειδοποιήσεις" />
+          </View>
+          {next && <NextBooking b={next} onPress={goBookings} />}
+          {search(false)}
+        </View>
+      )}
+      {V === 'C' && (
+        <View style={{ marginHorizontal: -20, paddingTop: top + 14, paddingHorizontal: 20, paddingBottom: 20, gap: 14,
+          backgroundColor: C.accent, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
+          <View style={s.row}>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Logo light />
+              <Text style={{ color: alpha('#ffffff', 0.85), fontSize: 14, fontWeight: '600' }}>Κλείσε θέση σε δευτερόλεπτα</Text>
+            </View>
+            <RoundBtn icon="calendar" onPress={goBookings} label="Οι κρατήσεις μου" glass />
+          </View>
+          {search(true)}
+        </View>
+      )}
+      {V === 'D' && (
+        <View style={[s.row, { paddingTop: top + 12, gap: 10 }]}>
+          <View style={{ flex: 1 }}>{search(false)}</View>
+          <RoundBtn icon="calendar" onPress={goBookings} label="Οι κρατήσεις μου" size={52} square />
+        </View>
+      )}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }}
         contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
         {cats.map((c) => {
