@@ -9,21 +9,21 @@ import { Appearance } from 'react-native';
 export const NEON = '#00e676';
 export const LIGHT = {
   bg: '#ffffff', card: '#f6f6f6', soft: '#f1f1f1', line: '#ececec', text: '#0a0a0a', mute: '#6b6b6b',
-  accent: '#0a0a0a', onAccent: NEON,
-  btn: NEON, btnText: '#0a0a0a', btn2: '#ffffff', btn2Text: '#0a0a0a', btn2Line: '#dedede',
+  accent: '#0a0a0a', onAccent: '#ffffff',
+  btn: '#0a0a0a', btnText: '#ffffff', btn2: '#ffffff', btn2Text: '#0a0a0a', btn2Line: '#dedede',
   ok: '#00a855', bad: '#ff3b5c',
   shade: '#000000',
-  neon: NEON, glow: '#00a855', ink: '#0a0a0a', inkText: '#ffffff', inkLine: '#262626',
+  neon: '#0a0a0a', glow: '#000000', ink: '#0a0a0a', inkText: '#ffffff', inkLine: '#262626',
 };
 export type Theme = typeof LIGHT;
 /* Σκούρα εμφάνιση (Ρυθμίσεις → Εμφάνιση). */
 export const DARK: Theme = {
   bg: '#0a0a0a', card: '#151515', soft: '#1c1c1c', line: '#262626', text: '#f5f5f5', mute: '#9a9a9a',
-  accent: NEON, onAccent: '#0a0a0a',
-  btn: NEON, btnText: '#0a0a0a', btn2: '#151515', btn2Text: '#f5f5f5', btn2Line: '#2e2e2e',
-  ok: NEON, bad: '#ff4d6d',
+  accent: '#ffffff', onAccent: '#0a0a0a',
+  btn: '#ffffff', btnText: '#0a0a0a', btn2: '#151515', btn2Text: '#f5f5f5', btn2Line: '#2e2e2e',
+  ok: '#34c77b', bad: '#ff4d6d',
   shade: '#000000',
-  neon: NEON, glow: '#00a855', ink: '#1c1c1c', inkText: '#ffffff', inkLine: '#2e2e2e',
+  neon: '#ffffff', glow: '#000000', ink: '#1c1c1c', inkText: '#ffffff', inkLine: '#2e2e2e',
 };
 export const DEFAULT = LIGHT;
 /* Σκούρο κείμενο πάνω σε ανοιχτές επιφάνειες (π.χ. κίτρινο χρώμα καταστήματος), ίδιο και στις δύο εμφανίσεις. */
@@ -74,6 +74,5 @@ export const isDark = () => lum(C.bg) < 128;
    στο κινητό experimental_backgroundImage του React Native. */
 import { Platform } from 'react-native';
 export const grad = (css: string): any => (Platform.OS === 'web' ? { backgroundImage: css } : { experimental_backgroundImage: css });
-/* Η «λάμψη» του νέου design: πράσινο φως πάνω δεξιά και κάτω αριστερά πάνω σε σκούρο φόντο. */
-export const glow = (base = '#0a0a0a', c1 = NEON, c2 = '#00a855', s1 = 0.5, s2 = 0.38) =>
-  grad(`radial-gradient(circle at 88% 12%, ${alpha(c1, s1)} 0%, transparent 58%), radial-gradient(circle at 6% 96%, ${alpha(c2, s2)} 0%, transparent 62%), linear-gradient(${base}, ${base})`);
+/* Minimal: χωρίς λάμψη, απλό σκούρο φόντο (κρατιέται η συνάρτηση για να μην αλλάξουν οι οθόνες). */
+export const glow = (base = '#0a0a0a', ..._: any[]) => ({ backgroundColor: base });

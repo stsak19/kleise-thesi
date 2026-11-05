@@ -9,8 +9,8 @@ import type { LoginState } from './useLogin';
 export const Logo = ({ size = 26, color = C.text }: { size?: number; color?: string }) => (
   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
     <Text style={{ fontSize: size, fontWeight: '800', letterSpacing: -size * 0.04, color }}>Spot</Text>
-    <View style={isLight(C.bg) ? { backgroundColor: C.ink, borderRadius: size * 0.3, paddingHorizontal: size * 0.2 } : null}>
-      <Text style={{ fontSize: size, fontWeight: '800', letterSpacing: -size * 0.04, color: C.neon }}>On</Text>
+    <View>
+      <Text style={{ fontSize: size, fontWeight: '800', letterSpacing: -size * 0.04, color: C.mute }}>On</Text>
     </View>
   </View>
 );

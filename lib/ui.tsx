@@ -188,8 +188,8 @@ export const Group = ({ children }: { children: React.ReactNode }) =>
 
 /* Διακόπτης στο χρώμα της εφαρμογής (και στον browser). */
 export const Toggle = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
-  <Switch value={value} onValueChange={onChange} trackColor={{ true: C.neon, false: C.line }} thumbColor="#ffffff"
-    {...({ activeThumbColor: '#ffffff', activeTrackColor: C.neon } as any)} />
+  <Switch value={value} onValueChange={onChange} trackColor={{ true: C.ok, false: C.line }} thumbColor="#ffffff"
+    {...({ activeThumbColor: '#ffffff', activeTrackColor: C.ok } as any)} />
 );
 export const SwitchRow = ({ label, sub, value, onChange, last }: { label: string; sub?: string; value: boolean; onChange: (v: boolean) => void; last?: boolean }) => (
   <Row title={label} sub={sub} last={last} right={<Toggle value={value} onChange={onChange} />} />
@@ -218,7 +218,7 @@ export function DayStrip({ days, value, onChange, color }: { days: string[]; val
         return (
           <Pressable key={d} onPress={() => onChange(d)}
             style={({ pressed }) => [{ width: 56, paddingVertical: 10, borderRadius: 18, alignItems: 'center', gap: 2, borderWidth: 1 },
-              on ? { backgroundColor: c, borderColor: c, boxShadow: `0px 6px 18px ${alpha(c === C.accent ? C.neon : c, 0.35)}` } : { backgroundColor: C.card, borderColor: C.line },
+              on ? { backgroundColor: c, borderColor: c, boxShadow: `0px 6px 18px ${alpha('#000000', 0.18)}` } : { backgroundColor: C.card, borderColor: C.line },
               { transform: [{ scale: pressed ? 0.96 : 1 }] }]}>
             <Text style={{ color: on ? onColor(c) : C.mute, fontSize: 12, fontWeight: '600' }}>{d === today ? 'Σήμ.' : DAYS[dd.getDay()]}</Text>
             <Text style={{ color: on ? onColor(c) : C.text, fontWeight: '800', fontSize: 19 }}>{dd.getDate()}</Text>

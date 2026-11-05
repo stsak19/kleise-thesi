@@ -50,13 +50,13 @@ export function Actions({ p, styles = [], primaryExtra }: { p: WelcomeProps; sty
 export function LetterLogo({ vals, size = 30 }: { vals: V[]; size?: number }) {
   const letters = 'SpotOn'.split('');
   const L = (i: number) => (
-    <AText key={i} style={{ fontSize: size, fontWeight: '800', letterSpacing: -size * 0.04, color: i >= 4 ? C.neon : C.text,
+    <AText key={i} style={{ fontSize: size, fontWeight: '800', letterSpacing: -size * 0.04, color: i >= 4 ? C.mute : C.text,
       opacity: vals[i], transform: [{ translateY: k(vals[i], [0, 1], [-26, 0]) }, { scale: k(vals[i], [0, 0.6, 1], [0.4, 1.15, 1]) }] }}>{letters[i]}</AText>
   );
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
       {[0, 1, 2, 3].map(L)}
-      <Animated.View style={[{ flexDirection: 'row', opacity: vals[4] }, isLight(C.bg) && { backgroundColor: C.ink, borderRadius: size * 0.3, paddingHorizontal: size * 0.2 }]}>{[4, 5].map(L)}</Animated.View>
+      <Animated.View style={[{ flexDirection: 'row', opacity: vals[4] }]}>{[4, 5].map(L)}</Animated.View>
     </View>
   );
 }

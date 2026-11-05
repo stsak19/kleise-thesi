@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Image, ImageStyle, StyleProp, View } from 'react-native';
 import { Text } from './Txt';
-import { NEON, alpha, glow } from './theme';
+import { alpha } from './theme';
 
 /* Φωτογραφία με ήπια εναλλακτική: αν λείπει ή δεν φορτώσει, μένει σκούρο πλαίσιο με «λάμψη»
    στο χρώμα του καταστήματος και λίγο πράσινο της εφαρμογής, ή το αρχικό γράμμα για τα λογότυπα. */
@@ -11,7 +11,7 @@ export function Photo({ uri, style, color, letter }:
   if (uri && !bad) return <Image source={{ uri }} style={[{ width: '100%', height: '100%' }, style]} resizeMode="cover" onError={() => setBad(true)} />;
   return (
     <View style={[{ width: '100%', height: '100%', backgroundColor: letter ? alpha(color, 0.1) : '#0d0d0d', alignItems: 'center', justifyContent: 'center' },
-      !letter && glow('#0d0d0d', color, NEON, 1, 0.42), style as any]}>
+      !letter && { backgroundColor: color }, style as any]}>
       {!!letter && <Text style={{ color, fontWeight: '800', fontSize: 22 }}>{letter}</Text>}
     </View>
   );

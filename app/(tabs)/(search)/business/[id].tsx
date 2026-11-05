@@ -6,7 +6,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { rpc, sb } from '../../../../lib/supabase';
 import { Btn, C, DAYS, Icon, MONTHS, TAB_SPACE, alpha, fmtLong, iso, onColor, price, s, shadow } from '../../../../lib/ui';
-import { NEON, NIGHT, glow, isLight } from '../../../../lib/theme';
+import { NIGHT, glow, isLight } from '../../../../lib/theme';
 import { styleOf } from '../../../../lib/presets';
 import { Fact, screenFor } from '../../../../lib/bizscreen';
 import { Photo, Scrim } from '../../../../lib/Photo';
@@ -148,7 +148,7 @@ export default function Business() {
   const brand = st?.color ?? C.accent;
   /* Το χρώμα του καταστήματος δίνει την ταυτότητα (κορυφή, λογότυπο, λάμψη). Οι επιλογές (μέρα, ώρα, υπηρεσία)
      και το κουμπί κράτησης ακολουθούν την εφαρμογή: μαύρο/πράσινο, ή πράσινο στις σκούρες σελίδες. */
-  const accent = night ? NEON : C.accent;
+  const accent = night ? '#ffffff' : C.accent;
   const P = night ? NIGHT : { bg: C.bg, card: C.card, line: alpha(C.text, 0.08), text: C.text, mute: C.mute };
 
   if (!biz || !st) return <View style={[s.screen, night && { backgroundColor: NIGHT.bg }]}><Stack.Screen options={{ headerShown: false }} /></View>;
@@ -239,7 +239,7 @@ export default function Business() {
         <View style={{ position: 'absolute', left: 20, right: 20, bottom: 20, gap: 10 }}>
           <View style={[s.row, { gap: 12 }]}>
             <Logo size={night ? 52 : 58} round={night} />
-            <Text style={{ color: NEON, fontWeight: '800', fontSize: 13, letterSpacing: 1.4 }}>{upper(scr.kicker)}</Text>
+            <Text style={{ color: alpha('#ffffff', 0.85), fontWeight: '800', fontSize: 13, letterSpacing: 1.4 }}>{upper(scr.kicker)}</Text>
           </View>
           <Text style={{ color: '#ffffff', fontWeight: '900', fontSize: night ? 34 : 32, letterSpacing: night ? 0.5 : -0.8, lineHeight: night ? 38 : 36 }}
             numberOfLines={2}>{night ? upper(String(biz.name)) : biz.name}</Text>
@@ -279,7 +279,7 @@ export default function Business() {
           return (
             <Pressable key={d} onPress={() => setDate(d)}
               style={({ pressed }) => [{ width: 56, paddingVertical: 10, borderRadius: 18, alignItems: 'center', gap: 2, borderWidth: 1 },
-                on ? { backgroundColor: accent, borderColor: accent, boxShadow: `0px 6px 18px ${alpha(NEON, 0.3)}` } : { backgroundColor: P.card, borderColor: P.line },
+                on ? { backgroundColor: accent, borderColor: accent, boxShadow: `0px 6px 18px ${alpha('#000000', 0.18)}` } : { backgroundColor: P.card, borderColor: P.line },
                 { transform: [{ scale: pressed ? 0.96 : 1 }] }]}>
               <Text style={{ color: on ? onColor(accent) : P.mute, fontSize: 12, fontWeight: '600' }}>{d === today ? 'Σήμ.' : DAYS[dd.getDay()]}</Text>
               <Text style={{ color: on ? onColor(accent) : P.text, fontWeight: '800', fontSize: 19 }}>{dd.getDate()}</Text>
@@ -351,13 +351,13 @@ export default function Business() {
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap }}>
               {list.map((sl) => {
                 const stt = state(sl), key = sl.sv.id + sl.time, on = pick === key;
-                const bg = on ? accent : stt === 'mine' ? alpha(NEON, 0.16) : stt === 'wait' ? alpha(accent, 0.1) : stt === 'full' ? 'transparent' : P.card;
-                const fg = on ? onColor(accent) : stt === 'mine' ? (night || !isLight(C.bg) ? NEON : '#00703a') : stt === 'full' ? P.mute : stt === 'wait' ? accent : P.text;
+                const bg = on ? accent : stt === 'mine' ? alpha(C.ok, 0.14) : stt === 'wait' ? alpha(accent, 0.1) : stt === 'full' ? 'transparent' : P.card;
+                const fg = on ? onColor(accent) : stt === 'mine' ? C.ok : stt === 'full' ? P.mute : stt === 'wait' ? accent : P.text;
                 return (
                   <Pressable key={key} onPress={() => setPick(on ? null : key)}
                     style={({ pressed }) => ({ width: chipW, paddingVertical: 12, borderRadius: 999, alignItems: 'center', backgroundColor: bg,
-                      borderWidth: 1, borderColor: on ? accent : stt === 'mine' ? NEON : P.line, opacity: pressed ? 0.75 : 1,
-                      borderStyle: stt === 'full' ? 'dashed' : 'solid', boxShadow: on ? `0px 6px 18px ${alpha(NEON, 0.3)}` : undefined })}>
+                      borderWidth: 1, borderColor: on ? accent : stt === 'mine' ? C.ok : P.line, opacity: pressed ? 0.75 : 1,
+                      borderStyle: stt === 'full' ? 'dashed' : 'solid', boxShadow: on ? `0px 6px 18px ${alpha('#000000', 0.18)}` : undefined })}>
                     <Text style={{ color: fg, fontWeight: '800', fontSize: 16, textDecorationLine: stt === 'full' ? 'line-through' : 'none' }}>{sl.time}</Text>
                     {stt === 'mine' && <Text style={{ color: fg, fontSize: 10, fontWeight: '700' }}>δική σου</Text>}
                     {stt === 'wait' && <Text style={{ color: fg, fontSize: 10, fontWeight: '700' }}>αναμονή</Text>}
@@ -510,7 +510,7 @@ export default function Business() {
             <H2 title={scr.services} />
             {night ? PriceList() : Radios()}
             {service && (
-              <View style={[{ borderRadius: 24, padding: 18, gap: 12, overflow: 'hidden' }, glow('#0a0a0a', NEON, '#00a855', 0.45, 0.3)]}>
+              <View style={[{ borderRadius: 24, padding: 18, gap: 12, overflow: 'hidden' }, glow(C.ink), { borderWidth: 1, borderColor: C.inkLine }]}>
                 <View style={[s.row, { gap: 8 }]}>
                   <Icon name="clock" size={16} color={'#ffffff'} />
                   <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 12, letterSpacing: 0.6, opacity: 0.9 }}>ΠΙΟ ΚΟΝΤΙΝΟ ΕΛΕΥΘΕΡΟ</Text>
@@ -523,7 +523,7 @@ export default function Business() {
                         <Text style={{ color: '#ffffff', opacity: 0.85, fontSize: 13 }}>{service.name} · {service.duration_min} λεπτά</Text>
                       </View>
                       <Pressable onPress={() => book(service, next.time, next.date)} disabled={busy === service.id + next.time}
-                        style={({ pressed }) => ({ backgroundColor: NEON, borderRadius: 999, paddingVertical: 12, paddingHorizontal: 18, opacity: pressed ? 0.85 : 1 })}>
+                        style={({ pressed }) => ({ backgroundColor: '#ffffff', borderRadius: 999, paddingVertical: 12, paddingHorizontal: 18, opacity: pressed ? 0.85 : 1 })}>
                         <Text style={{ color: '#0a0a0a', fontWeight: '800', fontSize: 15 }}>Κλείσε το</Text>
                       </Pressable>
                     </View>}
@@ -585,7 +585,7 @@ export default function Business() {
             </View>
             {stt === 'mine' ? <Btn kind="danger" title="Ακύρωση" disabled={dis} onPress={() => cancel(picked)} />
               : stt === 'wait' ? <Btn kind="ghost" title="Απόσυρση" disabled={dis} onPress={() => unwait(picked)} />
-              : stt === 'full' ? <Btn kind="tint" color={NEON} title="🙋 Αναμονή" disabled={dis} onPress={() => wait(picked.sv, picked.time)} />
+              : stt === 'full' ? <Btn kind="tint" color="#ffffff" title="🙋 Αναμονή" disabled={dis} onPress={() => wait(picked.sv, picked.time)} />
               : <Btn title={scr.cta} disabled={dis} onPress={() => book(picked.sv, picked.time)} />}
           </View>
         );

@@ -24,7 +24,7 @@ function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
         <View style={{ position: 'absolute', left: 12, bottom: 12, flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 5, paddingHorizontal: 11,
           borderRadius: 999, backgroundColor: alpha('#0a0a0a', 0.7) }}>
           <Text style={{ fontSize: 12 }}>{catEmoji(b.category)}</Text>
-          <Text style={{ color: C.neon, fontWeight: '700', fontSize: 12 }}>{catLabel(b.category)}</Text>
+          <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 12 }}>{catLabel(b.category)}</Text>
         </View>
       </View>
       <View style={{ padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
@@ -51,8 +51,8 @@ const Logo = () => {
   return (
     <View style={[s.row, { gap: 2 }]}>
       <Text style={{ fontSize: 30, fontWeight: '800', letterSpacing: -1.2, color: C.text }}>Spot</Text>
-      <View style={light ? { backgroundColor: C.ink, borderRadius: 9, paddingHorizontal: 6, paddingBottom: 1 } : null}>
-        <Text style={{ fontSize: 30, fontWeight: '800', letterSpacing: -1.2, color: C.neon }}>On</Text>
+      <View>
+        <Text style={{ fontSize: 30, fontWeight: '800', letterSpacing: -1.2, color: C.mute }}>On</Text>
       </View>
     </View>
   );
@@ -77,11 +77,11 @@ const NextBooking = ({ b, onPress }: { b: Next; onPress: () => void }) => {
   const d = new Date(b.date + 'T00:00');
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [s.row, { gap: 14, padding: 12, paddingRight: 16, borderRadius: 22, opacity: pressed ? 0.85 : 1,
-      boxShadow: `0px 12px 34px ${alpha(C.glow, light ? 0.28 : 0.35)}` },
-      grad(light ? 'linear-gradient(120deg, #0a0a0a 0%, #14532d 100%)' : 'linear-gradient(120deg, #0f3d25 0%, #00a855 100%)')]}>
-      <View style={{ width: 50, height: 54, borderRadius: 16, backgroundColor: light ? C.neon : alpha('#ffffff', 0.14), alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: light ? '#0a0a0a' : '#ffffff', fontSize: 12, fontWeight: '600' }}>{DAYS[d.getDay()]}</Text>
-        <Text style={{ color: light ? '#0a0a0a' : '#ffffff', fontSize: 21, fontWeight: '800', marginTop: -3 }}>{d.getDate()}</Text>
+      boxShadow: `0px 8px 24px ${alpha('#000000', light ? 0.12 : 0.3)}` },
+      { backgroundColor: C.ink, borderWidth: 1, borderColor: C.inkLine }]}>
+      <View style={{ width: 50, height: 54, borderRadius: 16, backgroundColor: alpha('#ffffff', 0.14), alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: '600' }}>{DAYS[d.getDay()]}</Text>
+        <Text style={{ color: '#ffffff', fontSize: 21, fontWeight: '800', marginTop: -3 }}>{d.getDate()}</Text>
       </View>
       <View style={{ flex: 1, gap: 1 }}>
         <Text style={{ color: alpha('#ffffff', 0.8), fontSize: 11.5, fontWeight: '700', letterSpacing: 0.4 }}>ΕΠΟΜΕΝΗ ΚΡΑΤΗΣΗ · {b.time}</Text>
@@ -146,7 +146,7 @@ export default function Home() {
             <Pressable key={c.key ?? 'all'} onPress={() => setCat(c.key === null || on ? null : c.key)}
               style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingLeft: 12, paddingRight: 14,
                 borderRadius: 999, borderWidth: 1, backgroundColor: on ? C.accent : C.bg, borderColor: on ? C.accent : C.line,
-                opacity: pressed ? 0.75 : 1 }, on && !isLight(C.bg) && { boxShadow: `0px 6px 18px ${alpha(C.neon, 0.35)}` }]}>
+                opacity: pressed ? 0.75 : 1 }]}>
               <Text style={{ fontSize: 16 }}>{c.emoji}</Text>
               <Text style={{ color: on ? C.onAccent : C.text, fontSize: 14, fontWeight: on ? '700' : '600' }}>{c.label}</Text>
             </Pressable>
