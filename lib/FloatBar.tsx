@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Text } from './Txt';
-import { Animated, Pressable, View } from 'react-native';
+import { Animated, PanResponder, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { isLight } from './theme';
@@ -41,6 +41,22 @@ export function FloatBar({ items, state, navigateToTab, labels }: { items: TabIt
   }, [idx, textW]);
   const onIn = () => Animated.spring(press, { toValue: labels ? 1.06 : 1.15, useNativeDriver: drv, speed: 40 }).start();
   const onOut = () => Animated.spring(press, { toValue: 1, useNativeDriver: drv, friction: 4 }).start();
+  /* Σύρσιμο του δαχτύλου πάνω στη μπάρα: η καρτέλα κάτω από το δάχτυλο ανοίγει αμέσως (η σελίδα γλιστράει)
+     και η σταγόνα ακολουθεί. Ένα απλό πάτημα το χειρίζονται τα κουμπιά. */
+  const bar = useRef<any>(null), barX = useRef(0), live = useRef({ shown, idx, leftOf, widthOf, navigateToTab });
+  live.current = { shown, idx, leftOf, widthOf, navigateToTab };
+  const pick = (pageX: number) => {
+    const L = live.current, rx = pageX - barX.current - PAD;
+    let best = 0;
+    L.shown.forEach((_, i) => { if (rx >= L.leftOf(i) - gap / 2) best = i; });
+    if (best !== L.idx && L.shown[best]) L.navigateToTab(L.shown[best].key);
+  };
+  const pan = useRef(PanResponder.create({
+    onMoveShouldSetPanResponderCapture: (_, g) => Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
+    onPanResponderGrant: () => { bar.current?.measureInWindow((bx: number) => { barX.current = bx; }); onIn(); },
+    onPanResponderMove: (e) => pick(e.nativeEvent.pageX),
+    onPanResponderRelease: onOut, onPanResponderTerminate: onOut, onPanResponderTerminationRequest: () => false,
+  })).current;
   const fg = (on: boolean) => (on ? (light ? '#0a0a0a' : '#f0eee6') : light ? alpha('#0a0a0a', 0.55) : alpha('#f0eee6', 0.6));
   return (
     <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'center', paddingHorizontal: 16, paddingBottom: Math.max(bottom, 10) + 6 }}>
@@ -52,6 +68,7 @@ export function FloatBar({ items, state, navigateToTab, labels }: { items: TabIt
           ))}
         </View>
       )}
+      <View ref={bar} {...pan.panHandlers} onLayout={() => bar.current?.measureInWindow((bx: number) => { barX.current = bx; })}>
       <BlurView intensity={light ? 40 : 30} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
         style={{ height: 52, borderRadius: 26, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap, paddingHorizontal: PAD,
           backgroundColor: light ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1, borderColor: light ? alpha('#ffffff', 0.9) : alpha('#ffffff', 0.1),
@@ -76,6 +93,7 @@ export function FloatBar({ items, state, navigateToTab, labels }: { items: TabIt
           );
         })}
       </BlurView>
+      </View>
     </View>
   );
 }

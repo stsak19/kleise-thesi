@@ -16,7 +16,7 @@ const ICONS: TabItems = {
 
 export default function TabsLayout() {
   return (
-    <Tabs tabBar={(p) => <FloatBar items={ICONS} {...p} labels />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: C.bg } }}>
+    <Tabs tabBar={(p) => <FloatBar items={ICONS} {...p} labels />} screenOptions={{ headerShown: false, animation: 'shift', sceneStyle: { backgroundColor: C.bg } }}>
       <Tabs.Screen name="packs" options={{ title: 'Πακέτα' }} />
       <Tabs.Screen name="(search)" options={{ title: 'Αρχική' }} />
       <Tabs.Screen name="bookings" options={{ title: 'Κρατήσεις' }} />

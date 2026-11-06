@@ -15,7 +15,7 @@ export const unstable_settings = { initialRouteName: 'today' };
 
 export default function BizTabs() {
   return (
-    <Tabs tabBar={(p) => <FloatBar items={ICONS} {...p} labels />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: C.bg } }}>
+    <Tabs tabBar={(p) => <FloatBar items={ICONS} {...p} labels />} screenOptions={{ headerShown: false, animation: 'shift', sceneStyle: { backgroundColor: C.bg } }}>
       <Tabs.Screen name="today" options={{ title: 'Σήμερα' }} />
       <Tabs.Screen name="calendar" options={{ title: 'Ημερολόγιο' }} />
       <Tabs.Screen name="inbox" options={{ title: 'Μηνύματα' }} />
