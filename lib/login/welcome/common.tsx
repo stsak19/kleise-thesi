@@ -5,6 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Btn, C, s } from '../../ui';
 import { LinkText } from '../parts';
 import { k, type V } from '../motion';
+// Στην ιστοσελίδα τα καταστήματα ανοίγουν ήδη χωρίς λογαριασμό· εδώ μένει μόνο το demo με δοκιμαστικά δεδομένα.
+import { GUEST_OK } from '../../guest';
 
 /* Κομμάτια του καλωσορίσματος: σκελετός, κείμενα, κουμπιά, λογότυπο γράμμα-γράμμα. */
 
@@ -41,7 +43,7 @@ export function Actions({ p, styles = [], primaryExtra }: { p: WelcomeProps; sty
       </Animated.View>
       <Animated.View style={styles[1]}><Btn kind="ghost" title="Έχω ήδη λογαριασμό" onPress={p.onIn} /></Animated.View>
       <View style={{ height: 6 }} />
-      <Animated.View style={styles[2]}><LinkText title="Συνέχεια χωρίς λογαριασμό" onPress={p.onGuest} color={C.mute} /></Animated.View>
+      <Animated.View style={styles[2]}><LinkText title={GUEST_OK ? 'Δες το demo' : 'Συνέχεια χωρίς λογαριασμό'} onPress={p.onGuest} color={C.mute} /></Animated.View>
     </>
   );
 }

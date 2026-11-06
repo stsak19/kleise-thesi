@@ -41,13 +41,15 @@ type Next = { date: string; time: string; service: string; business: string };
 /* Η επόμενη κράτηση του χρήστη για ΣΗΜΕΡΑ (ή τίποτα). */
 function useTodayBooking() {
   const [n, setN] = useState<Next | null>(null);
+  const signedIn = !!useAuth().session;
   useFocusEffect(useCallback(() => {
+    if (!signedIn) return;
     rpc('my_bookings').then((m: any) => {
       const d = new Date(), today = iso(d), now = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
       setN(((m?.bookings ?? []) as any[]).filter((b) => b.status === 'booked' && b.date === today && b.time >= now)
         .sort((x, z) => x.time.localeCompare(z.time))[0] ?? null);
     }).catch(() => {});
-  }, []));
+  }, [signedIn]));
   return n;
 }
 

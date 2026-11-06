@@ -3,6 +3,8 @@ import { rpc, sb } from '../supabase';
 import { say } from '../alert';
 import { styleOf, type Layout } from '../presets';
 import { fmtLong, iso } from '../ui';
+import { useAuth } from '../auth';
+import { askLogin } from '../guest';
 
 /* Τα δεδομένα της «εφαρμογής» ενός καταστήματος (app/store/[id]).
    Όπως οι κρατήσεις του Gym_Schedule: πρόγραμμα ημέρας, οι κρατήσεις μου, μηνύματα, πακέτο.
@@ -24,6 +26,7 @@ export const endOf = (t: string, min: number) => {
 export const dayLabel = (d: string) => (d === iso(new Date()) ? 'Σήμερα' : fmtLong(d));
 
 function useStoreData(id: string) {
+  const signedIn = !!useAuth().session;
   const [biz, setBiz] = useState<any>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [hours, setHours] = useState<Hours[]>([]);
@@ -57,9 +60,10 @@ function useStoreData(id: string) {
   }, [biz]);
 
   const loadMine = useCallback(async () => {
+    if (!signedIn) return; // επισκέπτης: βλέπει το πρόγραμμα, δεν έχει κρατήσεις
     const [my, n] = await Promise.all([rpc('my_bookings'), sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(50)]);
     setMine(my ?? { bookings: [], waitlist: [], memberships: [] }); setNotes(n.data ?? []);
-  }, []);
+  }, [signedIn]);
 
   const loadDay = useCallback(async () => {
     if (!layout) return;
@@ -116,6 +120,7 @@ function useStoreData(id: string) {
 
   /* Κράτηση. Αν έχει δηλώσει ενδιαφέρον για άλλη ώρα της ίδιας μέρας, ρωτάμε αν αυτή είναι η εναλλακτική. */
   const book = (sl: Slot) => {
+    if (!signedIn) return askLogin(`/store/${id}`);
     const open = waits.find((w) => w.service_id === sl.sv.id && w.date === date && w.time !== sl.time);
     const go = (backup: string | null) => run(sl.sv.id + sl.time, () => rpc('create_booking', { p_service: sl.sv.id, p_date: date, p_time: sl.time, p_backup_for: backup }),
       'Κλείστηκε! 🎉', `${sl.sv.name} · ${dayLabel(date)} στις ${sl.time}`);
@@ -125,6 +130,7 @@ function useStoreData(id: string) {
   };
   /* Δήλωση ενδιαφέροντος (αναμονή). Αν έχει ήδη κράτηση την ίδια μέρα, ρωτάμε αν να ακυρωθεί όταν βρεθεί θέση. */
   const wait = (sl: Slot) => {
+    if (!signedIn) return askLogin(`/store/${id}`);
     const same = all.find((b) => b.service_id === sl.sv.id && b.date === date && b.status === 'booked');
     const go = (backup: string | null) => run(sl.sv.id + sl.time, () => rpc('join_waitlist', { p_service: sl.sv.id, p_date: date, p_time: sl.time, p_backup_booking: backup }),
       'Δήλωσες ενδιαφέρον 🙋', `Αν ελευθερωθεί θέση στις ${sl.time}, σου κλείνεται αυτόματα.`);

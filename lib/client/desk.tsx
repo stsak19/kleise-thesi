@@ -9,6 +9,7 @@ import { C, Icon, alpha, s } from '../ui';
 import { Initials } from '../profile/parts';
 import { upper } from '../store/parts';
 import type { IconName } from '../Icon';
+import { askLogin } from '../guest';
 
 /* Ο πελάτης σε υπολογιστή (εκδοχή Β): πλαϊνό μενού όπως στο admin (λογότυπο, Αρχική · Κρατήσεις · Πακέτα,
    η επόμενη κράτηση και ο λογαριασμός κάτω). Η αρχική έχει τη γυάλινη αναζήτηση στο κέντρο. Στο κινητό δεν χρησιμοποιείται τίποτα από εδώ. */
@@ -45,7 +46,7 @@ export function ClientSide({ items, state, navigateToTab }: Nav) {
       })}
       <View style={{ flex: 1 }} />
       <NextBooking />
-      {profile && (
+      {person.guest ? <LoginButton /> : profile && (
         <Pressable onPress={() => navigateToTab(profile.key)} accessibilityRole="tab" accessibilityState={{ selected: profile.key === activeKey }}
           style={({ pressed, hovered }: any) => [s.row, { gap: 10, padding: 8, marginTop: 8, borderRadius: 12,
             backgroundColor: profile.key === activeKey || pressed || hovered ? C.soft : 'transparent' }]}>
@@ -96,5 +97,18 @@ export function DeskSearch({ value, onChange }: { value: string; onChange: (v: s
         </Pressable>
       )}
     </BlurView>
+  );
+}
+
+/* Επισκέπτης: κουμπί σύνδεσης στη θέση του λογαριασμού. */
+export function LoginButton() {
+  return (
+    <View style={{ gap: 8, marginTop: 8 }}>
+      <Text style={{ color: C.mute, fontSize: 12, lineHeight: 17, paddingHorizontal: 4 }}>Συνδέσου για να κλείνεις θέσεις και να βλέπεις τις κρατήσεις σου.</Text>
+      <Pressable onPress={() => askLogin()} accessibilityRole="button"
+        style={({ pressed, hovered }: any) => ({ alignItems: 'center', paddingVertical: 12, borderRadius: 12, backgroundColor: C.text, opacity: pressed || hovered ? 0.85 : 1 })}>
+        <Text style={{ color: C.bg, fontWeight: '800', fontSize: 14 }}>Σύνδεση ή εγγραφή</Text>
+      </Pressable>
+    </View>
   );
 }

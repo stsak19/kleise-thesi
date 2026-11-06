@@ -7,6 +7,7 @@ import { C, Icon, fmtDay, price, s } from '../ui';
 import type { IconName } from '../Icon';
 import { useStore } from './data';
 import { ExitPill, StoreLogo, upper } from './parts';
+import { LoginButton } from '../client/desk';
 
 /* Το κατάστημα σε υπολογιστή: σαν ξεχωριστή εφαρμογή με δικό του πλαϊνό μενού (‹ SpotOn, εξώφυλλο, όνομα, καρτέλες),
    περιεχόμενο σε στήλη στη μέση και δεξιά η κράτησή σου, το πακέτο, οι υπηρεσίες και το ωράριο. Στο κινητό μένει η κάτω μπάρα. */
@@ -41,13 +42,13 @@ export function StoreSide({ items, state, navigateToTab }: { items: Record<strin
         );
       })}
       <View style={{ flex: 1 }} />
-      <View style={[s.row, { gap: 10, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.line }]}>
+      {P.guest ? <LoginButton /> : <View style={[s.row, { gap: 10, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.line }]}>
         <Initials text={P.initials} size={34} />
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={{ color: C.text, fontWeight: '700', fontSize: 14 }} numberOfLines={1}>{P.name || 'Ο λογαριασμός μου'}</Text>
           <Text style={{ color: C.mute, fontSize: 12 }} numberOfLines={1}>{P.email}</Text>
         </View>
-      </View>
+      </View>}
     </View>
   );
 }

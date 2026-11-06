@@ -4,6 +4,7 @@ import { rpc, sb } from '../supabase';
 import { styleOf } from '../presets';
 import { say } from '../alert';
 import { C, fmtDay, iso } from '../ui';
+import { useAuth } from '../auth';
 
 export type Booking = { id: string; date: string; time: string; status: string; service: string; service_id: string; business: string; business_id: string; address?: string | null };
 export type Biz = { id: string; name: string; category: string; city?: string; address?: string | null; logo_url?: string | null; cover_url?: string | null; color: string };
@@ -15,8 +16,10 @@ export function useMyBookings() {
   const [notes, setNotes] = useState<any[]>([]);
   const [biz, setBiz] = useState<Record<string, Biz>>({});
   const [loading, setLoading] = useState(false);
+  const signedIn = !!useAuth().session;
 
   const load = useCallback(async () => {
+    if (!signedIn) return; // επισκέπτης της ιστοσελίδας: δεν έχει κρατήσεις
     setLoading(true);
     const [m, n] = await Promise.all([rpc('my_bookings'), sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(20)]);
     setD(m); setNotes(n.data ?? []); setLoading(false);
@@ -26,7 +29,7 @@ export function useMyBookings() {
       const { data } = await sb.from('businesses').select('*').in('id', ids);
       setBiz(Object.fromEntries((data ?? []).map((x: any) => [x.id, { ...x, color: styleOf(x).color }])));
     }
-  }, []);
+  }, [signedIn]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const today = iso(new Date());
