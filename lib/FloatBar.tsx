@@ -6,6 +6,7 @@ import { BlurView } from 'expo-blur';
 import { isLight } from './theme';
 import { C, Icon, alpha } from './ui';
 import type { IconName } from './Icon';
+import { useSearchOpen } from './searchOpen';
 
 /* Η πλωτή γυάλινη κάτω μπάρα («χάπι»), κοινή για τη λειτουργία πελάτη και τη λειτουργία επιχείρησης.
    Λευκή στο ανοιχτό θέμα, σκούρα στο σκούρο· η ενεργή καρτέλα είναι ένας απλός κύκλος.
@@ -17,6 +18,7 @@ export type TabItems = Record<string, { icon: IconName; label: string }>;
 const ICON = 40, PAD = 6;
 export function FloatBar({ items, state, navigateToTab, labels }: { items: TabItems; state: { index: number; routes: { key: string; name: string }[] }; navigateToTab: (key: string) => void; labels?: boolean }) {
   const bottom = useSafeAreaInsets().bottom;
+  const blurred = useSearchOpen();
   const light = isLight(C.bg);
   const shown = state.routes.filter((r) => items[r.name]);
   const activeKey = state.routes[state.index]?.key;
@@ -94,6 +96,9 @@ export function FloatBar({ items, state, navigateToTab, labels }: { items: TabIt
         })}
       </BlurView>
       </View>
+      {blurred && <BlurView pointerEvents="none" intensity={30} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
+        style={{ position: 'absolute', left: 0, right: 0, top: -10, bottom: 0 }} />}
+      {blurred && <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: -10, bottom: 0, backgroundColor: alpha(C.bg, 0.6) }} />}
     </View>
   );
 }

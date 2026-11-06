@@ -12,6 +12,7 @@ import { useAuth } from '../../../lib/auth';
 import { styleOf } from '../../../lib/presets';
 import { Photo } from '../../../lib/Photo';
 import { CAT_ART } from '../../../lib/catArt';
+import { setSearchOpen } from '../../../lib/searchOpen';
 type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null };
 
 
@@ -102,23 +103,28 @@ export default function Home() {
       Animated.spring(drop, { toValue: open ? 36 : 0, useNativeDriver: true, friction: 9, tension: 60 }),
       Animated.timing(fade, { toValue: open ? 1 : 0, duration: 220, useNativeDriver: true }),
     ]).start();
+    setSearchOpen(open);
   }, [open]);
+  useEffect(() => () => setSearchOpen(false), []);
   const close = () => { setQ(''); setFocus(false); Keyboard.dismiss(); };
   /* Αναζήτηση ανοιχτή: η οθόνη πίσω θολώνει και τα αποτελέσματα εμφανίζονται σε κάρτες (λογότυπο + όνομα) καθώς γράφεις. */
   const overlay = (
     <Animated.View pointerEvents={open ? 'auto' : 'none'} style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 20, opacity: fade }}>
       <BlurView intensity={40} tint={isLight(C.bg) ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
-        style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: alpha(C.bg, 0.55) }} />
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: alpha(C.bg, 0.85) }} />
+      <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: alpha(C.bg, 0.8) }} />
       <Pressable onPress={close} style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }} />
-      <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1 }} contentContainerStyle={{ paddingTop: top + 110, paddingHorizontal: 16, paddingBottom: TAB_SPACE, gap: 10 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1 }} contentContainerStyle={{ paddingTop: top + 110, paddingHorizontal: 20, paddingBottom: TAB_SPACE, gap: 6 }}>
         {!!q.trim() && list.map((b) => (
           <Pressable key={b.id} onPress={() => { close(); router.push(`/business/${b.id}`); }}
-            style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 18, backgroundColor: C.card, opacity: pressed ? 0.85 : 1,
-              boxShadow: `0px 6px 18px ${alpha('#000000', isLight(C.bg) ? 0.1 : 0.4)}` })}>
-            <View style={{ width: 48, height: 48, borderRadius: 14, overflow: 'hidden', backgroundColor: alpha(styleOf(b).color, 0.12) }}>
-              <Photo uri={b.logo_url} color={isLight(C.bg) ? styleOf(b).color : C.text} letter={b.name.slice(0, 1)} style={{ borderRadius: 14 }} />
+            style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 8, opacity: pressed ? 0.7 : 1 })}>
+            <View style={{ width: 72, height: 54, borderRadius: 12, overflow: 'hidden', backgroundColor: '#0d0d0d' }}>
+              <Photo uri={b.cover_url ?? b.logo_url} color={styleOf(b).color} letter={b.cover_url ? undefined : b.name.slice(0, 1)} />
             </View>
-            <Text style={{ flex: 1, color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{b.name}</Text>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{b.name}</Text>
+              <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{catEmoji(b.category)} {catLabel(b.category)} · {b.city}</Text>
+            </View>
           </Pressable>
         ))}
         {!!q.trim() && loaded && list.length === 0 && <Text style={{ color: C.mute, textAlign: 'center', marginTop: 20 }}>Δεν βρέθηκε κάτι για «{q.trim()}»</Text>}
@@ -130,6 +136,16 @@ export default function Home() {
   const fixed = (
     <Animated.View style={{ position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: 16, paddingTop: top + 10, paddingBottom: 10, zIndex: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
       transform: [{ translateY: drop }] }}>
+      {open && (
+        <Pressable onPress={close} accessibilityLabel="Κλείσιμο αναζήτησης" style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+          <BlurView intensity={isLight(C.bg) ? 40 : 30} tint={isLight(C.bg) ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
+            style={{ width: 46, height: 46, borderRadius: 23, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
+              backgroundColor: isLight(C.bg) ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1,
+              borderColor: isLight(C.bg) ? alpha('#000000', 0.06) : alpha('#ffffff', 0.1), boxShadow: `0px 8px 22px ${alpha(C.shade, isLight(C.bg) ? 0.1 : 0.4)}` }}>
+            <Icon name="close" size={16} color={C.text} />
+          </BlurView>
+        </Pressable>
+      )}
       <BlurView intensity={isLight(C.bg) ? 40 : 30} tint={isLight(C.bg) ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
         style={{ flexGrow: open ? 1 : 0, height: 46, borderRadius: 23, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16,
           backgroundColor: isLight(C.bg) ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1,
@@ -139,7 +155,6 @@ export default function Home() {
         <TextInput placeholder="Αναζήτηση" placeholderTextColor={C.mute} value={q} onChangeText={setQ} returnKeyType="search"
           onFocus={() => { anim(); setFocus(true); }} onBlur={() => { anim(); setFocus(false); }} onSubmitEditing={() => Keyboard.dismiss()}
           style={[{ flexGrow: open ? 1 : 0, width: open ? 0 : 92, color: C.text, fontSize: 16, fontWeight: '600', height: 46 }, { outlineStyle: 'none' } as any]} />
-        {!!q && <Pressable onPress={() => setQ('')} hitSlop={8}><Icon name="close" size={16} color={C.mute} /></Pressable>}
       </BlurView>
     </Animated.View>
   );
