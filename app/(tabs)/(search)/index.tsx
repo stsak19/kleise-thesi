@@ -92,7 +92,7 @@ export default function Home() {
 
   const top = useSafeAreaInsets().top;
   const cats = [{ key: null as string | null, label: 'Όλα', emoji: '✨' }, ...CATEGORIES];
-  const next = useTodayBooking();
+
 
   const filtering = !!cat || !!q.trim();
   const [focus, setFocus] = useState(false);
@@ -204,7 +204,6 @@ export default function Home() {
     <View style={s.screen}>
       {fixed}
       {overlay}
-      {next && <TodayToast b={next} onPress={() => router.push('/bookings')} />}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingTop: top + 70, paddingBottom: TAB_SPACE, gap: 24 }} keyboardShouldPersistTaps="handled">
         {chips}
         {!loaded ? null : list.length === 0 ? <View style={{ paddingHorizontal: 16 }}>{empty}</View>
