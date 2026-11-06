@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Linking, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../../lib/Txt';
-import { Btn, C, Group, Row, TAB_SPACE, alpha, price, shadow } from '../../../../lib/ui';
+import { Btn, C, Group, Icon, Row, TAB_SPACE, alpha, price, shadow } from '../../../../lib/ui';
 import { Photo } from '../../../../lib/Photo';
 import { useStore } from '../../../../lib/store/data';
 import { useBook, firstName } from '../../../../lib/store/book';
@@ -86,18 +86,23 @@ export default function StoreHome() {
   const services = S.services.length > 0 && (
     <View>
       <Head t={classes ? 'Μαθήματα' : 'Υπηρεσίες και τιμές'} />
-      <View style={wide ? { flexDirection: 'row', flexWrap: 'wrap', columnGap: 28 } : undefined}>
-        {S.services.map((sv, i) => (
+      <Text style={{ color: C.mute, fontSize: 13, marginTop: 2, marginBottom: 10 }}>{classes ? 'Πάτα ένα μάθημα για να δεις τις ώρες του.' : 'Πάτα μια υπηρεσία για να κλείσεις.'}</Text>
+      <View style={{ flexDirection: wide ? 'row' : 'column', flexWrap: 'wrap', gap: 10 }}>
+        {S.services.map((sv) => (
           <Pressable key={sv.id} onPress={classes ? () => { S.setService(sv.id); setSched(true); } : () => B.start({ service: sv })}
-            style={({ pressed, hovered }: any) => ({ width: wide ? '47%' : '100%', flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12,
-              borderBottomWidth: !wide && i === S.services.length - 1 ? 0 : 1, borderBottomColor: C.line, opacity: pressed ? 0.7 : hovered ? 0.85 : 1 })}>
+            accessibilityRole="button" accessibilityLabel={`${sv.name}, κλείσε`}
+            style={({ pressed, hovered }: any) => [{ width: wide ? '48.6%' : '100%', flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingLeft: 16, paddingRight: 12,
+              borderRadius: 18, borderWidth: 1, borderColor: hovered ? C.text : C.line, backgroundColor: C.bg, transform: [{ scale: pressed ? 0.98 : 1 }] }, shadow(1)]}>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={{ color: C.text, fontSize: 15, fontWeight: '700' }} numberOfLines={1}>{sv.name}</Text>
-              <Text style={{ color: C.mute, fontSize: 12.5 }}>{dur(sv.duration_min)}</Text>
+              <Text style={{ color: C.text, fontSize: 15.5, fontWeight: '800' }} numberOfLines={1}>{sv.name}</Text>
+              <Text style={{ color: C.mute, fontSize: 13, fontWeight: '600', marginTop: 2 }}>
+                {dur(sv.duration_min)}{sv.price_cents != null ? ` · ${price(sv.price_cents)}` : classes ? ' · με πακέτο' : ''}
+              </Text>
             </View>
-            {sv.price_cents != null
-              ? <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{price(sv.price_cents)}</Text>
-              : classes && <Text style={{ color: C.mute, fontWeight: '700', fontSize: 13 }}>Με πακέτο</Text>}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, paddingLeft: 12, paddingRight: 8, borderRadius: 999, backgroundColor: C.text }}>
+              <Text style={{ color: C.bg, fontWeight: '800', fontSize: 13 }}>{classes ? 'Ώρες' : 'Κλείσε'}</Text>
+              <Icon name="chevron" size={14} color={C.bg} />
+            </View>
           </Pressable>
         ))}
       </View>

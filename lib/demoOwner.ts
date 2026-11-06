@@ -315,4 +315,113 @@ export const OWN: DOwn[] = [
     notes: { 1: 'Επόμενη συνεδρία σκίαση στον αγκώνα. Φέρε τις φωτογραφίες αναφοράς.' },
     pending: [{ name: 'Μελίνα Ρόκα', phone: '6988776655', note: 'Θέλει fine line στο πλάι, 10 εκ.' }],
   },
+
+  /* ---------- Αισθητική ---------- */
+  {
+    id: 'b-glow', clients: 30, busy: 0.6,
+    staff: [
+      { id: 'st-ioanna', name: 'Ιωάννα Μελά', role: 'Αισθητικός · πρόσωπο', color: '#8a6a5a', days: TS, bio: 'Καθαρισμοί, peeling και θεραπείες ενυδάτωσης.', photo: ph('photo-1607746882042-944635dfe10e') },
+      { id: 'st-rena', name: 'Ρένα Δούκα', role: 'Αποτρίχωση · σώμα', color: '#a07a6a', days: [2, 3, 5, 6], bio: 'Κερί, laser και περιποίηση σώματος.', photo: ph('photo-1531123897727-8f129e1688ce') },
+    ],
+    services: [
+      { id: 's-face', name: 'Καθαρισμός προσώπου', dur: 60, price: 35 },
+      { id: 's-hydra', name: 'Hydrafacial', dur: 60, price: 60, staff: ['st-ioanna'] },
+      { id: 's-peel', name: 'Χημικό peeling', dur: 45, price: 50, staff: ['st-ioanna'] },
+      { id: 's-wax', name: 'Αποτρίχωση', dur: 30, price: 15 },
+      { id: 's-laser', name: 'Laser αποτρίχωση (περιοχή)', dur: 30, price: 40, staff: ['st-rena'] },
+      { id: 's-brow', name: 'Φρύδια & βλεφαρίδες', dur: 30, price: 18 },
+    ],
+    hours: [[TS, [['10:00', '19:00']]]],
+    packs: [
+      { id: 'pk-g1', name: '6 καθαρισμοί', kind: 'pack', sessions: 6, days: 180, price: 180, note: '30€ ο καθαρισμός', popular: true },
+      { id: 'pk-g2', name: 'Laser 6 συνεδρίες', kind: 'pack', sessions: 6, days: 365, price: 200, note: 'Για μία περιοχή' },
+    ],
+    fields: (i, st) => [
+      ['Αισθητικός', at(st, i).name.split(' ')[0]],
+      ['Τύπος δέρματος', at(['Λιπαρό', 'Ξηρό', 'Μικτό', 'Ευαίσθητο'], i)],
+      ['Αλλεργίες', at(['Καμία', 'Σε αιθέρια έλαια', 'Καμία', 'Σε ρετινόλη'], i)],
+    ],
+    packFor: (i) => (i % 3 === 0 ? { pack: '6 καθαρισμοί', left: at([4, 2, 5], i), total: 6, days: at([60, 25, 120], i) } : null),
+    tags: { 0: 'Τακτική', 3: 'Νύφη Ιουνίου' },
+  },
+
+  /* ---------- Spa ---------- */
+  {
+    id: 'b-spa', clients: 28, busy: 0.55,
+    staff: [
+      { id: 'st-lia', name: 'Λία Σταθοπούλου', role: 'Θεραπεύτρια μασάζ', color: '#3f6b6a', days: [0, 1, 3, 4, 5, 6], bio: 'Χαλαρωτικό, aromatherapy και μασάζ εγκυμοσύνης.', photo: ph('photo-1594744803329-e58b31de8bf5') },
+      { id: 'st-markos', name: 'Μάρκος Ηλιόπουλος', role: 'Θεραπευτικό · αθλητικό', color: '#4f6b5a', days: [1, 2, 3, 5, 6], bio: 'Βαθύ ιστό, αθλητικό και deep tissue.', photo: ph('photo-1500648767791-00dcc994a43e') },
+    ],
+    services: [
+      { id: 's-mass', name: 'Μασάζ σώματος', dur: 60, price: 45 },
+      { id: 's-relax', name: 'Χαλαρωτικό με αιθέρια έλαια', dur: 50, price: 40, staff: ['st-lia'] },
+      { id: 's-deep', name: 'Deep tissue', dur: 60, price: 55, staff: ['st-markos'] },
+      { id: 's-stone', name: 'Hot stones', dur: 75, price: 65 },
+      { id: 's-couple', name: 'Μασάζ για δύο', dur: 60, price: 85 },
+      { id: 's-back', name: 'Πλάτη & αυχένας', dur: 30, price: 25 },
+    ],
+    hours: [[[0, 1, 2, 3, 4, 5, 6], [['11:00', '21:00']]]],
+    packs: [
+      { id: 'pk-s1', name: '5 μασάζ', kind: 'pack', sessions: 5, days: 120, price: 200, note: '40€ το μασάζ', popular: true },
+      { id: 'pk-s2', name: 'Δωροκάρτα 50€', kind: 'card', sessions: null, days: 365, price: 50, note: 'Δώρο για οποιοδήποτε μασάζ' },
+    ],
+    fields: (i, st) => [
+      ['Θεραπευτής', at(st, i).name.split(' ')[0]],
+      ['Πίεση', at(['Απαλή', 'Μέτρια', 'Δυνατή'], i)],
+      ['Προσοχή', at(['Τίποτα', 'Πονάει η μέση', 'Εγκυμοσύνη 5ος μήνας', 'Κιρσοί στα πόδια'], i)],
+    ],
+    packFor: (i) => (i % 4 === 1 ? { pack: '5 μασάζ', left: at([3, 1, 4], i), total: 5, days: at([40, 12, 90], i) } : null),
+  },
+
+  /* ---------- Ιατρείο ---------- */
+  {
+    id: 'b-dr', clients: 46, busy: 0.65,
+    staff: [
+      { id: 'st-papad', name: 'Δρ. Γιώργος Παπαδόπουλος', role: 'Παθολόγος', color: '#3e4a6b', days: WK, bio: 'Παθολόγος με 20 χρόνια εμπειρία. Συμβεβλημένος με ΕΟΠΥΥ.', photo: ph('photo-1612349317150-e413f6a5b16d') },
+    ],
+    services: [
+      { id: 's-exam', name: 'Εξέταση', dur: 20, price: 40 },
+      { id: 's-check', name: 'Check-up με εξετάσεις', dur: 40, price: 70 },
+      { id: 's-presc', name: 'Συνταγογράφηση', dur: 10, price: 10 },
+      { id: 's-cert', name: 'Πιστοποιητικό υγείας', dur: 15, price: 20 },
+      { id: 's-follow', name: 'Επανεξέταση', dur: 15, price: null },
+    ],
+    hours: [[WK, [['09:00', '13:00'], ['18:00', '20:00']]]],
+    packs: [
+      { id: 'pk-d1', name: 'Ετήσιο check-up', kind: 'sub', sessions: 2, days: 365, price: 120, note: '2 check-up τον χρόνο με εξετάσεις' },
+    ],
+    fields: (i) => [
+      ['ΑΜΚΑ', String(10000000000 + ((i * 7919) % 899999999)).slice(0, 11)],
+      ['Ιστορικό', at(['Υπέρταση', 'Διαβήτης τύπου 2', 'Καμία πάθηση', 'Υποθυρεοειδισμός', 'Άσθμα'], i)],
+      ['Φάρμακα', at(['Amlodipine 5mg', 'Metformin 850mg', '—', 'T4 75mcg', 'Ventolin'], i)],
+    ],
+    tags: { 1: 'ΕΟΠΥΥ', 4: 'Χρόνιος' },
+    notes: { 1: 'Να φέρει τις εξετάσεις αίματος στο επόμενο ραντεβού.' },
+  },
+
+  /* ---------- Οδοντιατρείο ---------- */
+  {
+    id: 'b-dent', clients: 38, busy: 0.6,
+    staff: [
+      { id: 'st-marina', name: 'Δρ. Μαρίνα Κουτάλη', role: 'Οδοντίατρος', color: '#3f6a52', days: WK, bio: 'Γενική οδοντιατρική και αισθητική.', photo: ph('photo-1559839734-2b71ea197ec2') },
+      { id: 'st-stelios', name: 'Δρ. Στέλιος Βαρδάκης', role: 'Ορθοδοντικός', color: '#3d5f78', days: [2, 4], bio: 'Σιδεράκια και διάφανοι νάρθηκες.', photo: ph('photo-1622253692010-333f2da6031d') },
+    ],
+    services: [
+      { id: 's-clean', name: 'Καθαρισμός δοντιών', dur: 40, price: 50, staff: ['st-marina'] },
+      { id: 's-dcheck', name: 'Προληπτικός έλεγχος', dur: 20, price: 30, staff: ['st-marina'] },
+      { id: 's-fill', name: 'Σφράγισμα', dur: 45, price: 60, staff: ['st-marina'] },
+      { id: 's-white', name: 'Λεύκανση', dur: 60, price: 180, staff: ['st-marina'] },
+      { id: 's-ortho', name: 'Ορθοδοντική εκτίμηση', dur: 30, price: 40, staff: ['st-stelios'] },
+    ],
+    hours: [[WK, [['09:00', '15:00']]], [[2, 4], [['17:00', '20:00']]]],
+    packs: [
+      { id: 'pk-t1', name: 'Πρόληψη χρονιάς', kind: 'sub', sessions: 2, days: 365, price: 80, note: '2 καθαρισμοί και έλεγχοι τον χρόνο', popular: true },
+    ],
+    fields: (i, st) => [
+      ['Γιατρός', at(st, i).name.split(' ').slice(0, 2).join(' ')],
+      ['Θεραπεία', at(['Σφράγισμα 36', 'Καθαρισμός κάθε 6 μήνες', 'Διάφανοι νάρθηκες, 8/20', 'Λεύκανση'], i)],
+      ['Αλλεργίες', at(['Καμία', 'Πενικιλίνη', 'Καμία', 'Λάτεξ'], i)],
+    ],
+    tags: { 2: 'Ορθοδοντική' },
+  },
 ];

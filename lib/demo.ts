@@ -62,13 +62,7 @@ const db: Record<string, any[]> = {
     biz('b-dent', 'Smile Οδοντιατρείο', 'dental', 'Ηράκλειο', '25ης Αυγούστου 30', '#3f6a52', 'Έλεγχος, καθαρισμός, σφραγίσματα.', { logo_url: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=240&h=240&fit=crop&q=70&auto=format', cover_url: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=1000&h=560&fit=crop&q=70&auto=format' }),
     biz('b-ink', 'Black Ink Tattoo', 'tattoo', 'Αθήνα', 'Ασκληπιού 17', '#33383f', 'Custom σχέδια, blackwork και fine line tattoo.', { logo_url: 'https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?w=240&h=240&fit=crop&q=70&auto=format', cover_url: 'https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=1000&h=560&fit=crop&q=70&auto=format', requires_approval: true, max_days_ahead: 60, cancel_before_min: 2880 }),
   ],
-  services: [
-    { id: 's-face', business_id: 'b-glow', name: 'Καθαρισμός προσώπου', duration_min: 60, price_cents: 3500, capacity: 1, active: true },
-    { id: 's-wax', business_id: 'b-glow', name: 'Αποτρίχωση', duration_min: 30, price_cents: 1500, capacity: 1, active: true },
-    { id: 's-mass', business_id: 'b-spa', name: 'Μασάζ σώματος', duration_min: 60, price_cents: 4500, capacity: 1, active: true },
-    { id: 's-exam', business_id: 'b-dr', name: 'Εξέταση', duration_min: 20, price_cents: 4000, capacity: 1, active: true },
-    { id: 's-clean', business_id: 'b-dent', name: 'Καθαρισμός δοντιών', duration_min: 40, price_cents: 5000, capacity: 1, active: true },
-  ],
+  services: [] as any[],
   opening_hours: [] as any[],
   bookings: [] as any[],
   waitlist: [] as any[],
@@ -80,13 +74,25 @@ const db: Record<string, any[]> = {
   profiles: [{ id: DEMO_UID, first_name: 'Χριστίνα', last_name: 'Αντωνίου', phone: '6945812304' }],
   memberships: [] as any[],
 };
+/* Τηλέφωνο και πλήρης περιγραφή για κάθε demo κατάστημα, ώστε η σελίδα του να είναι γεμάτη. */
+const MORE: Record<string, { phone: string; description: string }> = {
+  'b-eleni': { phone: '2310 245 118', description: 'Κούρεμα, βαφή και χτενίσματα στο κέντρο της Θεσσαλονίκης. Τρεις κομμωτές, επαγγελματικά προϊόντα και ραντεβού χωρίς αναμονή.' },
+  'b-fit': { phone: '210 823 4410', description: 'Ομαδικά προγράμματα όλη μέρα: Cross Training, Boxing, Functional, HIIT, Spinning και Yoga. Έως 16 άτομα ανά τμήμα, με προπονητή σε κάθε μάθημα.' },
+  'b-niki': { phone: '2610 334 902', description: 'Μανικιούρ, πεντικιούρ, ημιμόνιμα και nail art. Αποστειρωμένα εργαλεία μιας χρήσης και πάνω από 200 χρώματα.' },
+  'b-barber': { phone: '2310 278 551', description: 'Κλασικό κούρεμα και ξύρισμα με ζεστή πετσέτα, fade και περιποίηση γενειάδας. Καφές ή μπύρα όσο περιμένεις.' },
+  'b-zen': { phone: '210 625 7781', description: 'Reformer pilates σε μικρά γκρουπ έως 6 ατόμων. Μαθήματα για αρχάριους και προχωρημένους, mat pilates και yoga.' },
+  'b-pt': { phone: '6944 512 330', description: 'Ατομικές προπονήσεις με πρόγραμμα στα μέτρα σου. Αξιολόγηση, πρόγραμμα διατροφής και online παρακολούθηση.' },
+  'b-glow': { phone: '2410 556 214', description: 'Καθαρισμός προσώπου, hydrafacial, peeling, αποτρίχωση με κερί και laser. Δύο αισθητικοί, ήσυχος χώρος στο κέντρο της Λάρισας.' },
+  'b-spa': { phone: '22210 81 455', description: 'Χαλαρωτικό και θεραπευτικό μασάζ, hot stones και μασάζ για δύο. Ανοιχτά κάθε μέρα ως τις 9 το βράδυ.' },
+  'b-physio': { phone: '210 644 9023', description: 'Φυσικοθεραπεία και αποκατάσταση τραυματισμών, manual therapy και κλινικό pilates. Συμβεβλημένοι με ΕΟΠΥΥ.' },
+  'b-dr': { phone: '2310 266 340', description: 'Παθολόγος Δρ. Γιώργος Παπαδόπουλος. Εξετάσεις, check-up, συνταγογράφηση και πιστοποιητικά υγείας. Συμβεβλημένος με ΕΟΠΥΥ.' },
+  'b-dent': { phone: '2810 342 117', description: 'Προληπτικός έλεγχος, καθαρισμός, σφραγίσματα και λεύκανση. Ορθοδοντικός κάθε Τρίτη και Πέμπτη απόγευμα.' },
+  'b-ink': { phone: '210 330 6612', description: 'Custom σχέδια, blackwork, realism και fine line tattoo. Συνάντηση για το σχέδιο πριν από κάθε μεγάλο κομμάτι.' },
+};
+db.businesses.forEach((b) => Object.assign(b, MORE[b.id] ?? {}));
 let seq = 1;
 const hours = (business_id: string, days: number[], spans: [string, string][], service_id: string | null = null) =>
   days.forEach((weekday) => spans.forEach(([opens, closes]) => db.opening_hours.push({ id: seq++, business_id, service_id, weekday, opens: opens + ':00', closes: closes + ':00' })));
-hours('b-glow', [2, 3, 4, 5, 6], [['10:00', '19:00']]);
-hours('b-spa', [0, 1, 2, 3, 4, 5, 6], [['11:00', '21:00']]);
-hours('b-dr', [1, 2, 3, 4, 5], [['09:00', '13:00'], ['18:00', '20:00']]);
-hours('b-dent', [1, 2, 3, 4, 5], [['09:00', '15:00']]);
 
 const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 const svc = (id: string) => db.services.find((s) => s.id === id);
