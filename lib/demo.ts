@@ -91,6 +91,7 @@ hours('b-dent', [1, 2, 3, 4, 5], [['09:00', '15:00']]);
 const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 const svc = (id: string) => db.services.find((s) => s.id === id);
 const bz = (id: string) => db.businesses.find((b) => b.id === id);
+const memOf = (b: string, u: string | null) => db.memberships.find((m) => m.business_id === b && m.user_id === u);
 const staffOf = (id?: string | null) => (id ? db.staff.find((x) => x.id === id) : null);
 const addBooking = (service_id: string, date: string, time: string, user_id: string = DEMO_UID, status = 'booked', staff_id: string | null = null) =>
   db.bookings.push({ id: uid(), business_id: svc(service_id).business_id, service_id, user_id, date, time: time + ':00', status, staff_id, created_at: new Date().toISOString() });
@@ -332,6 +333,11 @@ function availability(service_id: string, date: string, staff_id?: string | null
 // Νέοι πελάτες που περιμένουν έγκριση, ανά επιχείρηση
 const pending: Record<string, any[]> = {};
 OWN.forEach((o) => { pending[o.id] = (o.pending ?? []).map((p, i) => ({ user_id: `p-${o.id}-${i}`, ...p })); });
+/* Αιτήματα πακέτων από πελάτες, ώστε ο ιδιοκτήτης να βλέπει πώς φαίνονται (ενεργοποίηση όταν πληρωθεί). */
+[['b-zen', 'u2', 3], ['b-fit', 'u9', 20], ['b-pt', 'u5', 50]].forEach(([b, u, h]) => {
+  const pk = db.packages.find((x) => x.business_id === b && x.sessions); if (!pk) return;
+  db.memberships.push({ business_id: b, user_id: u, status: 'approved', credits: 0, expires: null, pending_package: { id: pk.id, name: pk.name }, pending_at: new Date(Date.now() - (h as number) * 3600e3).toISOString() });
+});
 const who = (u: string) => {
   if (u === DEMO_UID) return { name: 'Χριστίνα Αντωνίου', phone: '6945812304' };
   if (CLIENTS[u]) return CLIENTS[u];
@@ -348,13 +354,64 @@ const RPC: Record<string, (a: any) => any> = {
     if (sl.free <= 0) return { ok: false, full: true, error: 'Η ώρα γέμισε' };
     if (db.bookings.some((b) => b.service_id === a.p_service && b.date === a.p_date && b.time.slice(0, 5) === t && b.user_id === me && b.status === 'booked'))
       return { ok: false, error: 'Έχεις ήδη κράτηση σε αυτή την ώρα' };
+    // Πακέτα: όπως στη βάση, κάθε κράτηση παίρνει μία επίσκεψη από το πακέτο.
+    const zb = bz(svc(a.p_service).business_id);
+    const mm = memOf(zb.id, me ?? DEMO_UID);
+    if (zb.uses_credits && !((mm?.credits ?? 0) > 0)) return { ok: false, no_credits: true, error: 'Δεν έχεις διαθέσιμες κρατήσεις στο πακέτο σου' };
+    if (zb.uses_credits && mm) mm.credits -= 1;
     // Με ομάδα: το άτομο που διάλεξε, αλλιώς («Οποιοσδήποτε») το πρώτο ελεύθερο.
     const st = sl.staff_free ? (a.p_staff ?? sl.staff_free[0]) : null;
     addBooking(a.p_service, a.p_date, t, me ?? DEMO_UID, 'booked', st);
     db.waitlist = db.waitlist.filter((w) => !(w.service_id === a.p_service && w.date === a.p_date && w.time.slice(0, 5) === t && w.user_id === me));
     return { ok: true, staff_id: st, staff: staffOf(st)?.name ?? null };
   },
-  cancel_booking: (a) => { const b = db.bookings.find((x) => x.id === a.p_booking); if (b) { b.status = 'cancelled'; b.cancelled_at = new Date().toISOString(); } return { ok: true }; },
+  cancel_booking: (a) => {
+    const b = db.bookings.find((x) => x.id === a.p_booking);
+    if (b && b.status === 'booked') {
+      b.status = 'cancelled'; b.cancelled_at = new Date().toISOString();
+      const mm = memOf(b.business_id, b.user_id); if (bz(b.business_id).uses_credits && mm) mm.credits += 1;
+    }
+    return { ok: true };
+  },
+  /* Πακέτα: ο πελάτης διαλέγει, ο ιδιοκτήτης ενεργοποιεί όταν πληρωθεί. */
+  request_package: (a) => {
+    const pk = db.packages.find((x) => x.id === a.p_package && x.active);
+    if (!pk) return { ok: false, error: 'Το πακέτο δεν υπάρχει πια' };
+    if (!me) return { ok: false, error: 'Συνδέσου πρώτα' };
+    let mm = memOf(pk.business_id, me);
+    if (!mm) { mm = { business_id: pk.business_id, user_id: me, status: bz(pk.business_id).requires_approval ? 'pending' : 'approved', credits: 0, expires: null }; db.memberships.push(mm); }
+    if (mm.status === 'blocked') return { ok: false, error: 'Δεν μπορείς να ζητήσεις πακέτο εδώ' };
+    mm.pending_package = { id: pk.id, name: pk.name }; mm.pending_at = new Date().toISOString();
+    return { ok: true };
+  },
+  cancel_package_request: (a) => { const mm = memOf(a.p_business, me); if (mm) { mm.pending_package = null; mm.pending_at = null; } return { ok: true }; },
+  owner_package_requests: (a) => db.memberships.filter((m) => m.business_id === a.p_business && m.pending_package).sort((x, y) => String(x.pending_at).localeCompare(String(y.pending_at))).map((m) => {
+    const pk = db.packages.find((x) => x.id === m.pending_package.id) ?? {};
+    return { user_id: m.user_id, ...who(m.user_id), package_id: pk.id, package: pk.name ?? m.pending_package.name, price_cents: pk.price_cents, sessions: pk.sessions, days: pk.days, kind: pk.kind, at: m.pending_at };
+  }),
+  owner_activate_package: (a) => {
+    let mm = memOf(a.p_business, a.p_user);
+    if (!mm) { mm = { business_id: a.p_business, user_id: a.p_user, status: 'approved', credits: 0, expires: null }; db.memberships.push(mm); }
+    const pk = db.packages.find((x) => x.business_id === a.p_business && x.id === (a.p_package ?? mm.pending_package?.id));
+    if (!pk) return { ok: false, error: 'Δεν βρέθηκε το πακέτο' };
+    mm.status = 'approved'; mm.pending_package = null; mm.pending_at = null;
+    if (pk.sessions || pk.kind === 'sub') {
+      const left = mm.unlimited ? 0 : Math.max(0, mm.credits ?? 0);
+      mm.unlimited = !pk.sessions; mm.credits = pk.sessions ? left + pk.sessions : 9999; mm.total = pk.sessions ? left + pk.sessions : null;
+      mm.pack = pk.name; mm.expires = plus(pk.days ?? bz(a.p_business).package_days ?? 30);
+      let c = db.client_cards.find((x) => x.business_id === a.p_business && x.user_id === a.p_user);
+      if (!c) { c = { business_id: a.p_business, user_id: a.p_user, fields: [] }; db.client_cards.push(c); }
+      c.pack = { name: pk.name, left: pk.sessions ? mm.credits : null, total: mm.total, expires: mm.expires };
+    }
+    db.notifications.push({ id: uid(), user_id: a.p_user, title: bz(a.p_business).name, body: `Το πακέτο «${pk.name}» ενεργοποιήθηκε. Καλή αρχή!`, read: false, created_at: new Date().toISOString() });
+    return { ok: true };
+  },
+  owner_decline_package: (a) => {
+    const mm = memOf(a.p_business, a.p_user); const name = mm?.pending_package?.name;
+    if (mm) { mm.pending_package = null; mm.pending_at = null; }
+    if (name) db.notifications.push({ id: uid(), user_id: a.p_user, title: bz(a.p_business).name, body: `Το αίτημα για «${name}» δεν εγκρίθηκε. Επικοινώνησε με το κατάστημα.`, read: false, created_at: new Date().toISOString() });
+    return { ok: true };
+  },
   join_waitlist: (a) => { db.waitlist.push({ id: uid(), service_id: a.p_service, user_id: me, date: a.p_date, time: String(a.p_time).slice(0, 5) + ':00' }); return { ok: true }; },
   leave_waitlist: (a) => { db.waitlist = db.waitlist.filter((w) => !(w.user_id === me && w.service_id === a.p_service && w.date === a.p_date && w.time.slice(0, 5) === String(a.p_time).slice(0, 5))); return { ok: true }; },
   my_bookings: () => ({
@@ -381,6 +438,8 @@ const RPC: Record<string, (a: any) => any> = {
   owner_renew: (a) => {
     const c = db.client_cards.find((x) => x.business_id === a.p_business && x.user_id === a.p_user);
     if (c) c.pack = { name: c.pack?.name ?? 'Πακέτο', left: (c.pack?.left ?? 0) + a.p_credits, total: (c.pack?.left ?? 0) + a.p_credits, expires: plus(bz(a.p_business).package_days ?? 30) };
+    const mm = memOf(a.p_business, a.p_user);
+    if (mm) Object.assign(mm, { credits: a.p_credits, total: a.p_credits, unlimited: false, pack: null, expires: plus(bz(a.p_business).package_days ?? 30) });
     return { ok: true };
   },
   /* Οι πελάτες της επιχείρησης με την καρτέλα τους: επισκέψεις, έσοδα, επόμενο ραντεβού, πακέτο και στοιχεία ανά επάγγελμα. */

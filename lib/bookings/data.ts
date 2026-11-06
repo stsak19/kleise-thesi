@@ -37,7 +37,7 @@ export function useMyBookings() {
   const upcoming = all.filter((b) => b.status === 'booked' && b.date >= today);
   const past = all.filter((b) => !(b.status === 'booked' && b.date >= today)).reverse();
   const waitlist: any[] = d?.waitlist ?? [];
-  const packs: any[] = (d?.memberships ?? []).filter((m: any) => m.expires || m.status === 'pending');
+  const packs: any[] = (d?.memberships ?? []).filter((m: any) => m.expires || m.status === 'pending' || m.pending_package);
 
   const color = (b: { business_id?: string }) => (b.business_id && biz[b.business_id]?.color) || C.tint;
   const open = (b: { business_id?: string }) => { if (b.business_id) router.push(`/store/${b.business_id}`); };

@@ -129,6 +129,7 @@ export function BizSwitcher({ biz, card }: { biz: any; card?: boolean }) {
 export function useDay(biz: any, date: string) {
   const [day, setDay] = useState<any[]>([]);
   const [pending, setPending] = useState<any[]>([]);
+  const [packReqs, setPackReqs] = useState<any[]>([]);
   const [override, setOverride] = useState<{ note: string; closed: boolean }>({ note: '', closed: false });
   const [loading, setLoading] = useState(false);
   const load = useCallback(async () => {
@@ -139,10 +140,11 @@ export function useDay(biz: any, date: string) {
       rpc('owner_pending', { p_business: biz.id }),
       sb.from('day_overrides').select('*').eq('business_id', biz.id).eq('date', date).maybeSingle(),
     ]);
+    rpc<any[]>('owner_package_requests', { p_business: biz.id }).then((x) => setPackReqs(x ?? [])).catch(() => setPackReqs([]));
     setDay(d ?? []); setPending(p ?? []); setOverride({ note: o.data?.note ?? '', closed: !!o.data?.closed }); setLoading(false);
   }, [biz, date]);
   useEffect(() => { load(); }, [load]);
-  return { day, pending, override, setOverride, loading, load };
+  return { day, pending, packReqs, override, setOverride, loading, load };
 }
 
 export const Stat = ({ n, label, color }: { n: number | string; label: string; color?: string }) => (

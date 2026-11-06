@@ -3,7 +3,7 @@ import { Linking, ScrollView, View } from 'react-native';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Text } from '../../../lib/Txt';
 import { promptText, say } from '../../../lib/alert';
-import { rpc } from '../../../lib/supabase';
+import { rpc, sb } from '../../../lib/supabase';
 import { styleOf } from '../../../lib/presets';
 import { NoBiz, Stat, packLine, useClients, useMyBiz } from '../../../lib/owner/hub';
 import { Avatar, Btn, C, Card, Input, Pill, Section, T, fmtDay, iso, price, s } from '../../../lib/ui';
@@ -21,6 +21,7 @@ export default function Client() {
   const { list, reload } = useClients(biz);
   const [hist, setHist] = useState<any[]>([]);
   const [note, setNote] = useState('');
+  const [picks, setPicks] = useState<any[] | null>(null);
   const c = (list ?? []).find((x) => x.user_id === id);
   useEffect(() => { if (c) setNote(c.note ?? ''); }, [c?.user_id, c?.note]);
   useFocusEffect(useCallback(() => {
@@ -36,9 +37,34 @@ export default function Client() {
   const past = hist.filter((h) => !(h.status === 'booked' && h.date >= today));
 
   const saveNote = async () => { await rpc('owner_set_note', { p_business: biz.id, p_user: c.user_id, p_note: note }).catch(() => say('Δεν αποθηκεύτηκε')); reload(); };
-  const renew = () => promptText('Ανανέωση πακέτου', `Πόσες επισκέψεις για ${c.name};`, async (v) => {
+  const manual = () => promptText('Ανανέωση πακέτου', `Πόσες επισκέψεις για ${c.name};`, async (v) => {
     const n = parseInt(v, 10); if (n > 0) { await rpc('owner_renew', { p_business: biz.id, p_user: c.user_id, p_credits: n }); reload(); say('Ανανεώθηκε'); }
   });
+  /* Ανανέωση / νέο πακέτο: διάλεξε ένα από τα πακέτα σου (όπως αν το ζητούσε ο πελάτης), ή γράψε αριθμό επισκέψεων. */
+  const renew = async () => {
+    const { data } = await sb.from('packages').select('*').eq('business_id', biz.id).eq('active', true);
+    const list = (data ?? []).filter((p: any) => p.sessions || p.kind === 'sub');
+    if (!list.length) return manual();
+    setPicks(list);
+  };
+  const give = async (p: any) => {
+    const r = await rpc('owner_activate_package', { p_business: biz.id, p_user: c.user_id, p_package: p.id });
+    setPicks(null);
+    if (r?.ok === false) say('Δεν έγινε', r.error); else say('Ενεργοποιήθηκε ✓', `${c.name} · «${p.name}»`);
+    reload();
+  };
+  const picker = !!picks && (
+    <Card style={{ gap: 8 }}>
+      <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>Ποιο πακέτο πλήρωσε;</Text>
+      {picks.map((p) => (
+        <Btn key={p.id} size="sm" kind="ghost" title={`${p.name}${p.price_cents ? ' · ' + price(p.price_cents) : ''}`} onPress={() => give(p)} />
+      ))}
+      <View style={[s.row, { gap: 10 }]}>
+        <Btn size="sm" kind="ghost" title="Άλλος αριθμός…" style={{ flex: 1 }} onPress={() => { setPicks(null); manual(); }} />
+        <Btn size="sm" kind="ghost" title="Άκυρο" style={{ flex: 1 }} onPress={() => setPicks(null)} />
+      </View>
+    </Card>
+  );
   const pk = c.pack;
 
   return (
@@ -85,6 +111,8 @@ export default function Client() {
           )}
         </Card>
       )}
+      {!pk && !picks && biz.uses_credits && <Btn kind="ghost" icon="pack" title="Δώσε πακέτο" onPress={renew} />}
+      {picker}
 
       {!!c.fields?.length && <>
         <Section title="Καρτέλα" />

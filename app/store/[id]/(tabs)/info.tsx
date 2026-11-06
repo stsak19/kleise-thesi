@@ -5,6 +5,7 @@ import { useStore } from '../../../../lib/store/data';
 import { useBook, firstName } from '../../../../lib/store/book';
 import { Face, dur } from '../../../../lib/store/BookUI';
 import { MessageList, StoreTop } from '../../../../lib/store/parts';
+import { StorePacks } from '../../../../lib/store/Packs';
 import { useWide } from '../../../../lib/wide';
 
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
@@ -105,13 +106,14 @@ export default function StoreInfo() {
       <ScrollView contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: wide ? 40 : TAB_SPACE }}>
         {wide ? (
           <View style={{ flexDirection: 'row', gap: 28, alignItems: 'flex-start' }}>
-            <View style={{ flex: 1.2, gap: 12, minWidth: 0 }}>{about}{services}{news}</View>
+            <View style={{ flex: 1.2, gap: 12, minWidth: 0 }}>{about}{services}<StorePacks />{news}</View>
             <View style={{ flex: 1, gap: 12, minWidth: 0 }}>{contact}{hours}{team}</View>
           </View>
         ) : (
           <>
             {about}
             {services}
+            <StorePacks />
             {contact}
             {hours}
             {team}

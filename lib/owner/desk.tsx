@@ -260,6 +260,35 @@ export function PendingBox({ biz, list, onDone }: { biz: any; list: any[]; onDon
   );
 }
 
+/* Πελάτες που διάλεξαν πακέτο: «Πληρώθηκε» το ενεργοποιεί (μπαίνουν οι επισκέψεις), «Όχι» το απορρίπτει. */
+export function PackRequestsBox({ biz, list, onDone }: { biz: any; list: any[]; onDone: () => void }) {
+  if (!list.length) return null;
+  const ok = async (p: any) => {
+    const r = await rpc('owner_activate_package', { p_business: biz.id, p_user: p.user_id, p_package: p.package_id });
+    if (r?.ok === false) say('Δεν έγινε', r.error); else say('Ενεργοποιήθηκε ✓', `${p.name || 'Ο πελάτης'} έχει τώρα το «${p.package}».`);
+    onDone();
+  };
+  const no = (p: any) => say('Απόρριψη αιτήματος', `Να απορριφθεί το «${p.package}» για ${p.name || 'τον πελάτη'};`, [
+    { text: 'Άκυρο', style: 'cancel' },
+    { text: 'Απόρριψη', style: 'destructive', onPress: async () => { await rpc('owner_decline_package', { p_business: biz.id, p_user: p.user_id }); onDone(); } }]);
+  return (
+    <Box title="Ζήτησαν πακέτο" right={<Text style={{ color: C.tint, fontWeight: '800', fontSize: 13 }}>{list.length}</Text>}>
+      {list.map((p, i) => (
+        <Line key={p.user_id} first={i === 0}>
+          <Avatar name={p.name || '?'} size={34} />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={{ color: C.text, fontWeight: '700', fontSize: 14 }} numberOfLines={1}>{p.name || 'Χωρίς όνομα'}</Text>
+            <Text style={{ color: C.mute, fontSize: 12 }} numberOfLines={1}>{p.package}{p.price_cents ? ` · ${price(p.price_cents)}` : ''}</Text>
+          </View>
+          <Small tone="ok" title="Πληρώθηκε" onPress={() => ok(p)} />
+          <Small tone="bad" title="Όχι" onPress={() => no(p)} />
+        </Line>
+      ))}
+      <Text style={{ color: C.mute, fontSize: 12, paddingTop: 6 }}>Πάτα «Πληρώθηκε» όταν σου πληρώσει το πακέτο. Οι επισκέψεις μπαίνουν αμέσως στον λογαριασμό του.</Text>
+    </Box>
+  );
+}
+
 /* Κρατήσεις που η ώρα τους πέρασε και δεν σημειώθηκαν. */
 export function CameBox({ day, onChange }: { day: any[]; onChange: () => void }) {
   const now = nowHHMM();

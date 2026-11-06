@@ -5,7 +5,7 @@ import { say } from '../alert';
 import { iso } from '../ui';
 import { useAuth } from '../auth';
 import { askLogin } from '../guest';
-import { useStore, dayLabel, endOf, type Service, type Slot } from './data';
+import { useStore, askPack, dayLabel, endOf, type Service, type Slot } from './data';
 
 /* Η ροή κράτησης: μία ροή με βήματα που εμφανίζονται μόνο όταν χρειάζονται.
    Υπηρεσία (αν είναι πάνω από μία) → Άτομο (αν την κάνουν πάνω από ένα άτομα) → Ώρα → Επιβεβαίωση.
@@ -135,7 +135,7 @@ function useBookState() {
       const args: any = { p_service: service.id, p_date: date, p_time: time };
       if (team.length && who && who !== ANY) args.p_staff = who;
       const r: any = await rpc('create_booking', args);
-      if (r && r.ok === false) { say(r.pending ? 'Σε αναμονή έγκρισης' : 'Δεν έγινε', r.error); setBusy(false); return; }
+      if (r && r.ok === false) { r.no_credits ? (close(), askPack(S.id)) : say(r.pending ? 'Σε αναμονή έγκρισης' : 'Δεν έγινε', r.error); setBusy(false); return; }
       if (person && team.length > 1) { if (keep) setFav({ staff: person.id, service: service.id }); else if (fav?.staff === person.id) setFav(null); }
       const withWho = r?.staff ? ` · με ${withArticle(r.staff)}` : person ? ` · με ${withArticle(person.name)}` : '';
       close(); setTime(null);

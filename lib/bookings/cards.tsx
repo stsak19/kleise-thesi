@@ -51,13 +51,16 @@ export function WaitRow({ w, store, onLeave }: { w: B; store?: string; onLeave?:
 }
 
 /* Υπόλοιπο ενός πακέτου: όσα απομένουν και το σύνολο της περιόδου (απομένουν + όσα χρησιμοποιήθηκαν από την αρχή του). */
-export type PackInfo = { left: number; total: number | null; expires: string | null; pending: boolean };
+export type PackInfo = { left: number; total: number | null; expires: string | null; pending: boolean; name?: string | null; unlimited?: boolean; asked?: string | null };
 export function packInfo(m: any, biz: any, bookings: { business_id?: string; status: string; date: string }[]): PackInfo {
   const left = m.credits ?? 0;
+  const base = { expires: m.expires ?? null, pending: m.status === 'pending', name: m.pack ?? null, asked: m.pending_package?.name ?? null };
+  if (m.unlimited) return { ...base, left, total: null, unlimited: true };
+  if (m.total) return { ...base, left, total: Math.max(m.total, left) };
   let since: string | null = null;
   if (m.expires) { const d = new Date(m.expires + 'T00:00'); d.setDate(d.getDate() - (biz?.package_days ?? 30)); since = iso(d); }
   const used = bookings.filter((b) => (!b.business_id || b.business_id === m.business_id) && b.status !== 'cancelled' && (!since || b.date >= since)).length;
-  return { left, total: m.expires ? Math.max(left + used, left, 1) : null, expires: m.expires ?? null, pending: m.status === 'pending' };
+  return { ...base, left, total: m.expires ? Math.max(left + used, left, 1) : null };
 }
 
 /* Κάρτα πακέτου: χρώμα και λογότυπο του καταστήματος, κρατήσεις που απομένουν, μπάρα προόδου, λήξη. */
@@ -70,23 +73,28 @@ export function PackCard({ name, biz, color, p, onPress }: { name: string; biz?:
         <BizLogo biz={biz} name={name} color={color} />
         <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
           <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{name}</Text>
-          {!!biz?.category && <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{catLabel(biz.category)}</Text>}
+          {!!(p.name || biz?.category) && <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{p.name ?? catLabel(biz.category)}</Text>}
         </View>
-        {p.pending ? <Pill text="Σε αναμονή" tone="accent" /> : (
+        {p.pending || (p.asked && !p.expires) ? <Pill text="Σε αναμονή" tone="accent" /> : p.unlimited ? (
+          <View style={{ alignItems: 'center', minWidth: 54, paddingVertical: 6, paddingHorizontal: 8, borderRadius: 13, backgroundColor: alpha(color, 0.12) }}>
+            <Text style={{ color, fontWeight: '900', fontSize: 20 }}>∞</Text>
+            <Text style={{ color, fontWeight: '700', fontSize: 10 }}>ΑΠΕΡΙΟΡΙΣΤΑ</Text>
+          </View>
+        ) : (
           <View style={{ alignItems: 'center', minWidth: 54, paddingVertical: 6, paddingHorizontal: 8, borderRadius: 13, backgroundColor: alpha(color, 0.12) }}>
             <Text style={{ color, fontWeight: '900', fontSize: 20, letterSpacing: -0.5 }}>{p.left}{p.total ? <Text style={{ color, fontWeight: '700', fontSize: 13, opacity: 0.7 }}>/{p.total}</Text> : null}</Text>
             <Text style={{ color, fontWeight: '700', fontSize: 10 }}>{p.left === 1 ? 'ΚΡΑΤΗΣΗ' : 'ΚΡΑΤΗΣΕΙΣ'}</Text>
           </View>
         )}
       </View>
-      {!p.pending && !!p.total && (
+      {!p.pending && !!p.total && !!p.expires && (
         <View style={{ height: 6, borderRadius: 3, backgroundColor: alpha(color, 0.14), marginHorizontal: 14, marginBottom: 10 }}>
           <View style={{ width: `${Math.min(100, (100 * p.left) / p.total)}%`, height: 6, borderRadius: 3, backgroundColor: color }} />
         </View>
       )}
       <View style={[s.row, { gap: 6, paddingHorizontal: 14, paddingBottom: 14 }]}>
         <Icon name="clock" size={15} color={C.mute} />
-        <Text style={{ color: C.mute, fontSize: 14, flex: 1 }}>{p.pending ? 'Περιμένει έγκριση από το κατάστημα' : p.expires ? `Ισχύει έως ${fmtDay(p.expires)}` : 'Χωρίς λήξη'}</Text>
+        <Text style={{ color: C.mute, fontSize: 14, flex: 1 }}>{p.pending ? 'Περιμένει έγκριση από το κατάστημα' : p.asked ? `Ζήτησες «${p.asked}» · ενεργοποιείται όταν το πληρώσεις` : p.expires ? `Ισχύει έως ${fmtDay(p.expires)}` : 'Χωρίς λήξη'}</Text>
         {!!onPress && <Icon name="chevron" size={14} color={C.mute} />}
       </View>
     </Pressable>

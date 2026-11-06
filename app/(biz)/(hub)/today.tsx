@@ -3,7 +3,7 @@ import { RefreshControl, ScrollView, View } from 'react-native';
 import { Attention, BizSwitcher, NoBiz, StaffFilter, useDay, useMyBiz, useStaff } from '../../../lib/owner/hub';
 import { DayDetail, DayHead, DidTheyCome, HourList, NewClients, slotsOf } from '../../../lib/owner/day';
 import { C, ScreenHeader, T, alpha, iso, s } from '../../../lib/ui';
-import { CameBox, DayOpenBox, DeskList, PendingBox, useWide } from '../../../lib/owner/desk';
+import { CameBox, DayOpenBox, DeskList, PackRequestsBox, PendingBox, useWide } from '../../../lib/owner/desk';
 
 /* «Πρόγραμμα» (ενώνει τα παλιά Σήμερα και Ημερολόγιο).
    Κινητό: πάνω καρφωμένα λωρίδα ημερών, τίτλος ημέρας και τέσσερα κουτάκια· από κάτω οι ώρες σαν κάρτες που ανοίγουν.
@@ -44,6 +44,7 @@ export default function Today() {
           </View>
         )}
         <PendingBox biz={biz} list={D.pending} onDone={D.load} />
+        <PackRequestsBox biz={biz} list={D.packReqs} onDone={D.load} />
         <CameBox day={T0.day} onChange={reload} />
         <DayOpenBox biz={biz} date={date} override={D.override} setOverride={D.setOverride} onSaved={D.load} />
         <Attention biz={biz} />
@@ -65,6 +66,7 @@ export default function Today() {
           </View>
         )}
         <NewClients biz={biz} list={D.pending} onDone={D.load} />
+        <PackRequestsBox biz={biz} list={D.packReqs} onDone={D.load} />
         <DidTheyCome day={T0.day} onChange={reload} />
       </View>
 
