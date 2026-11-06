@@ -6,6 +6,8 @@ import { Text } from '../Txt';
 import { Photo } from '../Photo';
 import { C, Icon, alpha } from '../ui';
 import { useStore } from './data';
+import { useWide } from '../wide';
+import { DeskTitle } from './desk';
 
 /* Η κάτω μπάρα του καταστήματος: η ίδια γυάλινη μπάρα του SpotOn (lib/FloatBar), με τη λέξη της ενεργής καρτέλας
    και πλάτος που αλλάζει με κίνηση. */
@@ -43,6 +45,7 @@ export const upper = (x: string) => x.normalize('NFD').replace(/́/g, '').normal
 export function StoreTop({ title, right }: { title: string; right?: React.ReactNode }) {
   const S = useStore();
   const top = useSafeAreaInsets().top;
+  if (useWide()) return <DeskTitle title={title} right={right} />;
   return (
     <View style={{ paddingTop: top + 8, paddingHorizontal: 20, paddingBottom: 14, gap: 14, borderBottomWidth: 1, borderBottomColor: C.line, backgroundColor: C.bg }}>
       <ExitPill />

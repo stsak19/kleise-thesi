@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, FlatList, Image, Keyboard, LayoutAnimation, Pressable, ScrollView, View } from 'react-native';
+import { Animated, Image, Keyboard, LayoutAnimation, Pressable, ScrollView, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Text, TextInput } from '../../../lib/Txt';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -13,6 +13,8 @@ import { styleOf } from '../../../lib/presets';
 import { Photo } from '../../../lib/Photo';
 import { CAT_ART } from '../../../lib/catArt';
 import { setSearchOpen } from '../../../lib/searchOpen';
+import { useWide } from '../../../lib/wide';
+import { DeskSearch } from '../../../lib/client/desk';
 type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null };
 
 
@@ -78,6 +80,7 @@ export default function Home() {
   const router = useRouter();
   const [cat, setCat] = useState<string | null>(null);
   const [q, setQ] = useState('');
+  const wide = useWide();
   const [list, setList] = useState<Biz[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -163,7 +166,7 @@ export default function Home() {
   /* Φίλτρα σε στιλ Wolt: τετράγωνα πλακίδια με μεγάλο εικονίδιο και τίτλο από κάτω. */
   const chips = (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }}
-      contentContainerStyle={{ gap: 10, paddingHorizontal: 16 }} keyboardShouldPersistTaps="handled">
+      contentContainerStyle={{ gap: 10, paddingHorizontal: wide ? 0 : 16 }} keyboardShouldPersistTaps="handled">
       {cats.map((c) => {
         const on = cat === c.key || (c.key === null && !cat);
         const art = CAT_ART[c.key ?? 'all'] ?? CAT_ART.other;
@@ -200,6 +203,8 @@ export default function Home() {
   const empty = <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα ή άλλη κατηγορία."
     action={filtering ? 'Καθαρισμός φίλτρων' : undefined} onAction={() => { setCat(null); setQ(''); }} />;
 
+  if (wide) return <DeskHome {...{ q, setQ, chips, sections, list, loaded, filtering, empty, cat, onOpen: (b: Biz) => router.push(`/store/${b.id}`) }} />;
+
   return (
     <View style={s.screen}>
       {fixed}
@@ -218,5 +223,55 @@ export default function Home() {
           ) : sections.map(row)}
       </ScrollView>
     </View>
+  );
+}
+
+/* Η αρχική σε υπολογιστή (εκδοχή Β): γυάλινη αναζήτηση στο κέντρο, πλακίδια κατηγοριών
+   και ενότητες σε πλέγμα αντί για οριζόντια κύλιση. Το μενού είναι αριστερά (lib/client/desk). */
+function DeskHome({ q, setQ, chips, sections, list, loaded, filtering, empty, cat, onOpen }:
+  { q: string; setQ: (v: string) => void; chips: React.ReactNode; sections: { title: string; items: Biz[] }[]; list: Biz[]; loaded: boolean; filtering: boolean; empty: React.ReactNode; cat: string | null; onOpen: (b: Biz) => void }) {
+  const [w, setW] = useState(0);
+  const [more, setMore] = useState<Record<string, boolean>>({});
+  const cols = w >= 1100 ? 4 : w >= 700 ? 3 : 2, GAP = 20;
+  const cw = w ? (w - GAP * (cols - 1)) / cols : 0;
+  const grid = (items: Biz[]) => (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GAP }}>
+      {!!cw && items.map((b) => <View key={b.id} style={{ width: cw }}><BizCard b={b} onPress={() => onOpen(b)} /></View>)}
+    </View>
+  );
+  const head = (title: string, right?: React.ReactNode) => (
+    <View style={[s.row, { alignItems: 'baseline' }]}>
+      <Text style={[s.h, { flex: 1, fontSize: 22 }]}>{title}</Text>
+      {right}
+    </View>
+  );
+  return (
+    <ScrollView style={s.screen} contentContainerStyle={{ paddingVertical: 26, paddingHorizontal: 40, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
+      <View style={{ width: '100%', maxWidth: 1320, alignSelf: 'center' }}>
+        <View style={{ gap: 26 }} onLayout={(e) => setW(Math.floor(e.nativeEvent.layout.width))}>
+          <DeskSearch value={q} onChange={setQ} />
+          {chips}
+          {!loaded ? null : list.length === 0 ? empty
+            : filtering ? (
+              <View style={{ gap: 16 }}>
+                {head(cat ? catLabel(cat) : 'Αποτελέσματα', <Text style={{ color: C.mute, fontWeight: '600', fontSize: 14 }}>{list.length} {list.length === 1 ? 'κατάστημα' : 'καταστήματα'}</Text>)}
+                {grid(list)}
+              </View>
+            ) : sections.map((x) => {
+              const open = !!more[x.title], extra = x.items.length > cols;
+              return (
+                <View key={x.title} style={{ gap: 14 }}>
+                  {head(x.title, extra ? (
+                    <Pressable onPress={() => setMore((m) => ({ ...m, [x.title]: !open }))} hitSlop={8} style={({ hovered }: any) => ({ opacity: hovered ? 0.6 : 1 })}>
+                      <Text style={{ color: C.mute, fontWeight: '700', fontSize: 14 }}>{open ? 'Λιγότερα' : `Όλα (${x.items.length}) ›`}</Text>
+                    </Pressable>
+                  ) : undefined)}
+                  {grid(open ? x.items : x.items.slice(0, cols))}
+                </View>
+              );
+            })}
+        </View>
+      </View>
+    </ScrollView>
   );
 }

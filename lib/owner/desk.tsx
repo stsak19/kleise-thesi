@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, View, useWindowDimensions, type ViewStyle } from 'react-native';
+import { Modal, Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text } from '../Txt';
 import { say } from '../alert';
@@ -18,11 +18,7 @@ import { nowHHMM, type Slot } from './day';
 /* Η λειτουργία επιχείρησης σε υπολογιστή: πλαϊνό μενού αριστερά, περιεχόμενο στη μέση, στήλη «θέλουν απάντηση» δεξιά.
    Ίδιες οθόνες με το κινητό· σε φαρδιά οθόνη απλώς απλώνονται. */
 
-export const WIDE = 1000;
-/* Φαρδιά οθόνη (υπολογιστής, μεγάλο tablet): πλαϊνό μενού αντί για κάτω μπάρα. */
-export const useWide = () => useWindowDimensions().width >= WIDE;
-/* Στον υπολογιστή οι οθόνες-λίστες δεν απλώνονται σε όλο το πλάτος: μένουν σε μια άνετη στήλη στη μέση. */
-export const deskCol = (wide: boolean): ViewStyle | null => (wide ? { width: '100%', maxWidth: 820, alignSelf: 'center', paddingHorizontal: 32 } : null);
+export { WIDE, useWide, deskCol } from '../wide';
 
 /* ---------- Πλαϊνό μενού ---------- */
 export type SideItems = Record<string, { icon: IconName; label: string }>;

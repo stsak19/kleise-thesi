@@ -3,14 +3,16 @@ import { Text } from '../../lib/Txt';
 import { C, Card, Empty, Icon, Pill, ScreenHeader, alpha, catLabel, fmtDay, s, shadow } from '../../lib/ui';
 import { useMyBookings } from '../../lib/bookings/data';
 import { BizLogo } from '../../lib/bookings/parts';
+import { deskCol, useWide } from '../../lib/wide';
 
 /* Πακέτα: τα καρνέ του χρήστη ανά κατάστημα, με τις κρατήσεις που απομένουν και τη λήξη. */
 export default function Packs() {
   const D = useMyBookings();
   const n = D.packs.length;
+  const wide = useWide();
   return (
-    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0 }]} refreshControl={<RefreshControl refreshing={D.loading} onRefresh={D.load} />}>
-      <View style={{ marginHorizontal: -20 }}>
+    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0 }, wide && { paddingBottom: 60 }, deskCol(wide)]} refreshControl={<RefreshControl refreshing={D.loading} onRefresh={D.load} />}>
+      <View style={{ marginHorizontal: -20, marginTop: wide ? 12 : 0 }}>
         <ScreenHeader title="Πακέτα" sub={n ? `${n} ${n === 1 ? 'πακέτο' : 'πακέτα'}` : undefined} />
       </View>
       {D.ready && n === 0 && (
