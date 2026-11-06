@@ -27,7 +27,7 @@ export const endOf = (t: string, min: number) => {
 };
 /* Κράτηση χωρίς διαθέσιμες επισκέψεις: πάμε τον πελάτη στα πακέτα του καταστήματος. */
 export const askPack = (id: string, msg?: string) => say('Χρειάζεσαι πακέτο', msg ?? 'Δεν σου έμειναν κρατήσεις. Διάλεξε ένα πακέτο από το κατάστημα.', [
-  { text: 'Όχι τώρα', style: 'cancel' }, { text: 'Δες τα πακέτα', onPress: () => router.navigate(`/store/${id}/info` as any) }]);
+  { text: 'Όχι τώρα', style: 'cancel' }, { text: 'Δες τα πακέτα', onPress: () => router.navigate(`/store/${id}` as any) }]);
 export type Package = { id: string; name: string; kind: string; price_cents: number; sessions: number | null; days: number | null; note: string | null; popular?: boolean };
 
 export const dayLabel = (d: string) => (d === iso(new Date()) ? 'Σήμερα' : fmtLong(d));
@@ -162,7 +162,7 @@ function useStoreData(id: string) {
   /* Πακέτα: ο πελάτης διαλέγει ένα, το κατάστημα το ενεργοποιεί όταν πληρωθεί. */
   const pendingPack: { id: string; name: string } | null = membership?.pending_package ?? null;
   const choosePack = (pk: Package) => {
-    if (!signedIn) return askLogin(`/store/${id}/info`);
+    if (!signedIn) return askLogin(`/store/${id}`);
     const go = () => run('pack' + pk.id, () => rpc('request_package', { p_package: pk.id }), 'Το ζήτησες ✓',
       `Το κατάστημα θα ενεργοποιήσει το «${pk.name}» όταν το πληρώσεις εκεί. Θα σου έρθει ειδοποίηση.`);
     say(`«${pk.name}»`, [pk.price_cents ? `Τιμή ${(pk.price_cents / 100).toLocaleString('el-GR')}€, πληρώνεται στο κατάστημα.` : 'Δωρεάν.',

@@ -3,7 +3,7 @@ import { Animated, Modal, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../Txt';
 import { Photo } from '../Photo';
-import { Btn, C, DAYS, Icon, MONTHS, alpha, price, s, shadow, Toggle } from '../ui';
+import { Btn, C, DAYS, Icon, alpha, price, s, shadow, Toggle } from '../ui';
 import { useStore, endOf } from './data';
 import { ANY, firstName, useBook, withArticle, type Staff, type Step } from './book';
 import { StoreLogo } from './parts';
@@ -313,94 +313,3 @@ export function UsualCard() {
   );
 }
 
-/* ---------- αρχική καρτέλα καταστήματος με ραντεβού (κινητό): το συνηθισμένο σου και οι υπηρεσίες.
-   Περιγραφή, ομάδα και ωράριο είναι στην καρτέλα «Κατάστημα». ---------- */
-export function BookHome() {
-  const S = useStore(); const B = useBook();
-  return (
-    <View style={{ gap: 18, paddingHorizontal: 20, paddingTop: 16 }}>
-      <UsualCard />
-      {S.services.length > 0 && (
-        <View>
-          <Text style={{ color: C.text, fontWeight: '800', fontSize: 18, marginBottom: 2 }}>{B.favStaff && B.usualService ? 'Ή διάλεξε υπηρεσία' : 'Διάλεξε υπηρεσία'}</Text>
-          {S.services.map((sv, i) => (
-            <Pressable key={sv.id} onPress={() => B.start({ service: sv })} style={({ pressed }) => [s.row, { gap: 12, paddingVertical: 13, borderBottomWidth: i === S.services.length - 1 ? 0 : 1, borderBottomColor: C.line, opacity: pressed ? 0.7 : 1 }]}>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ color: C.text, fontSize: 15, fontWeight: '700' }} numberOfLines={1}>{sv.name}</Text>
-                <Text style={{ color: C.mute, fontSize: 12.5 }}>{dur(sv.duration_min)}</Text>
-              </View>
-              <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{sv.price_cents == null ? '' : price(sv.price_cents)}</Text>
-              <Icon name="chevron" size={16} color={C.mute} />
-            </Pressable>
-          ))}
-        </View>
-      )}
-    </View>
-  );
-}
-
-/* ---------- υπολογιστής: όλα τα βήματα σε μία σελίδα ---------- */
-function Sec({ n, title, done, value, onChange, children }: { n: number; title: string; done?: boolean; value?: string; onChange?: () => void; children?: React.ReactNode }) {
-  return (
-    <View style={{ borderWidth: 1, borderColor: C.line, borderRadius: 22, paddingVertical: 18, paddingHorizontal: 22, gap: 14, backgroundColor: done ? alpha(C.text, 0.02) : C.bg }}>
-      <View style={[s.row, { gap: 12 }]}>
-        <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.text, alignItems: 'center', justifyContent: 'center' }}>
-          {done ? <Icon name="check" size={14} color={C.bg} /> : <Text style={{ color: C.bg, fontWeight: '800', fontSize: 13 }}>{n}</Text>}
-        </View>
-        <Text style={{ color: C.text, fontWeight: '800', fontSize: 18 }}>{title}</Text>
-        {!!value && <Text style={{ color: C.mute, fontWeight: '700', fontSize: 14, flex: 1 }} numberOfLines={1}>· {value}</Text>}
-        {!!onChange && <Pressable onPress={onChange} style={{ marginLeft: 'auto' }}><Text style={{ color: C.text, fontWeight: '700', fontSize: 13.5, textDecorationLine: 'underline' }}>Αλλαγή</Text></Pressable>}
-      </View>
-      {children}
-    </View>
-  );
-}
-export function BookPage() {
-  const S = useStore(); const B = useBook();
-  const svDone = !!B.service && B.step !== 'service';
-  let n = 0;
-  return (
-    <View style={{ gap: 14, paddingHorizontal: 20, paddingBottom: 40 }}>
-      <UsualCard />
-      {S.services.length > 1 && (
-        <Sec n={++n} title={svDone ? 'Υπηρεσία' : 'Τι θα κάνεις;'} done={svDone} value={svDone ? `${B.service!.name}, ${dur(B.service!.duration_min)}${B.service!.price_cents != null ? ', ' + price(B.service!.price_cents) : ''}` : ''}
-          onChange={svDone ? () => B.setStep('service') : undefined}>
-          {!svDone && <StepService grid />}
-          {!svDone && !!B.service && <Btn title="Συνέχεια" onPress={() => B.setStep('time')} style={{ alignSelf: 'flex-start' }} />}
-        </Sec>
-      )}
-      {svDone || S.services.length <= 1 ? (
-        <>
-          {B.team.length > 1 && <Sec n={++n} title="Με ποιον;"><StepStaff row /></Sec>}
-          {!!B.service && (
-            <Sec n={++n} title="Πότε;" value={S.services.length <= 1 ? `${B.service.name}, ${dur(B.service.duration_min)}${B.person ? ' με ' + withArticle(B.person.name) : ''}` : ''}>
-              <StepTime wide />
-            </Sec>
-          )}
-        </>
-      ) : null}
-    </View>
-  );
-}
-/* Η δεξιά στήλη στον υπολογιστή: η σύνοψη της κράτησης και το κουμπί. */
-export function BookSummary() {
-  const S = useStore(); const B = useBook();
-  const color = S.st?.color ?? C.accent;
-  const ready = !!B.service && !!B.time && (B.team.length < 2 || !!B.who);
-  return (
-    <View style={[{ borderWidth: 1, borderColor: C.line, borderRadius: 24, overflow: 'hidden', backgroundColor: C.bg }, shadow(2)]}>
-      <View style={{ height: 96, backgroundColor: color }} />
-      <View style={{ position: 'absolute', left: 18, top: 70 }}><StoreLogo size={50} /></View>
-      <View style={{ paddingTop: 34, paddingHorizontal: 20, paddingBottom: 20, gap: 12 }}>
-        <View>
-          <Text style={{ color: C.text, fontWeight: '800', fontSize: 18 }} numberOfLines={1}>{S.biz?.name}</Text>
-          <Text style={{ color: C.mute, fontSize: 13, fontWeight: '600' }} numberOfLines={1}>{S.biz?.address}</Text>
-        </View>
-        <SummaryLines />
-        <KeepFav />
-        <Btn title={B.busy ? '…' : ctaText(S, B)} disabled={!ready || B.busy} onPress={B.submit} />
-        <Policy />
-      </View>
-    </View>
-  );
-}

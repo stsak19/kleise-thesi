@@ -41,8 +41,8 @@ export default function StoreBookings() {
             <PackCard name={S.biz?.name ?? ''} biz={S.biz} color={color} p={S.packInfo} />
           </>}
           {S.packages.length > 0 && (!S.packInfo || (S.packInfo.left <= 0 && !S.packInfo.unlimited && !S.packInfo.asked)) &&
-            <AllLink icon="pack" text={S.packInfo ? 'Τελείωσε το πακέτο · διάλεξε νέο' : 'Διάλεξε πακέτο του καταστήματος'} onPress={() => router.navigate(`/store/${S.id}/info` as any)} />}
-          {n === 0 && <Empty text="Δεν έχεις κλείσει ώρα εδώ. Διάλεξε μία από την Κράτηση." />}
+            <AllLink icon="pack" text={S.packInfo ? 'Τελείωσε το πακέτο · διάλεξε νέο' : 'Διάλεξε πακέτο του καταστήματος'} onPress={() => router.navigate(`/store/${S.id}` as any)} />}
+          {n === 0 && <Empty text="Δεν έχεις κλείσει ώρα εδώ. Κλείσε από την αρχική του καταστήματος." />}
           {!!next && <>
             {!!S.packInfo && <Section title="Η επόμενη κράτηση" />}
             <Hero b={next} biz={S.biz} color={color} onCancel={() => S.cancelBooking(next)} />

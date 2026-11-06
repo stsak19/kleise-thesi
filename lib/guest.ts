@@ -7,8 +7,8 @@ import { Platform } from 'react-native';
    Στην εφαρμογή του κινητού η σύνδεση χρειάζεται από την αρχή, όπως πριν. */
 export const GUEST_OK = Platform.OS === 'web';
 
-/* Οι σελίδες που ανοίγουν χωρίς λογαριασμό: η αρχική, η κράτηση και η καρτέλα «Κατάστημα» ενός καταστήματος. */
-export const openToGuests = (path: string) => GUEST_OK && (path === '/' || /^\/store\/[^/]+(\/info)?\/?$/.test(path));
+/* Οι σελίδες που ανοίγουν χωρίς λογαριασμό: η αρχική, η αρχική ενός καταστήματος (στοιχεία και κράτηση). */
+export const openToGuests = (path: string) => GUEST_OK && (path === '/' || /^\/store\/[^/]+\/?$/.test(path));
 
 let back: string | null = null;
 export const setReturnTo = (path: string | null) => { back = path; };

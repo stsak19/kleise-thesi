@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Text } from '../Txt';
 import { usePerson } from '../profile/data';
 import { Initials } from '../profile/parts';
@@ -8,8 +8,6 @@ import { useStore } from './data';
 import { ExitPill, StoreLogo } from './parts';
 import { askLogin } from '../guest';
 import { useRouter } from 'expo-router';
-import { AllLink, BookingRow } from '../bookings/cards';
-import { BookSummary } from './BookUI';
 
 /* Το κατάστημα σε υπολογιστή: σαν ξεχωριστή εφαρμογή, με δική του πάνω μπάρα (‹ SpotOn, λογότυπο και όνομα, καρτέλες,
    Σύνδεση ή ο λογαριασμός), περιεχόμενο σε στήλη στη μέση και, μόνο στην Κράτηση, δεξιά η σύνοψη και το πακέτο.
@@ -54,32 +52,6 @@ export function StoreTopBar({ items, state, navigateToTab }: { items: Record<str
         </Pressable>
       )}
     </View>
-  );
-}
-
-/* Η δεξιά στήλη: υπάρχει μόνο στην καρτέλα Κράτηση. Ραντεβού: η σύνοψη της κράτησης που φτιάχνεις.
-   Μαθήματα: οι επόμενες κρατήσεις σου. Το πακέτο φαίνεται μικρό πάνω από το πρόγραμμα και ολόκληρο στις «Οι κρατήσεις μου». Υπηρεσίες και ωράριο ζουν πια στην καρτέλα «Κατάστημα». */
-export function StoreAside() {
-  const S = useStore();
-  const P = usePerson();
-  const router = useRouter();
-  const color = S.st?.color ?? C.accent;
-  if (S.layout && S.layout !== 'classes') return (
-    <ScrollView style={{ width: 360, flexGrow: 0 }} contentContainerStyle={{ gap: 14, paddingVertical: 26, paddingRight: 32 }}>
-      <BookSummary />
-    </ScrollView>
-  );
-  return (
-    <ScrollView style={{ width: 340, flexGrow: 0 }} contentContainerStyle={{ gap: 14, paddingVertical: 26, paddingRight: 32 }}>
-      {S.upcoming.length > 0 && (
-        <View style={{ gap: 8 }}>
-          <Text style={{ color: C.text, fontWeight: '800', fontSize: 15, paddingHorizontal: 2 }}>{S.upcoming.length === 1 ? 'Η κράτησή σου' : 'Οι κρατήσεις σου'}</Text>
-          {S.upcoming.slice(0, 3).map((b: any) => <BookingRow key={b.id} b={b} color={color} onCancel={() => S.cancelBooking(b)} />)}
-          {S.upcoming.length > 3 && <Text style={{ color: C.mute, fontSize: 13, paddingHorizontal: 2 }}>και {S.upcoming.length - 3} ακόμα στις «Οι κρατήσεις μου»</Text>}
-        </View>
-      )}
-      {!P.guest && <AllLink text="Όλες οι κρατήσεις σου" onPress={() => router.navigate('/bookings')} />}
-    </ScrollView>
   );
 }
 
