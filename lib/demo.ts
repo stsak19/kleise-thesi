@@ -3,8 +3,10 @@
    Ενεργοποιείται από το κουμπί «Συνέχεια χωρίς λογαριασμό» στη σύνδεση· φεύγει με την Αποσύνδεση. */
 
 /* ΔΙΑΚΟΠΤΗΣ: όσο είναι true, ΟΛΗ η εφαρμογή (πελάτης, επισκέπτης στην ιστοσελίδα, επιχείρηση,
-   κινητό και υπολογιστής) δείχνει τα δοκιμαστικά δεδομένα, όποιος κι αν συνδεθεί (κάθε email/κωδικός
-   μπαίνει ως «Χριστίνα Αντωνίου»). Όταν το project είναι έτοιμο, γίνεται false και όλα πάνε στη βάση. */
+   κινητό και υπολογιστής) δείχνει τα δοκιμαστικά καταστήματα και επιχειρήσεις, όποιος κι αν συνδεθεί.
+   Η «Συνέχεια χωρίς λογαριασμό» μπαίνει ως «Χριστίνα Αντωνίου» με γεμάτο ιστορικό· ένας νέος λογαριασμός
+   (οποιοδήποτε email) ξεκινά καθαρός, χωρίς κρατήσεις/πακέτα/μηνύματα, και κρατά μόνο ό,τι κάνει ο ίδιος (κάθε email
+   είναι δικός του λογαριασμός). Όταν το project είναι έτοιμο, γίνεται false και όλα πάνε στη βάση. */
 export const DEMO_EVERYWHERE = true;
 
 const DEMO_KEY = 'spoton.demo';
@@ -13,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NAMES, OWN } from './demoOwner';
 let on = DEMO_EVERYWHERE || ls()?.getItem(DEMO_KEY) === '1';
 // Στο κινητό η σημαία διαβάζεται ασύγχρονα· οι κλήσεις περιμένουν να φορτώσει.
-const ready = AsyncStorage.getItem(DEMO_KEY).then((v) => { if (v === '1') on = true; }).catch(() => {});
+const flagReady = AsyncStorage.getItem(DEMO_KEY).then((v) => { if (v === '1') on = true; }).catch(() => {});
 export const isDemo = () => on;
 export function setDemo(v: boolean) {
   on = v || DEMO_EVERYWHERE;
@@ -22,14 +24,19 @@ export function setDemo(v: boolean) {
 }
 
 export const DEMO_UID = '00000000-0000-4000-8000-00000000d3e0';
-const user = { id: DEMO_UID, aud: 'authenticated', role: 'authenticated', email: 'christina.antoniou@gmail.com',
-  app_metadata: { provider: 'email' }, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' };
+const DEMO_EMAIL = 'christina.antoniou@gmail.com';
+const userOf = (id: string, email: string) => ({ id, aud: 'authenticated', role: 'authenticated', email,
+  app_metadata: { provider: 'email' }, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' });
 const b64 = (o: object) => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
-export function demoSession() {
+const unb64 = (t: string) => { try { return JSON.parse(decodeURIComponent(escape(atob(t.replace(/-/g, '+').replace(/_/g, '/'))))); } catch { return null; } };
+/* Η «σύνδεση» ενός λογαριασμού: χωρίς ορίσματα είναι η Χριστίνα της «Συνέχειας χωρίς λογαριασμό». */
+export function demoSession(id = DEMO_UID, email = DEMO_EMAIL) {
   const exp = Math.floor(Date.now() / 1000) + 7 * 86400;
-  return { access_token: `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: DEMO_UID, exp, role: 'authenticated' })}.demo`,
-    refresh_token: 'demo', token_type: 'bearer', expires_in: 7 * 86400, expires_at: exp, user };
+  return { access_token: `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: id, email, exp, role: 'authenticated' })}.demo`,
+    refresh_token: 'demo.' + b64({ id, email }), token_type: 'bearer', expires_in: 7 * 86400, expires_at: exp, user: userOf(id, email) };
 }
+/* Είναι συνεδρία που έφτιαξε αυτό το αρχείο (και όχι παλιός πραγματικός λογαριασμός); */
+export const isDemoSession = (refresh: string | undefined) => !!refresh && refresh.startsWith('demo');
 
 /* ---------- δοκιμαστικά δεδομένα ---------- */
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -85,7 +92,7 @@ const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 const svc = (id: string) => db.services.find((s) => s.id === id);
 const bz = (id: string) => db.businesses.find((b) => b.id === id);
 const staffOf = (id?: string | null) => (id ? db.staff.find((x) => x.id === id) : null);
-const addBooking = (service_id: string, date: string, time: string, user_id = DEMO_UID, status = 'booked', staff_id: string | null = null) =>
+const addBooking = (service_id: string, date: string, time: string, user_id: string = DEMO_UID, status = 'booked', staff_id: string | null = null) =>
   db.bookings.push({ id: uid(), business_id: svc(service_id).business_id, service_id, user_id, date, time: time + ':00', status, staff_id, created_at: new Date().toISOString() });
 
 /* Οι πελάτες: ένα κοινό «βιβλίο» ονομάτων· κάθε επιχείρηση έχει το δικό της κομμάτι. */
@@ -216,6 +223,74 @@ msg('b-dent', 'Υπενθύμιση', 'Ήρθε η ώρα για τον εξαμ
 msg('b-spa', 'Προσφορά', 'Μασάζ για δύο με 20% έκπτωση κάθε Τετάρτη.', 300);
 msg('b-dr', 'Αποτελέσματα', 'Τα αποτελέσματα των εξετάσεών σου είναι φυσιολογικά. Επόμενος έλεγχος σε 6 μήνες.', 500);
 
+/* ---------- λογαριασμοί ----------
+   Κάθε email είναι δικός του λογαριασμός. Ό,τι κάνει (προφίλ, κρατήσεις, αναμονή, πακέτα, μηνύματα)
+   μένει στη συσκευή, ώστε να το βρίσκει ξανά μετά από ανανέωση της σελίδας ή επανεκκίνηση. */
+type Acc = { id: string; email: string };
+let accounts: Acc[] = [{ id: DEMO_UID, email: DEMO_EMAIL }];
+let me: string | null = null; // ο λογαριασμός της τρέχουσας κλήσης
+const SAVE_KEY = 'spoton.demo.accounts.v1';
+const MINE = ['profiles', 'bookings', 'waitlist', 'memberships', 'notifications'] as const;
+const hex = (t: string) => { let a = 0x811c9dc5, b = 0x9747b28c; for (const ch of t) { a = Math.imul(a ^ ch.charCodeAt(0), 16777619) >>> 0; b = Math.imul(b ^ ch.charCodeAt(0), 2246822519) >>> 0; }
+  return (a.toString(16).padStart(8, '0') + b.toString(16).padStart(8, '0')).slice(0, 12); };
+const isAcc = (id: string) => id !== DEMO_UID && accounts.some((a) => a.id === id);
+function persist() {
+  const data: any = { accounts: accounts.filter((a) => a.id !== DEMO_UID) };
+  MINE.forEach((t) => { data[t] = db[t].filter((r) => isAcc(r.user_id ?? r.id)); });
+  const txt = JSON.stringify(data);
+  try { ls()?.setItem(SAVE_KEY, txt); } catch {}
+  AsyncStorage.setItem(SAVE_KEY, txt).catch(() => {});
+}
+function restore(txt: string | null | undefined) {
+  if (!txt) return;
+  try {
+    const d = JSON.parse(txt);
+    (d.accounts ?? []).forEach((a: Acc) => { if (!accounts.some((x) => x.id === a.id)) accounts.push(a); });
+    MINE.forEach((t) => (d[t] ?? []).forEach((r: any) => {
+      const dup = t === 'profiles' ? db[t].some((x) => x.id === r.id) : t === 'memberships' ? db[t].some((x) => x.user_id === r.user_id && x.business_id === r.business_id) : db[t].some((x) => x.id === r.id);
+      if (!dup) db[t].push(r);
+    }));
+  } catch {}
+}
+restore(ls()?.getItem(SAVE_KEY));
+const ready = Promise.all([flagReady, AsyncStorage.getItem(SAVE_KEY).then(restore).catch(() => {})]);
+
+/* Βρίσκει ή φτιάχνει τον λογαριασμό ενός email. Ο νέος ξεκινά μόνο με ένα μήνυμα καλωσορίσματος. */
+function account(email: string, id?: string): Acc {
+  const e = email.trim().toLowerCase();
+  let a = accounts.find((x) => x.email === e) ?? (id ? accounts.find((x) => x.id === id) : undefined);
+  if (a) return a;
+  a = { id: id ?? `00000000-0000-4000-8000-${hex(e)}`, email: e };
+  accounts.push(a);
+  db.notifications.push({ id: uid(), user_id: a.id, title: 'Καλώς ήρθες στο SpotOn 👋', body: 'Βρες το κατάστημα που θέλεις, κλείσε θέση σε λίγα δευτερόλεπτα και θα σου θυμίσουμε το ραντεβού σου.', read: false, created_at: new Date().toISOString() });
+  persist();
+  return a;
+}
+/* Ποιος κάνει την κλήση: από το token της συνεδρίας (ο επισκέπτης δεν έχει). */
+function caller(h: Headers): { id: string; email: string } | null {
+  const tok = (h.get('authorization') || '').replace(/^Bearer\s+/i, '');
+  const pl = unb64(tok.split('.')[1] ?? '');
+  return pl?.sub ? { id: pl.sub, email: pl.email ?? '' } : null;
+}
+function auth(p: string, u: URL, body: any, h: Headers) {
+  if (p.endsWith('/logout')) return json(undefined, 204);
+  if (p.endsWith('/user')) { const c = caller(h); if (!c) return json({ msg: 'not signed in' }, 401); const a = account(c.email || c.id, c.id); return json(userOf(a.id, a.email)); }
+  if (p.endsWith('/signup')) {
+    const e = String(body?.email ?? '').trim().toLowerCase();
+    if (accounts.some((x) => x.email === e)) return json({ code: 422, error_code: 'user_already_exists', msg: 'User already registered' }, 422);
+    const a = account(e); return json(demoSession(a.id, a.email));
+  }
+  if (p.endsWith('/token')) {
+    if (u.searchParams.get('grant_type') === 'refresh_token') {
+      const r = String(body?.refresh_token ?? '');
+      const d = r.startsWith('demo.') ? unb64(r.slice(5)) : null;
+      return json(d?.id ? demoSession(d.id, d.email) : demoSession());
+    }
+    const a = account(String(body?.email ?? DEMO_EMAIL)); return json(demoSession(a.id, a.email));
+  }
+  return json({});
+}
+
 /* ---------- «βάση»: διαθεσιμότητα και RPC ---------- */
 const hm = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
 const fm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
@@ -241,7 +316,13 @@ function availability(service_id: string, date: string) {
 // Νέοι πελάτες που περιμένουν έγκριση, ανά επιχείρηση
 const pending: Record<string, any[]> = {};
 OWN.forEach((o) => { pending[o.id] = (o.pending ?? []).map((p, i) => ({ user_id: `p-${o.id}-${i}`, ...p })); });
-const who = (u: string) => (u === DEMO_UID ? { name: 'Χριστίνα Αντωνίου', phone: '6945812304' } : CLIENTS[u] ?? { name: 'Πελάτης', phone: '6900000000' });
+const who = (u: string) => {
+  if (u === DEMO_UID) return { name: 'Χριστίνα Αντωνίου', phone: '6945812304' };
+  if (CLIENTS[u]) return CLIENTS[u];
+  const pr = db.profiles.find((x) => x.id === u), acc = accounts.find((a) => a.id === u);
+  const name = [pr?.first_name, pr?.last_name].filter(Boolean).join(' ') || acc?.email.split('@')[0] || 'Πελάτης';
+  return { name, phone: pr?.phone || null };
+};
 const RPC: Record<string, (a: any) => any> = {
   day_availability: (a) => availability(a.p_service, a.p_date),
   create_booking: (a) => {
@@ -249,24 +330,24 @@ const RPC: Record<string, (a: any) => any> = {
     const sl = availability(a.p_service, a.p_date).find((x) => x.slot_time.slice(0, 5) === t);
     if (!sl) return { ok: false, error: 'Η ώρα δεν είναι διαθέσιμη' };
     if (sl.free <= 0) return { ok: false, full: true, error: 'Η ώρα γέμισε' };
-    if (db.bookings.some((b) => b.service_id === a.p_service && b.date === a.p_date && b.time.slice(0, 5) === t && b.user_id === DEMO_UID && b.status === 'booked'))
+    if (db.bookings.some((b) => b.service_id === a.p_service && b.date === a.p_date && b.time.slice(0, 5) === t && b.user_id === me && b.status === 'booked'))
       return { ok: false, error: 'Έχεις ήδη κράτηση σε αυτή την ώρα' };
-    addBooking(a.p_service, a.p_date, t);
-    db.waitlist = db.waitlist.filter((w) => !(w.service_id === a.p_service && w.date === a.p_date && w.time.slice(0, 5) === t));
+    addBooking(a.p_service, a.p_date, t, me ?? DEMO_UID);
+    db.waitlist = db.waitlist.filter((w) => !(w.service_id === a.p_service && w.date === a.p_date && w.time.slice(0, 5) === t && w.user_id === me));
     return { ok: true };
   },
   cancel_booking: (a) => { const b = db.bookings.find((x) => x.id === a.p_booking); if (b) { b.status = 'cancelled'; b.cancelled_at = new Date().toISOString(); } return { ok: true }; },
-  join_waitlist: (a) => { db.waitlist.push({ id: uid(), service_id: a.p_service, user_id: DEMO_UID, date: a.p_date, time: String(a.p_time).slice(0, 5) + ':00' }); return { ok: true }; },
-  leave_waitlist: (a) => { db.waitlist = db.waitlist.filter((w) => !(w.service_id === a.p_service && w.date === a.p_date && w.time.slice(0, 5) === String(a.p_time).slice(0, 5))); return { ok: true }; },
+  join_waitlist: (a) => { db.waitlist.push({ id: uid(), service_id: a.p_service, user_id: me, date: a.p_date, time: String(a.p_time).slice(0, 5) + ':00' }); return { ok: true }; },
+  leave_waitlist: (a) => { db.waitlist = db.waitlist.filter((w) => !(w.user_id === me && w.service_id === a.p_service && w.date === a.p_date && w.time.slice(0, 5) === String(a.p_time).slice(0, 5))); return { ok: true }; },
   my_bookings: () => ({
-    bookings: db.bookings.filter((b) => b.user_id === DEMO_UID).sort((a, z) => (a.date + a.time).localeCompare(z.date + z.time)).map((b) => {
+    bookings: db.bookings.filter((b) => b.user_id === me).sort((a, z) => (a.date + a.time).localeCompare(z.date + z.time)).map((b) => {
       const s = svc(b.service_id), z = bz(b.business_id);
       return { id: b.id, date: b.date, time: b.time.slice(0, 5), status: b.status, service: s.name, service_id: s.id, business: z.name, business_id: z.id, address: z.address };
     }),
-    waitlist: db.waitlist.filter((w) => w.user_id === DEMO_UID).map((w) => {
+    waitlist: db.waitlist.filter((w) => w.user_id === me).map((w) => {
       const s = svc(w.service_id); return { id: w.id, date: w.date, time: w.time.slice(0, 5), service: s.name, service_id: s.id, business: bz(s.business_id).name };
     }),
-    memberships: db.memberships.filter((m) => m.user_id === DEMO_UID).map((m) => ({ ...m, business: bz(m.business_id).name })),
+    memberships: db.memberships.filter((m) => m.user_id === me).map((m) => ({ ...m, business: bz(m.business_id).name })),
   }),
   owner_day: (a) => db.bookings.filter((b) => b.business_id === a.p_business && b.date === a.p_date && b.status !== 'cancelled')
     .sort((x, y) => x.time.localeCompare(y.time)).map((b) => {
@@ -294,7 +375,7 @@ const RPC: Record<string, (a: any) => any> = {
       if (b.status === 'no_show') c.no_shows++;
       if (b.status === 'booked' && b.date >= today && (!c.next || b.date + b.time < c.next)) c.next = b.date + ' ' + b.time.slice(0, 5);
     });
-    return Object.entries(by).filter(([u]) => u === DEMO_UID || CLIENTS[u])
+    return Object.entries(by).filter(([u]) => u === DEMO_UID || CLIENTS[u] || accounts.some((x) => x.id === u))
       .map(([u, c]) => {
         const card = db.client_cards.find((x) => x.business_id === a.p_business && x.user_id === u);
         return { user_id: u, ...who(u), ...c, last: c.last ?? c.first, tag: card?.tag ?? null, note: card?.note ?? null, fields: card?.fields ?? [], pack: card?.pack ?? null };
@@ -349,8 +430,10 @@ function rest(method: string, u: URL, table: string, body: any, h: Headers) {
     return (h.get('prefer') || '').includes('return=representation') || method === 'GET' ? json(out) : json(undefined, 201);
   };
   if (method === 'GET' || method === 'HEAD') {
-    let out = order(rows.filter(filters(u)), u);
-    if (table === 'notifications') out = out.filter((r) => r.user_id === DEMO_UID); // όπως το RLS: βλέπεις μόνο τις δικές σου
+    // Οι δοκιμαστικές επιχειρήσεις ανήκουν σε όποιον είναι συνδεδεμένος, ώστε η λειτουργία επιχείρησης να είναι πάντα γεμάτη.
+    const src = table === 'businesses' && me ? rows.map((r) => (r.owner_id === DEMO_UID ? { ...r, owner_id: me } : r)) : rows;
+    let out = order(src.filter(filters(u)), u);
+    if (table === 'notifications') out = out.filter((r) => r.user_id === me); // όπως το RLS: βλέπεις μόνο τις δικές σου
     const lim = u.searchParams.get('limit'); if (lim) out = out.slice(0, +lim);
     return back(out);
   }
@@ -369,7 +452,7 @@ function rest(method: string, u: URL, table: string, body: any, h: Headers) {
     });
     return back(out);
   }
-  if (method === 'PATCH') { const out = rows.filter(filters(u)); out.forEach((r) => Object.assign(r, body)); return back(out); }
+  if (method === 'PATCH') { const f = filters(u); const out = rows.filter((r) => f(r) && (table !== 'notifications' || r.user_id === me)); out.forEach((r) => Object.assign(r, body)); return back(out); }
   if (method === 'DELETE') { const keep = filters(u); const out = rows.filter(keep); db[table] = rows.filter((r) => !keep(r)); return back(out); }
   return json({ message: 'demo: unsupported' }, 400);
 }
@@ -384,16 +467,14 @@ export async function demoFetch(input: any, init: any = {}): Promise<Response> {
   let body: any = init.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch {} }
   const p = url.pathname;
-  if (p.startsWith('/auth/v1/')) {
-    if (p.endsWith('/logout')) return json(undefined, 204);
-    if (p.endsWith('/user')) return json(user);
-    return json(demoSession());
-  }
+  if (p.startsWith('/auth/v1/')) return auth(p, url, body, h);
+  me = caller(h)?.id ?? null;
   if (p.startsWith('/storage/v1/')) return json({ statusCode: '400', error: 'demo', message: 'Στο demo δεν ανεβαίνουν φωτογραφίες' }, 400);
   if (p.startsWith('/rest/v1/rpc/')) {
     const fn = RPC[p.split('/').pop()!];
-    return fn ? json(fn(body || {})) : json({ message: 'demo: άγνωστη λειτουργία' }, 404);
+    if (!fn) return json({ message: 'demo: άγνωστη λειτουργία' }, 404);
+    const out = fn(body || {}); persist(); return json(out);
   }
-  if (p.startsWith('/rest/v1/')) return rest(method, url, p.slice('/rest/v1/'.length), body, h);
+  if (p.startsWith('/rest/v1/')) { const r = rest(method, url, p.slice('/rest/v1/'.length), body, h); if (method !== 'GET' && method !== 'HEAD') persist(); return r; }
   return fetch(input, init);
 }
