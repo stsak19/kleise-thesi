@@ -10,7 +10,8 @@ import { useFonts } from 'expo-font';
 import { FONTS } from '../lib/Txt';
 import { BIZ_HOME, getMode, useMode } from '../lib/mode';
 import { SwitchOverlay } from '../lib/SwitchMode';
-import { GUEST_OK, openToGuests, setReturnTo, getReturnTo } from '../lib/guest';
+import { GUEST_OK, askLogin, openToGuests, setReturnTo, getReturnTo } from '../lib/guest';
+import { LoginModal } from '../lib/login/LoginModal';
 
 // Η εφαρμογή ξεκινά πάντα από τον πελάτη· η λειτουργία επιχείρησης (biz) ανοίγει μόνο όταν την επιλέξεις.
 export const unstable_settings = { initialRouteName: '(tabs)' };
@@ -49,7 +50,11 @@ function Gate() {
   if (!ready || introSeen === null || !loaded) return null;
   // Στην ιστοσελίδα ο επισκέπτης βλέπει πρώτα τα καταστήματα: χωρίς ξενάγηση και χωρίς σύνδεση (lib/guest).
   if (!introSeen && !GUEST_OK) return <Intro onDone={setIntroSeen} />;
-  if (!session && seg[0] !== 'login' && !openToGuests(path)) { setReturnTo(GUEST_OK ? path : null); return <Redirect href="/login" />; }
+  if (!session && seg[0] !== 'login' && !openToGuests(path)) {
+    // Ιστοσελίδα: μένει στην αρχική και ανοίγει το παράθυρο σύνδεσης· μετά τη σύνδεση πάει εκεί που ήθελε.
+    if (GUEST_OK) { setTimeout(() => askLogin(path), 0); return <Redirect href="/" />; }
+    return <Redirect href="/login" />;
+  }
   if (session && seg[0] === 'login' && !back) return <Redirect href={getMode() === 'biz' ? BIZ_HOME : '/'} />;
   if (session && !booted) { booted = true; if (getMode() === 'biz' && !restore && seg[0] !== '(biz)') return <Redirect href={BIZ_HOME} />; }
   return (
@@ -71,7 +76,7 @@ export default function Root() {
   return (
     <AuthProvider>
       <StatusBar style={isDark() ? 'light' : 'dark'} />
-      <View key={v} style={{ flex: 1, backgroundColor: C.bg }}><Gate /><SwitchOverlay /></View>
+      <View key={v} style={{ flex: 1, backgroundColor: C.bg }}><Gate /><SwitchOverlay />{GUEST_OK && <LoginModal />}</View>
     </AuthProvider>
   );
 }

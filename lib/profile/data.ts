@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { GUEST_OK } from '../guest';
 import { say } from '../alert';
 import { setDemo } from '../demo';
 import { setMode } from '../mode';
@@ -41,4 +42,8 @@ export function useProfileExtras(uid: string) {
   return { hasBiz, upcoming };
 }
 
-export const signOut = async () => { await sb.auth.signOut(); setDemo(false); setMode('client'); };
+export const signOut = async () => {
+  // Ιστοσελίδα: πρώτα στην αρχική (ανοιχτή και χωρίς λογαριασμό), ώστε να μη ζητηθεί αμέσως σύνδεση.
+  if (GUEST_OK) router.replace('/');
+  await sb.auth.signOut(); setDemo(false); setMode('client');
+};
