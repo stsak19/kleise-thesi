@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Text } from '../Txt';
-import { say, promptText } from '../alert';
 import { rpc, sb } from '../supabase';
 import { useAuth } from '../auth';
 import { styleOf } from '../presets';
@@ -176,115 +175,6 @@ export function Pending({ biz, list, onDone }: { biz: any; list: any[]; onDone: 
       </Card>
     ))}
   </>;
-}
-
-/* Το πρόγραμμα μιας μέρας ανά ώρα, με «Ήρθε / Δεν ήρθε / Ακύρωση / Μήνυμα».
-   Στα τμήματα (χωρητικότητα > 1) κάθε μάθημα είναι μία κάρτα με τον προπονητή, την πληρότητα και τη λίστα παρουσιών. */
-export function Schedule({ biz, day, onChange, emptyText }: { biz: any; day: any[]; onChange: () => void; emptyText?: string }) {
-  const router = useRouter();
-  const brand = styleOf(biz).color;
-  const groups: { key: string; time: string; list: any[] }[] = [];
-  day.forEach((b) => {
-    const key = b.time + ((b.capacity ?? 1) > 1 ? '|' + b.service_id : '');
-    let g = groups.find((x) => x.key === key); if (!g) { g = { key, time: b.time, list: [] }; groups.push(g); }
-    g.list.push(b);
-  });
-
-  const setStatus = async (b: any, st: string) => {
-    const r = await rpc('owner_set_status', { p_booking: b.id, p_status: st }); if (!r.ok) say(r.error ?? 'Δεν έγινε'); onChange();
-  };
-  const renew = (u: any) => promptText('Ανανέωση πακέτου', `Πόσες κρατήσεις για ${u.client || 'τον πελάτη'};`, async (v) => {
-    const n = parseInt(v, 10); if (n > 0) { await rpc('owner_renew', { p_business: biz.id, p_user: u.user_id, p_credits: n }); say('Ανανεώθηκε'); }
-  });
-
-  if (day.length === 0) return <Card><Empty emoji="☕" title="Καμία κράτηση" text={emptyText ?? 'Δεν έχει κλείσει κανείς θέση αυτή τη μέρα.'} /></Card>;
-  return <>
-    {groups.map((g, gi) => {
-      const cls = (g.list[0].capacity ?? 1) > 1;
-      const sameTimeBefore = gi > 0 && groups[gi - 1].time === g.time;
-      return (
-        <View key={g.key} style={{ flexDirection: 'row', gap: 12 }}>
-          <View style={{ width: 52, alignItems: 'center', paddingTop: 14 }}>
-            {!sameTimeBefore && <Text style={{ color: C.text, fontWeight: '900', fontSize: 16 }}>{g.time}</Text>}
-            {!cls && !sameTimeBefore && <Text style={{ color: C.mute, fontSize: 12, fontWeight: '600' }}>{g.list.length} {g.list.length === 1 ? 'άτομο' : 'άτομα'}</Text>}
-            <View style={{ flex: 1, width: 2, backgroundColor: C.line, marginTop: 8, borderRadius: 1 }} />
-          </View>
-          {cls ? <ClassCard biz={biz} g={g} setStatus={setStatus} />
-            : <Card style={{ flex: 1, padding: 0, gap: 0, overflow: 'hidden', borderLeftWidth: 4, borderLeftColor: brand }}>
-              {g.list.map((b, i) => (
-                <View key={b.id} style={[{ gap: 10, padding: 14 }, i > 0 && { borderTopWidth: 1, borderTopColor: C.line }]}>
-                  <View style={[s.row, { gap: 10 }]}>
-                    <Avatar name={b.client || 'Π'} color={brand} size={36} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ color: C.text, fontWeight: '700', fontSize: 15 }} numberOfLines={1}>{b.client || 'Πελάτης'}</Text>
-                      <T mute style={{ fontSize: 13 }}>{[b.service, b.duration_min ? `${b.duration_min} λεπτά` : null, b.price_cents ? price(b.price_cents) : null].filter(Boolean).join(' · ')}</T>
-                      {!!b.staff && <View style={[s.row, { gap: 6, marginTop: 3 }]}>
-                        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: b.staff_color ?? brand }} />
-                        <Text style={{ color: C.mute, fontSize: 12, fontWeight: '700' }}>{b.staff.split(' ')[0]}</Text>
-                      </View>}
-                    </View>
-                    {b.status === 'attended' && <Pill text="Ήρθε" tone="ok" />}
-                    {b.status === 'no_show' && <Pill text="Δεν ήρθε" tone="bad" />}
-                  </View>
-                  <View style={[s.row, { flexWrap: 'wrap', gap: 8 }]}>
-                    <Btn size="sm" kind="tint" color={C.ok} icon="check" title="Ήρθε" onPress={() => setStatus(b, 'attended')} />
-                    <Btn size="sm" kind="ghost" title="Δεν ήρθε" onPress={() => setStatus(b, 'no_show')} />
-                    <Btn size="sm" kind="danger" title="Ακύρωση" onPress={() => setStatus(b, 'cancelled')} />
-                    {biz.uses_credits && <Btn size="sm" kind="ghost" title="Ανανέωση" onPress={() => renew(b)} />}
-                    <Btn size="sm" kind="ghost" title="Μήνυμα" onPress={() => router.navigate({ pathname: '/inbox', params: { to: b.user_id } })} />
-                  </View>
-                </View>
-              ))}
-            </Card>}
-        </View>
-      );
-    })}
-  </>;
-}
-
-/* Ένα μάθημα: τίτλος, προπονητής, πληρότητα και παρουσίες με ένα πάτημα. */
-function ClassCard({ biz, g, setStatus }: { biz: any; g: { list: any[] }; setStatus: (b: any, st: string) => void }) {
-  const [all, setAll] = useState(false);
-  const first = g.list[0], cap = first.capacity ?? 1, n = g.list.length;
-  const color = first.staff_color ?? styleOf(biz).color;
-  const shown = all ? g.list : g.list.slice(0, 4);
-  const here = g.list.filter((b) => b.status === 'attended').length;
-  return (
-    <Card style={{ flex: 1, padding: 0, gap: 0, overflow: 'hidden', borderLeftWidth: 4, borderLeftColor: color }}>
-      <View style={[s.row, { gap: 10, padding: 14, paddingBottom: 10 }]}>
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }}>{first.service}</Text>
-          <T mute style={{ fontSize: 13 }}>{[first.staff, first.duration_min ? `${first.duration_min} λεπτά` : null].filter(Boolean).join(' · ')}</T>
-        </View>
-        <View style={{ alignItems: 'flex-end', gap: 4 }}>
-          <Text style={{ color: n >= cap ? C.bad : C.text, fontWeight: '900', fontSize: 18 }}>{n}/{cap}</Text>
-          {here > 0 && <Text style={{ color: C.ok, fontWeight: '700', fontSize: 12 }}>{here} ήρθαν</Text>}
-        </View>
-      </View>
-      <View style={{ height: 4, marginHorizontal: 14, borderRadius: 2, backgroundColor: C.soft, overflow: 'hidden', marginBottom: 6 }}>
-        <View style={{ width: `${Math.min(100, (n / cap) * 100)}%`, height: 4, backgroundColor: n >= cap ? C.bad : color }} />
-      </View>
-      {shown.map((b) => (
-        <View key={b.id} style={[s.row, { gap: 10, paddingHorizontal: 14, paddingVertical: 8, borderTopWidth: 1, borderTopColor: C.line }]}>
-          <Avatar name={b.client} color={color} size={28} />
-          <Text style={{ flex: 1, color: C.text, fontWeight: '600', fontSize: 14 }} numberOfLines={1}>{b.client}</Text>
-          {b.status === 'booked' ? <>
-            <Pressable onPress={() => setStatus(b, 'attended')} hitSlop={6} style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: alpha(C.ok, 0.12), alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name="check" size={15} color={C.ok} />
-            </Pressable>
-            <Pressable onPress={() => setStatus(b, 'no_show')} hitSlop={6} style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name="close" size={14} color={C.mute} />
-            </Pressable>
-          </> : <Pill text={b.status === 'attended' ? 'Ήρθε' : 'Δεν ήρθε'} tone={b.status === 'attended' ? 'ok' : 'bad'} />}
-        </View>
-      ))}
-      {n > 4 && (
-        <Pressable onPress={() => setAll(!all)} style={{ paddingVertical: 11, alignItems: 'center', borderTopWidth: 1, borderTopColor: C.line }}>
-          <Text style={{ color: C.tint, fontWeight: '700', fontSize: 14 }}>{all ? 'Λιγότερα' : `Όλη η λίστα (${n})`}</Text>
-        </Pressable>
-      )}
-    </Card>
-  );
 }
 
 /* Οι πελάτες της επιχείρησης με την καρτέλα τους (επισκέψεις, πακέτο, στοιχεία ανά επάγγελμα). */

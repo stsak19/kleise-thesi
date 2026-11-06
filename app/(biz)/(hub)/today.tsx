@@ -1,76 +1,57 @@
 import { useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Attention, BizSwitcher, NoBiz, Pending, Schedule, StaffFilter, Stat, dayStats, useDay, useMyBiz, useStaff } from '../../../lib/owner/hub';
-import { Segmented } from '../../../lib/bookings/parts';
-import { C, ScreenHeader, Section, T, alpha, fmtLong, iso, price, s } from '../../../lib/ui';
+import { Attention, BizSwitcher, NoBiz, StaffFilter, useDay, useMyBiz, useStaff } from '../../../lib/owner/hub';
+import { DayDetail, DayHead, DidTheyCome, HourList, NewClients, slotsOf } from '../../../lib/owner/day';
+import { C, ScreenHeader, T, alpha, iso, s } from '../../../lib/ui';
 
-/* «Σήμερα»: η πρώτη οθόνη της επιχείρησης (όπως το Today του Airbnb).
-   Νέοι πελάτες προς έγκριση, τα νούμερα της μέρας και τα ραντεβού σήμερα ή αύριο. */
+/* «Σήμερα»: το πρόγραμμα της ημέρας με τον τρόπο του Gym Schedule.
+   Πάνω καρφωμένα: λωρίδα ημερών, τίτλος ημέρας και τέσσερα κουτάκια. Από κάτω οι ώρες σαν κάρτες που ανοίγουν. */
 export default function Today() {
-  const router = useRouter();
   const biz = useMyBiz();
-  const [when, setWhen] = useState<'today' | 'tomorrow'>('today');
-  const d = new Date(); if (when === 'tomorrow') d.setDate(d.getDate() + 1);
-  const date = iso(d);
+  const todayISO = iso(new Date());
+  const [date, setDate] = useState(todayISO);
   const D = useDay(biz, date);
+  const T0 = useDay(biz, todayISO);
   const { staff } = useStaff(biz);
   const [who, setWho] = useState<string | null>(null);
+  const [detail, setDetail] = useState<string | null>(null);
 
   if (biz === undefined) return <View style={s.screen} />;
   if (biz === null) return <NoBiz />;
 
-  const now = new Date();
-  const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const day = who ? D.day.filter((b) => b.staff_id === who) : D.day;
-  const st = dayStats(day);
-  const live = st.live;
-  const next = when === 'today' ? live.find((b) => b.time >= hhmm && b.status === 'booked') : live[0];
-  const attended = live.filter((b) => b.status === 'attended').length;
+  const slots = slotsOf(day, who ? 1 : staff.length);
   const counts: Record<string, number> = {};
   D.day.forEach((b) => { if (b.staff_id && b.status !== 'cancelled') counts[b.staff_id] = (counts[b.staff_id] ?? 0) + 1; });
+  const reload = () => { D.load(); T0.load(); };
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0 }]} refreshControl={<RefreshControl refreshing={D.loading} onRefresh={D.load} />}>
+    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0 }]} stickyHeaderIndices={[2]}
+      refreshControl={<RefreshControl refreshing={D.loading} onRefresh={reload} />}>
       <View style={{ marginHorizontal: -20 }}>
-        <ScreenHeader eyebrow={<BizSwitcher biz={biz} />} title="Σήμερα" sub={fmtLong(iso(new Date()))} />
+        <ScreenHeader eyebrow={<BizSwitcher biz={biz} />} title="Σήμερα" />
       </View>
 
-      {!biz.is_published && (
-        <View style={{ backgroundColor: alpha(C.tint, 0.06), borderRadius: 16, padding: 14 }}>
-          <T style={{ fontSize: 14 }}>Η σελίδα σου δεν φαίνεται ακόμα στην αναζήτηση. Άνοιξε τη «Δημοσίευση» από την καρτέλα Σελίδα.</T>
-        </View>
-      )}
+      <View style={{ gap: 12 }}>
+        {!biz.is_published && (
+          <View style={{ backgroundColor: alpha(C.tint, 0.06), borderRadius: 16, padding: 14 }}>
+            <T style={{ fontSize: 14 }}>Η σελίδα σου δεν φαίνεται ακόμα στην αναζήτηση. Άνοιξε τη «Δημοσίευση» από την καρτέλα Σελίδα.</T>
+          </View>
+        )}
+        <NewClients biz={biz} list={D.pending} onDone={D.load} />
+        <DidTheyCome day={T0.day} onChange={reload} />
+      </View>
 
-      <Pending biz={biz} list={D.pending} onDone={D.load} />
+      <DayHead biz={biz} date={date} setDate={setDate} day={day} slots={slots} detail={detail} setDetail={setDetail}
+        extra={<StaffFilter staff={staff} value={who} onChange={setWho} counts={counts} />} />
 
-      <Segmented value={when} onChange={setWhen} items={[
-        { key: 'today', label: 'Σήμερα', count: when === 'today' ? live.length : undefined },
-        { key: 'tomorrow', label: 'Αύριο', count: when === 'tomorrow' ? live.length : undefined },
-      ]} />
-      <StaffFilter staff={staff} value={who} onChange={setWho} counts={counts} />
-      {st.classes ? (
-        <View style={[s.row, { gap: 10 }]}>
-          <Stat n={st.groups} label="Μαθήματα" />
-          <Stat n={`${st.fill}%`} label="Πληρότητα" />
-          <Stat n={next?.time ?? '–'} label={when === 'today' ? 'Επόμενο' : 'Πρώτο'} />
-        </View>
-      ) : (
-        <View style={[s.row, { gap: 10 }]}>
-          <Stat n={live.length} label="Ραντεβού" />
-          <Stat n={next?.time ?? '–'} label={when === 'today' ? 'Επόμενο' : 'Πρώτο'} />
-          {st.revenue != null ? <Stat n={price(st.revenue) || '0€'} label="Έσοδα" /> : <Stat n={attended} label="Ήρθαν" color={attended ? C.ok : undefined} />}
-        </View>
-      )}
-      {D.override.closed && (
+      <DayDetail detail={detail} day={day} slots={slots} onClose={() => setDetail(null)} />
+      {D.override.closed && slots.length > 0 && (
         <View style={{ backgroundColor: alpha(C.bad, 0.08), borderRadius: 16, padding: 14 }}>
-          <T style={{ fontSize: 14, color: C.bad }}>{when === 'today' ? 'Σήμερα' : 'Αύριο'} το κατάστημα είναι κλειστό.</T>
+          <T style={{ fontSize: 14, color: C.bad }}>Το κατάστημα είναι κλειστό αυτή τη μέρα.</T>
         </View>
       )}
-
-      <Section title={when === 'today' ? 'Τα σημερινά ραντεβού' : 'Τα αυριανά ραντεβού'} action="Ημερολόγιο" onAction={() => router.navigate('/calendar')} />
-      <Schedule biz={biz} day={day} onChange={D.load}
-        emptyText={when === 'today' ? 'Δεν έχει κλείσει κανείς θέση για σήμερα.' : 'Δεν έχει κλείσει κανείς θέση για αύριο.'} />
+      <HourList biz={biz} date={date} slots={slots} onChange={reload} closed={D.override.closed} />
       <Attention biz={biz} />
     </ScrollView>
   );

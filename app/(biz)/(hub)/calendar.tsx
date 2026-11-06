@@ -3,7 +3,8 @@ import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { Text } from '../../../lib/Txt';
 import { sb } from '../../../lib/supabase';
 import { styleOf } from '../../../lib/presets';
-import { NoBiz, Schedule, StaffFilter, Stat, dayStats, useDay, useMyBiz, useStaff } from '../../../lib/owner/hub';
+import { NoBiz, StaffFilter, Stat, dayStats, useDay, useMyBiz, useStaff } from '../../../lib/owner/hub';
+import { HourList, slotsOf } from '../../../lib/owner/day';
 import { C, Card, DayStrip, Input, ScreenHeader, Section, alpha, fmtLong, iso, price, s } from '../../../lib/ui';
 
 /* «Ημερολόγιο»: διαλέγεις μέρα, βλέπεις το πρόγραμμα και ανοίγεις ή κλείνεις τη μέρα με ένα σημείωμα. */
@@ -57,7 +58,7 @@ export default function Calendar() {
       </Card>
 
       <Section title="Πρόγραμμα" />
-      <Schedule biz={biz} day={day} onChange={D.load} />
+      <HourList biz={biz} date={date} slots={slotsOf(day, who ? 1 : staff.length)} onChange={D.load} closed={D.override.closed} />
     </ScrollView>
   );
 }
