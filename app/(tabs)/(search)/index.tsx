@@ -95,27 +95,22 @@ export default function Home() {
 
   const filtering = !!cat || !!q.trim();
   const [focus, setFocus] = useState(false);
+  const open = focus || !!q;
   const anim = () => LayoutAnimation.configureNext(LayoutAnimation.create(260, 'easeInEaseOut', 'opacity'));
   /* Πάνω μέρος σε στιλ Wolt: προφίλ αριστερά, στρογγυλή μπάρα αναζήτησης στο κέντρο. */
   const fixed = (
-    <View style={{ backgroundColor: C.bg, paddingHorizontal: 16, paddingTop: top + 10, paddingBottom: 10, zIndex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+    <View style={{ backgroundColor: C.bg, paddingHorizontal: 16, paddingTop: top + 10, paddingBottom: 10, zIndex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
       <BlurView intensity={isLight(C.bg) ? 40 : 30} tint={isLight(C.bg) ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
-        style={{ flex: 1, height: 46, borderRadius: 23, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16,
+        style={{ flexGrow: open ? 1 : 0, height: 46, borderRadius: 23, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16,
           backgroundColor: isLight(C.bg) ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1,
           borderColor: focus ? alpha(C.text, 0.25) : isLight(C.bg) ? alpha('#000000', 0.06) : alpha('#ffffff', 0.1),
           boxShadow: `0px 8px 22px ${alpha(C.shade, isLight(C.bg) ? (focus ? 0.18 : 0.1) : 0.4)}` }}>
         <Icon name="search" size={18} color={focus ? C.text : C.mute} />
         <TextInput placeholder="Αναζήτηση" placeholderTextColor={C.mute} value={q} onChangeText={setQ} returnKeyType="search"
           onFocus={() => { anim(); setFocus(true); }} onBlur={() => { anim(); setFocus(false); }}
-          style={[{ flex: 1, color: C.text, fontSize: 16, fontWeight: '600', height: 46 }, { outlineStyle: 'none' } as any]} />
+          style={[{ flexGrow: open ? 1 : 0, width: open ? 0 : 92, color: C.text, fontSize: 16, fontWeight: '600', height: 46 }, { outlineStyle: 'none' } as any]} />
         {!!q && <Pressable onPress={() => setQ('')} hitSlop={8}><Icon name="close" size={16} color={C.mute} /></Pressable>}
       </BlurView>
-      {focus ? null : (
-      <Pressable onPress={() => router.push('/profile')} accessibilityLabel="Προφίλ"
-        style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: C.card, borderWidth: 1, borderColor: C.line, opacity: pressed ? 0.7 : 1 })}>
-        <Icon name="user" size={20} color={C.text} />
-      </Pressable>
-      )}
     </View>
   );
 
