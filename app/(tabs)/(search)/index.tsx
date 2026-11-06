@@ -136,16 +136,6 @@ export default function Home() {
   const fixed = (
     <Animated.View style={{ position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: 16, paddingTop: top + 10, paddingBottom: 10, zIndex: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
       transform: [{ translateY: drop }] }}>
-      {open && (
-        <Pressable onPress={close} accessibilityLabel="Κλείσιμο αναζήτησης" style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-          <BlurView intensity={isLight(C.bg) ? 40 : 30} tint={isLight(C.bg) ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
-            style={{ width: 46, height: 46, borderRadius: 23, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
-              backgroundColor: isLight(C.bg) ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1,
-              borderColor: isLight(C.bg) ? alpha('#000000', 0.06) : alpha('#ffffff', 0.1), boxShadow: `0px 8px 22px ${alpha(C.shade, isLight(C.bg) ? 0.1 : 0.4)}` }}>
-            <Icon name="close" size={16} color={C.text} />
-          </BlurView>
-        </Pressable>
-      )}
       <BlurView intensity={isLight(C.bg) ? 40 : 30} tint={isLight(C.bg) ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
         style={{ flexGrow: open ? 1 : 0, height: 46, borderRadius: 23, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16,
           backgroundColor: isLight(C.bg) ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1,
@@ -156,6 +146,17 @@ export default function Home() {
           onFocus={() => { anim(); setFocus(true); }} onBlur={() => { anim(); setFocus(false); }} onSubmitEditing={() => Keyboard.dismiss()}
           style={[{ flexGrow: open ? 1 : 0, width: open ? 0 : 92, color: C.text, fontSize: 16, fontWeight: '600', height: 46 }, { outlineStyle: 'none' } as any]} />
       </BlurView>
+      {open && (
+        <Pressable onPress={close} accessibilityLabel="Κλείσιμο αναζήτησης" style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+          <BlurView intensity={isLight(C.bg) ? 40 : 30} tint={isLight(C.bg) ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
+            style={{ width: 46, height: 46, borderRadius: 23, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
+              backgroundColor: isLight(C.bg) ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1,
+              borderColor: focus ? alpha(C.text, 0.25) : isLight(C.bg) ? alpha('#000000', 0.06) : alpha('#ffffff', 0.1),
+              boxShadow: `0px 8px 22px ${alpha(C.shade, isLight(C.bg) ? (focus ? 0.18 : 0.1) : 0.4)}` }}>
+            <Icon name="close" size={16} color={focus ? C.text : C.mute} />
+          </BlurView>
+        </Pressable>
+      )}
     </Animated.View>
   );
 
