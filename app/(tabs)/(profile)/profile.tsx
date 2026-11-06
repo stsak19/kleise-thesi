@@ -7,7 +7,8 @@ import { Initials } from '../../../lib/profile/parts';
 import { modeLabel } from '../../../lib/profile/Settings';
 import { SwitchPill, useSwitchTo } from '../../../lib/SwitchMode';
 import { Btn, C, Group, Row, Section, T, TAB_SPACE, s } from '../../../lib/ui';
-import { deskCol, useWide } from '../../../lib/wide';
+import { useWide } from '../../../lib/wide';
+import { DeskProfile } from '../../../lib/profile/Desk';
 
 /* Προφίλ: ταυτότητα στο κέντρο και καθαρές ομάδες, όπως οι ρυθμίσεις του κινητού.
    Τα στοιχεία αλλάζουν στο /me, οι ρυθμίσεις της εφαρμογής (εμφάνιση κ.λπ.) στο /settings.
@@ -23,9 +24,12 @@ export default function Profile() {
   const upSub = upcoming == null ? undefined : upcoming === 0 ? 'Κανένα επερχόμενο ραντεβού'
     : `${upcoming} ${upcoming === 1 ? 'επερχόμενο ραντεβού' : 'επερχόμενα ραντεβού'}`;
 
+  // Υπολογιστής: σελίδα λογαριασμού με ενότητες αριστερά και φόρμα δεξιά (lib/profile/Desk).
+  if (wide) return <DeskProfile />;
+
   return (
     <View style={s.screen}>
-    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: top + 24 }, hasBiz && !wide && { paddingBottom: TAB_SPACE + 60 }, wide && { paddingTop: 32, paddingBottom: 60 }, deskCol(wide, 680)]}>
+    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: top + 24 }, hasBiz && { paddingBottom: TAB_SPACE + 60 }]}>
       <View style={{ alignItems: 'center', gap: 6, marginBottom: 8 }}>
         <Initials text={person.initials} size={92} />
         <Text style={{ color: C.text, fontWeight: '900', fontSize: 24, letterSpacing: -0.5, marginTop: 8 }} numberOfLines={1}>{person.name || 'Χωρίς όνομα'}</Text>
@@ -53,8 +57,7 @@ export default function Profile() {
         <Group><Row title="Αποσύνδεση" danger last onPress={signOut} right={<View />} /></Group>
       </View>
     </ScrollView>
-    {/* στον υπολογιστή αρκεί η γραμμή «Λειτουργία επιχείρησης» */}
-    {hasBiz && !wide && <SwitchPill to="biz" />}
+    {hasBiz && <SwitchPill to="biz" />}
     </View>
   );
 }

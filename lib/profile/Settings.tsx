@@ -58,9 +58,8 @@ export function AppearancePicker() {
 }
 export const modeLabel = () => MODES.find((o) => o.key === getMode())?.label ?? '';
 
-/* Αλλαγή κωδικού: ανοίγει μέσα στη λίστα. */
-function Password({ last }: { last?: boolean }) {
-  const [open, setOpen] = useState(false);
+/* Φόρμα νέου κωδικού (κοινή για το κινητό και το προφίλ στον υπολογιστή). */
+export function PasswordForm({ onDone }: { onDone?: () => void }) {
   const [a, setA] = useState(''); const [b, setB] = useState('');
   const [busy, setBusy] = useState(false);
   const go = async () => {
@@ -70,17 +69,27 @@ function Password({ last }: { last?: boolean }) {
     const { error } = await sb.auth.updateUser({ password: a });
     setBusy(false);
     if (error) return say('Δεν άλλαξε ο κωδικός', error.message);
-    setA(''); setB(''); setOpen(false); say('Ο κωδικός άλλαξε');
+    setA(''); setB(''); onDone?.(); say('Ο κωδικός άλλαξε');
   };
+  return (
+    <View style={{ gap: 10 }}>
+      <Input icon="lock" placeholder="Νέος κωδικός" secureTextEntry autoCapitalize="none" value={a} onChangeText={setA} />
+      <Input icon="lock" placeholder="Ξανά ο νέος κωδικός" secureTextEntry autoCapitalize="none" value={b} onChangeText={setB} />
+      <Btn size="sm" title={busy ? 'Μια στιγμή…' : 'Αλλαγή κωδικού'} onPress={go} disabled={busy || !a} />
+    </View>
+  );
+}
+
+/* Αλλαγή κωδικού: ανοίγει μέσα στη λίστα. */
+function Password({ last }: { last?: boolean }) {
+  const [open, setOpen] = useState(false);
   return (
     <>
       <Row icon="lock" title="Αλλαγή κωδικού" onPress={() => setOpen(!open)} last={last && !open}
         right={<Icon name="chevron" size={16} color={C.mute} style={{ transform: [{ rotate: open ? '90deg' : '0deg' }] }} />} />
       {open && (
-        <View style={[{ padding: 14, paddingTop: 4, gap: 10 }, !last && { borderBottomWidth: 1, borderBottomColor: C.line }]}>
-          <Input icon="lock" placeholder="Νέος κωδικός" secureTextEntry autoCapitalize="none" value={a} onChangeText={setA} />
-          <Input icon="lock" placeholder="Ξανά ο νέος κωδικός" secureTextEntry autoCapitalize="none" value={b} onChangeText={setB} />
-          <Btn size="sm" title={busy ? 'Μια στιγμή…' : 'Αλλαγή κωδικού'} onPress={go} disabled={busy || !a} />
+        <View style={[{ padding: 14, paddingTop: 4 }, !last && { borderBottomWidth: 1, borderBottomColor: C.line }]}>
+          <PasswordForm onDone={() => setOpen(false)} />
         </View>
       )}
     </>
