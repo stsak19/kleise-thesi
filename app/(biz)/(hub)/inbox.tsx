@@ -8,6 +8,7 @@ import { useAuth } from '../../../lib/auth';
 import { Avatar, Btn, C, Card, Chip, Empty, Group, Icon, Input, ScreenHeader, Section, T, alpha, fmtDay, s } from '../../../lib/ui';
 import { styleOf } from '../../../lib/presets';
 import { fetchMyBiz, useActiveBizId } from '../../../lib/owner/active';
+import { deskCol, useWide } from '../../../lib/owner/desk';
 
 type Client = { user_id: string; name: string; phone: string | null; last: string | null };
 
@@ -31,6 +32,7 @@ export default function Messages() {
   const [body, setBody] = useState('');
   const [q, setQ] = useState('');
   const [sending, setSending] = useState(false);
+  const wide = useWide();
   // «Μήνυμα» από το πρόγραμμα: ανοίγει την καρτέλα με τον πελάτη ήδη επιλεγμένο.
   useEffect(() => { if (params.to) setTo(params.to); }, [params.to]);
 
@@ -68,7 +70,7 @@ export default function Messages() {
   };
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0 }]} keyboardShouldPersistTaps="handled">
+    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0 }, deskCol(wide)]} keyboardShouldPersistTaps="handled">
       <View style={{ marginHorizontal: -20 }}>
         <ScreenHeader title="Μηνύματα" sub="Σε όλους τους πελάτες σου ή σε έναν" />
       </View>

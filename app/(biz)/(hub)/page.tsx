@@ -7,13 +7,22 @@ import { sb } from '../../../lib/supabase';
 import { LAYOUTS, styleOf } from '../../../lib/presets';
 import { PagePreview } from '../../../lib/owner/PagePreview';
 import { NoBiz, useMyBiz } from '../../../lib/owner/hub';
-import { C, Group, Row, ScreenHeader, Section, SwitchRow, catLabel, s } from '../../../lib/ui';
+import { C, Card, Group, Row, ScreenHeader, Section, SwitchRow, T, TAB_SPACE, catLabel, s } from '../../../lib/ui';
+import { signOut, usePerson } from '../../../lib/profile/data';
+import { Initials } from '../../../lib/profile/parts';
+import { modeLabel } from '../../../lib/profile/Settings';
+import { useSwitchTo } from '../../../lib/SwitchMode';
+import { deskCol, useWide } from '../../../lib/owner/desk';
 
-/* «Σελίδα»: πώς φαίνεται το κατάστημα στους πελάτες, η δημοσίευση και οι αλλαγές (υπηρεσίες, ωράριο, εμφάνιση). */
+/* «Κατάστημα»: πώς φαίνεται το κατάστημα στους πελάτες, η δημοσίευση και οι αλλαγές (υπηρεσίες, ωράριο, εμφάνιση).
+   Στο κινητό από κάτω και ο λογαριασμός (στον υπολογιστή είναι στο πλαϊνό μενού). */
 export default function Page() {
   const router = useRouter();
   const biz = useMyBiz();
   const [published, setPublished] = useState<boolean | null>(null);
+  const wide = useWide();
+  const person = usePerson();
+  const switchTo = useSwitchTo();
   useEffect(() => { if (biz) setPublished(!!biz.is_published); }, [biz]);
 
   if (biz === undefined) return <View style={s.screen} />;
@@ -27,9 +36,9 @@ export default function Page() {
   };
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0 }]}>
+    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0, paddingBottom: TAB_SPACE }, deskCol(wide)]}>
       <View style={{ marginHorizontal: -20 }}>
-        <ScreenHeader title="Η σελίδα μου" sub={[catLabel(biz.category), biz.city].filter(Boolean).join(' · ')} />
+        <ScreenHeader title="Κατάστημα" sub={[catLabel(biz.category), biz.city].filter(Boolean).join(' · ')} />
       </View>
       <PagePreview biz={{ ...biz, is_published: published }} />
 
@@ -45,6 +54,22 @@ export default function Page() {
         <Row icon="store" title="Δες τη σελίδα σαν πελάτης" sub="Έτσι τη βλέπουν όσοι κλείνουν θέση" onPress={() => router.push(`/store/${biz.id}`)} last />
       </Group>
       <Text style={{ color: C.mute, fontSize: 13, textAlign: 'center', marginTop: 4 }}>Οι αλλαγές φαίνονται αμέσως στους πελάτες.</Text>
+
+      {!wide && <>
+        <Section title="Λογαριασμός" />
+        <Card onPress={() => router.push('/account')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 }}>
+          <Initials text={person.initials} size={48} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{person.name || 'Χωρίς όνομα'}</Text>
+            <T mute style={{ fontSize: 14 }}>{person.email}</T>
+          </View>
+        </Card>
+        <Group>
+          <Row icon="gear" title="Ρυθμίσεις" sub={`Εμφάνιση: ${modeLabel()} · κίνηση · κωδικός`} onPress={() => router.push('/app-settings')} />
+          <Row icon="search" title="Μετάβαση σε πελάτη" sub="Κλείσε θέση σε άλλα καταστήματα" onPress={() => switchTo('client')} last />
+        </Group>
+        <Group><Row title="Αποσύνδεση" danger last onPress={signOut} right={<View />} /></Group>
+      </>}
     </ScrollView>
   );
 }

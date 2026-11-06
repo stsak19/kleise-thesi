@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Text } from '../../../lib/Txt';
 import { styleOf } from '../../../lib/presets';
 import { kindOf } from '../../../lib/owner/kinds';
 import { NoBiz, daysTo, packLine, useClients, useMyBiz } from '../../../lib/owner/hub';
-import { Avatar, C, Card, Chip, Empty, Icon, Input, Pill, T, fmtDay, s } from '../../../lib/ui';
+import { Avatar, C, Card, Chip, Empty, Group, Icon, Input, Pill, Row, ScreenHeader, T, TAB_SPACE, fmtDay, s } from '../../../lib/ui';
+import { deskCol, useWide } from '../../../lib/owner/desk';
 
-/* «Πελάτες / Μέλη / Αθλούμενοι / Ασθενείς»: όλοι όσοι έχουν κλείσει θέση, με αναζήτηση και γρήγορα φίλτρα. */
+/* Καρτέλα «Πελάτες / Μέλη / Αθλούμενοι / Ασθενείς»: όλοι όσοι έχουν κλείσει θέση, με αναζήτηση και γρήγορα φίλτρα.
+   Πάνω πάνω η είσοδος στα πακέτα/συνδρομές. */
 type F = 'all' | 'pack' | 'ending' | 'new';
 
 export default function Clients() {
@@ -16,6 +18,7 @@ export default function Clients() {
   const { list } = useClients(biz);
   const [q, setQ] = useState('');
   const [f, setF] = useState<F>('all');
+  const wide = useWide();
 
   if (biz === undefined) return <View style={s.screen} />;
   if (biz === null) return <NoBiz />;
@@ -30,8 +33,13 @@ export default function Clients() {
   const hasPacks = all.some((c) => c.pack);
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingBottom: 40 }]} keyboardShouldPersistTaps="handled">
-      <Stack.Screen options={{ title: k.clients }} />
+    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0, paddingBottom: TAB_SPACE }, deskCol(wide)]} keyboardShouldPersistTaps="handled">
+      <View style={{ marginHorizontal: -20 }}>
+        <ScreenHeader title={k.clients} sub={list ? `${all.length} στην καρτέλα` : undefined} />
+      </View>
+      <Group>
+        <Row icon="pack" title={k.plans} sub={`${all.filter((c) => c.pack).length} ενεργά · πακέτα, συνδρομές, δωροκάρτες`} onPress={() => router.push('/owner/plans')} last />
+      </Group>
       <Input icon="search" placeholder="Αναζήτηση με όνομα ή κινητό" value={q} onChangeText={setQ} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
         <Chip label={`Όλοι ${all.length}`} on={f === 'all'} onPress={() => setF('all')} />

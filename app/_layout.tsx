@@ -33,7 +33,7 @@ function Gate() {
     // Οι οθόνες μέσα στο Προφίλ ανοίγουν πάνω από το Προφίλ, ώστε να υπάρχει το βελάκι «πίσω».
     if (to === '/') return;
     setTimeout(() => {
-      const base = /^\/(me|settings)/.test(to) ? '/profile' : /^\/owner\//.test(to) ? '/page' : /^\/(account|app-settings)/.test(to) ? '/menu' : null;
+      const base = /^\/(me|settings)/.test(to) ? '/profile' : /^\/owner\//.test(to) ? '/page' : /^\/(account|app-settings)/.test(to) ? '/page' : null;
       // Στη λειτουργία επιχείρησης αντικαθιστούμε την αρχική, ώστε το «πίσω» να μη βγάζει στον πελάτη.
       const go = getMode() === 'biz' ? router.replace : router.navigate;
       if (base) { go(base as any); setTimeout(() => router.push(to as any), 30); }

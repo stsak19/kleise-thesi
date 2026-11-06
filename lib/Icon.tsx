@@ -3,7 +3,7 @@ import { C } from './theme';
 
 /* Μικρά εικονίδια γραμμής, φτιαγμένα μόνο με View (χωρίς βιβλιοθήκη εικονιδίων).
    Παίρνουν το χρώμα τους από το θέμα, οπότε αλλάζουν μαζί με το 🎨. */
-export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack' | 'home' | 'chat';
+export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack' | 'home' | 'chat' | 'team';
 
 export function Icon({ name, size = 22, color = C.text, style }: { name: IconName; size?: number; color?: string; style?: ViewStyle }) {
   const s = size, w = Math.max(1.6, Math.round(s * 0.09 * 10) / 10);
@@ -31,6 +31,14 @@ export function Icon({ name, size = 22, color = C.text, style }: { name: IconNam
         <View style={abs(s * 0.3 - w / 2, s * 0.06, { width: w, height: s * 0.2, borderRadius: w, backgroundColor: color })} />
         <View style={abs(s * 0.7 - w / 2, s * 0.06, { width: w, height: s * 0.2, borderRadius: w, backgroundColor: color })} />
         <View style={abs(s * 0.3, s * 0.52, { width: s * 0.14, height: s * 0.14, borderRadius: 2, backgroundColor: color })} />
+      </>; break;
+    case 'team':
+      // Δύο άτομα (ομάδα): ένα μπροστά κι ένα πιο μικρό πίσω δεξιά.
+      body = <>
+        <View style={abs(s * 0.56, s * 0.12, { width: s * 0.28, height: s * 0.28, borderRadius: s, borderWidth: w, borderColor: color })} />
+        <View style={abs(s * 0.62, s * 0.5, { width: s * 0.34, height: s * 0.3, borderTopRightRadius: s * 0.3, borderTopLeftRadius: s * 0.1, borderBottomRightRadius: s * 0.06, borderWidth: w, borderLeftWidth: 0, borderColor: color })} />
+        <View style={abs(s * 0.12, s * 0.16, { width: s * 0.34, height: s * 0.34, borderRadius: s, borderWidth: w, borderColor: color })} />
+        <View style={abs(s * 0.02, s * 0.58, { width: s * 0.54, height: s * 0.32, borderTopLeftRadius: s * 0.3, borderTopRightRadius: s * 0.3, borderBottomLeftRadius: s * 0.06, borderBottomRightRadius: s * 0.06, borderWidth: w, borderColor: color })} />
       </>; break;
     case 'user':
       body = <>

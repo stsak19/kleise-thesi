@@ -1,13 +1,14 @@
 import { useCallback, useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { Stack, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { Text } from '../../../lib/Txt';
 import { say } from '../../../lib/alert';
 import { rpc, sb } from '../../../lib/supabase';
 import { styleOf } from '../../../lib/presets';
 import { kindOf } from '../../../lib/owner/kinds';
 import { Face, NoBiz, useMyBiz, useStaff } from '../../../lib/owner/hub';
-import { Btn, C, Card, DAYS, Empty, Input, Pill, T, iso, s } from '../../../lib/ui';
+import { Btn, C, Card, DAYS, Empty, Input, Pill, ScreenHeader, T, TAB_SPACE, iso, s } from '../../../lib/ui';
+import { deskCol, useWide } from '../../../lib/owner/desk';
 
 /* «Η ομάδα»: ποιος δουλεύει στην επιχείρηση, ποιες μέρες, ποιες υπηρεσίες κάνει και πόσα ραντεβού έχει σήμερα. */
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
@@ -20,6 +21,7 @@ export default function Team() {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
+  const wide = useWide();
 
   useFocusEffect(useCallback(() => {
     if (!biz) return;
@@ -42,9 +44,10 @@ export default function Team() {
   };
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingBottom: 40 }]}>
-      <Stack.Screen options={{ title: k.team }} />
-      <T mute>{staff.length > 1 ? `${staff.length} άτομα · ${Object.values(today).reduce((a, b) => a + b, 0)} ραντεβού σήμερα` : k.solo}</T>
+    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0, paddingBottom: TAB_SPACE }, deskCol(wide)]}>
+      <View style={{ marginHorizontal: -20 }}>
+        <ScreenHeader title={k.team} sub={staff.length > 1 ? `${staff.length} άτομα · ${Object.values(today).reduce((a, b) => a + b, 0)} ραντεβού σήμερα` : k.solo} />
+      </View>
 
       {staff.length === 0 && <Card><Empty icon="user" title="Δεν έχεις προσθέσει ομάδα" text="Πρόσθεσε όσους δουλεύουν μαζί σου, ώστε ο καθένας να έχει το δικό του πρόγραμμα." /></Card>}
 

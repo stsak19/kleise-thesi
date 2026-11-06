@@ -1,26 +1,30 @@
 import { Tabs } from 'expo-router';
 import { C } from '../../../lib/ui';
 import { FloatBar, type TabItems } from '../../../lib/FloatBar';
+import { Sidebar, useWide } from '../../../lib/owner/desk';
 
-/* Η κάτω μπάρα της επιχείρησης: Σήμερα · Ημερολόγιο · Μηνύματα · Σελίδα · Μενού. */
+/* Οι πέντε ενότητες της επιχείρησης: Πρόγραμμα · Μηνύματα · Πελάτες · Ομάδα · Κατάστημα.
+   Κινητό: κάτω μπάρα. Υπολογιστής (φαρδιά οθόνη): πλαϊνό μενού αριστερά, με την επιχείρηση πάνω και τον λογαριασμό κάτω. */
 const ICONS: TabItems = {
-  today: { icon: 'clock', label: 'Σήμερα' },
-  calendar: { icon: 'calendar', label: 'Ημερολόγιο' },
+  today: { icon: 'calendar', label: 'Πρόγραμμα' },
   inbox: { icon: 'mail', label: 'Μηνύματα' },
-  page: { icon: 'store', label: 'Σελίδα' },
-  menu: { icon: 'user', label: 'Μενού' },
+  clients: { icon: 'user', label: 'Πελάτες' },
+  team: { icon: 'team', label: 'Ομάδα' },
+  page: { icon: 'store', label: 'Κατάστημα' },
 };
 
 export const unstable_settings = { initialRouteName: 'today' };
 
 export default function BizTabs() {
+  const wide = useWide();
   return (
-    <Tabs tabBar={(p) => <FloatBar items={ICONS} {...p} labels />} screenOptions={{ headerShown: false, animation: 'shift', sceneStyle: { backgroundColor: C.bg } }}>
-      <Tabs.Screen name="today" options={{ title: 'Σήμερα' }} />
-      <Tabs.Screen name="calendar" options={{ title: 'Ημερολόγιο' }} />
+    <Tabs tabBar={(p) => (wide ? <Sidebar items={ICONS} {...p} /> : <FloatBar items={ICONS} {...p} labels />)}
+      screenOptions={{ headerShown: false, animation: wide ? 'none' : 'shift', tabBarPosition: wide ? 'left' : 'bottom', sceneStyle: { backgroundColor: C.bg } }}>
+      <Tabs.Screen name="today" options={{ title: 'Πρόγραμμα' }} />
       <Tabs.Screen name="inbox" options={{ title: 'Μηνύματα' }} />
-      <Tabs.Screen name="page" options={{ title: 'Σελίδα' }} />
-      <Tabs.Screen name="menu" options={{ title: 'Μενού' }} />
+      <Tabs.Screen name="clients" options={{ title: 'Πελάτες' }} />
+      <Tabs.Screen name="team" options={{ title: 'Ομάδα' }} />
+      <Tabs.Screen name="page" options={{ title: 'Κατάστημα' }} />
     </Tabs>
   );
 }

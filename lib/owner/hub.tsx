@@ -202,7 +202,7 @@ export function Attention({ biz }: { biz: any }) {
   if (!due.length) return null;
   const k = kindOf(biz.category);
   return <>
-    <Section title={k.attention} action="Όλοι" onAction={() => router.push('/owner/clients')} />
+    <Section title={k.attention} action="Όλοι" onAction={() => router.navigate('/clients')} />
     <Card style={{ padding: 0, gap: 0, overflow: 'hidden' }}>
       {due.map((c, i) => (
         <Pressable key={c.user_id} onPress={() => router.push({ pathname: '/owner/client', params: { id: c.user_id } })}
