@@ -5,6 +5,9 @@ import { usePerson } from '../../../../lib/profile/data';
 import { useStore, type Slot } from '../../../../lib/store/data';
 import { Credits, StoreTop } from '../../../../lib/store/parts';
 import { screenFor } from '../../../../lib/bizscreen';
+import { useBook } from '../../../../lib/store/book';
+import { BookHome, BookPage, BookSheet } from '../../../../lib/store/BookUI';
+import { useWide } from '../../../../lib/wide';
 
 const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
 
@@ -12,6 +15,33 @@ const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρ�
    του πακέτου, και η λίστα με τις ώρες: Κράτηση · Ακύρωση · Αναμονή · Απόσυρση. */
 export default function Program() {
   const S = useStore();
+  const B = useBook();
+  const wide = useWide();
+  const { p } = usePerson();
+  if (S.layout && S.layout !== 'classes') {
+    /* Ραντεβού: η ροή κράτησης (lib/store/book). Κινητό: υπηρεσίες + φύλλο βημάτων· υπολογιστής: όλα σε μία σελίδα. */
+    return (
+      <View style={{ flex: 1, backgroundColor: C.bg }}>
+        <StoreTop title={wide ? 'Κλείσε ραντεβού' : p.first_name ? `Γεια σου, ${p.first_name}` : 'Κλείσε ραντεβού'} right={<Credits />} />
+        <ScrollView contentContainerStyle={{ paddingBottom: wide ? 40 : TAB_SPACE + 70 }}>
+          {wide ? <BookPage /> : <BookHome />}
+        </ScrollView>
+        {!wide && S.services.length > 0 && (
+          <View style={{ position: 'absolute', left: 20, right: 20, bottom: TAB_SPACE - 14 }}>
+            <Btn title={B.favStaff && B.usualService ? 'Κλείσε κάτι άλλο' : 'Κλείσε ραντεβού'} onPress={() => B.start()} />
+          </View>
+        )}
+        <BookSheet />
+      </View>
+    );
+  }
+  return <Classes />;
+}
+
+/* Μαθήματα: το πρόγραμμα είναι το πρώτο βήμα· το «Κράτηση» ανοίγει την επιβεβαίωση. */
+function Classes() {
+  const S = useStore();
+  const B = useBook();
   const { p } = usePerson();
   const multi = S.services.length > 1;
   const d = new Date(S.date + 'T00:00');
@@ -45,7 +75,7 @@ export default function Program() {
         {st === 'mine' ? <Btn size="sm" kind="danger" title="Ακύρωση" disabled={dis} onPress={() => S.cancel(sl)} />
           : st === 'wait' ? <Btn size="sm" kind="ghost" title="Απόσυρση" disabled={dis} onPress={() => S.unwait(sl)} />
           : st === 'full' ? <Btn size="sm" kind="ghost" title="Αναμονή" disabled={dis} onPress={() => S.wait(sl)} />
-          : <Btn size="sm" title="Κράτηση" disabled={dis || (!!S.pack && S.pack.left <= 0)} onPress={() => S.book(sl)} />}
+          : <Btn size="sm" title="Κράτηση" disabled={dis || (!!S.pack && S.pack.left <= 0)} onPress={() => B.confirmClass(sl)} />}
       </View>
     );
   };
@@ -119,6 +149,7 @@ export default function Program() {
           S.slots.map((sl, i) => <Row key={sl.sv.id + sl.time} sl={sl} last={i === S.slots!.length - 1} />)
         )}
       </ScrollView>
+      <BookSheet />
     </View>
   );
 }

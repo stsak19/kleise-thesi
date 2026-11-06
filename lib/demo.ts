@@ -296,7 +296,16 @@ const hm = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 
 const fm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 const taken = (service_id: string, date: string, t: string) => db.bookings.filter((b) => b.service_id === service_id && b.date === date && b.time.slice(0, 5) === t && b.status !== 'cancelled').length;
 
-function availability(service_id: string, date: string) {
+/* Ραντεβού με ομάδα: κάθε ώρα είναι ελεύθερη για όσα άτομα κάνουν την υπηρεσία, δουλεύουν εκείνη τη μέρα
+   και δεν έχουν άλλο ραντεβού που να πέφτει πάνω της. */
+const staffFor = (s: any) => (s.capacity > 1 ? [] : db.staff.filter((st) => st.business_id === s.business_id && st.services.includes(s.id)));
+const staffFree = (s: any, date: string, m: number, dow: number) => staffFor(s).filter((st) => st.days.includes(dow) && !db.bookings.some((b) => {
+  if (b.staff_id !== st.id || b.date !== date || b.status === 'cancelled') return false;
+  const a = hm(b.time), z = a + (svc(b.service_id)?.duration_min ?? 30);
+  return a < m + s.duration_min && m < z;
+})).map((st) => st.id);
+
+function availability(service_id: string, date: string, staff_id?: string | null) {
   const s = svc(service_id); if (!s) return [];
   const b = bz(s.business_id);
   if (date < iso(new Date()) || date > plus(b.max_days_ahead)) return [];
@@ -308,7 +317,14 @@ function availability(service_id: string, date: string) {
     .forEach((h) => { for (let m = hm(h.opens); m + s.duration_min <= hm(h.closes); m += s.duration_min) set.add(m); });
   const now = new Date(), today = iso(now), nowM = now.getHours() * 60 + now.getMinutes();
   return [...set].sort((a, z) => a - z).filter((m) => date > today || m > nowM).map((m) => {
-    const t = fm(m), tk = taken(s.id, date, t);
+    const t = fm(m);
+    const team = staffFor(s);
+    if (team.length) {
+      const can = staffFree(s, date, m, dow), cap = staff_id ? 1 : team.filter((x) => x.days.includes(dow)).length;
+      const free = staff_id ? (can.includes(staff_id) ? 1 : 0) : can.length;
+      return { slot_time: t + ':00', capacity: cap, taken: cap - free, free, staff_free: can };
+    }
+    const tk = taken(s.id, date, t);
     return { slot_time: t + ':00', capacity: s.capacity, taken: tk, free: Math.max(s.capacity - tk, 0) };
   });
 }
@@ -324,17 +340,19 @@ const who = (u: string) => {
   return { name, phone: pr?.phone || null };
 };
 const RPC: Record<string, (a: any) => any> = {
-  day_availability: (a) => availability(a.p_service, a.p_date),
+  day_availability: (a) => availability(a.p_service, a.p_date, a.p_staff),
   create_booking: (a) => {
     const t = String(a.p_time).slice(0, 5);
-    const sl = availability(a.p_service, a.p_date).find((x) => x.slot_time.slice(0, 5) === t);
+    const sl: any = availability(a.p_service, a.p_date, a.p_staff).find((x) => x.slot_time.slice(0, 5) === t);
     if (!sl) return { ok: false, error: 'Η ώρα δεν είναι διαθέσιμη' };
     if (sl.free <= 0) return { ok: false, full: true, error: 'Η ώρα γέμισε' };
     if (db.bookings.some((b) => b.service_id === a.p_service && b.date === a.p_date && b.time.slice(0, 5) === t && b.user_id === me && b.status === 'booked'))
       return { ok: false, error: 'Έχεις ήδη κράτηση σε αυτή την ώρα' };
-    addBooking(a.p_service, a.p_date, t, me ?? DEMO_UID);
+    // Με ομάδα: το άτομο που διάλεξε, αλλιώς («Οποιοσδήποτε») το πρώτο ελεύθερο.
+    const st = sl.staff_free ? (a.p_staff ?? sl.staff_free[0]) : null;
+    addBooking(a.p_service, a.p_date, t, me ?? DEMO_UID, 'booked', st);
     db.waitlist = db.waitlist.filter((w) => !(w.service_id === a.p_service && w.date === a.p_date && w.time.slice(0, 5) === t && w.user_id === me));
-    return { ok: true };
+    return { ok: true, staff_id: st, staff: staffOf(st)?.name ?? null };
   },
   cancel_booking: (a) => { const b = db.bookings.find((x) => x.id === a.p_booking); if (b) { b.status = 'cancelled'; b.cancelled_at = new Date().toISOString(); } return { ok: true }; },
   join_waitlist: (a) => { db.waitlist.push({ id: uid(), service_id: a.p_service, user_id: me, date: a.p_date, time: String(a.p_time).slice(0, 5) + ':00' }); return { ok: true }; },
@@ -342,7 +360,8 @@ const RPC: Record<string, (a: any) => any> = {
   my_bookings: () => ({
     bookings: db.bookings.filter((b) => b.user_id === me).sort((a, z) => (a.date + a.time).localeCompare(z.date + z.time)).map((b) => {
       const s = svc(b.service_id), z = bz(b.business_id);
-      return { id: b.id, date: b.date, time: b.time.slice(0, 5), status: b.status, service: s.name, service_id: s.id, business: z.name, business_id: z.id, address: z.address };
+      return { id: b.id, date: b.date, time: b.time.slice(0, 5), status: b.status, service: s.name, service_id: s.id, business: z.name, business_id: z.id, address: z.address,
+        staff_id: b.staff_id ?? null, staff: staffOf(b.staff_id)?.name ?? null };
     }),
     waitlist: db.waitlist.filter((w) => w.user_id === me).map((w) => {
       const s = svc(w.service_id); return { id: w.id, date: w.date, time: w.time.slice(0, 5), service: s.name, service_id: s.id, business: bz(s.business_id).name };

@@ -9,6 +9,7 @@ import { ExitPill, StoreLogo } from './parts';
 import { askLogin } from '../guest';
 import { useRouter } from 'expo-router';
 import { AllLink, BookingRow, PackCard } from '../bookings/cards';
+import { BookSummary } from './BookUI';
 
 /* Το κατάστημα σε υπολογιστή: σαν ξεχωριστή εφαρμογή, με δική του πάνω μπάρα (‹ SpotOn, λογότυπο και όνομα, καρτέλες,
    Σύνδεση ή ο λογαριασμός), περιεχόμενο σε στήλη στη μέση και δεξιά η κράτησή σου, το πακέτο, οι υπηρεσίες και το ωράριο.
@@ -78,6 +79,12 @@ export function StoreAside({ route }: { route?: string }) {
     return { wd, text: any.length ? [...new Set(any.map((x) => `${x.opens.slice(0, 5)} – ${x.closes.slice(0, 5)}`))].join(', ') : 'Κλειστά' };
   });
   const today = new Date().getDay();
+  if (route === 'index' && S.layout && S.layout !== 'classes') return (
+    <ScrollView style={{ width: 360, flexGrow: 0 }} contentContainerStyle={{ gap: 14, paddingVertical: 26, paddingRight: 32 }}>
+      <BookSummary />
+      {!!S.packInfo && <PackCard name={S.biz?.name ?? ''} biz={S.biz} color={color} p={S.packInfo} />}
+    </ScrollView>
+  );
   return (
     <ScrollView style={{ width: 340, flexGrow: 0 }} contentContainerStyle={{ gap: 14, paddingVertical: 26, paddingRight: 32 }}>
       {/* Οι ίδιες κάρτες κράτησης/πακέτου με τη γενική λίστα. Στην καρτέλα Κρατήσεις υπάρχουν ήδη στη μέση, οπότε εδώ κρύβονται. */}
