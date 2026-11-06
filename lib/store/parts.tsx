@@ -8,6 +8,9 @@ import { C, Icon, alpha } from '../ui';
 import { useStore } from './data';
 import { useWide } from '../wide';
 import { DeskTitle } from './desk';
+import { usePerson } from '../profile/data';
+import { Initials } from '../profile/parts';
+import { askLogin } from '../guest';
 
 /* Η κάτω μπάρα του καταστήματος: η ίδια γυάλινη μπάρα του SpotOn (lib/FloatBar), με τη λέξη της ενεργής καρτέλας
    και πλάτος που αλλάζει με κίνηση. */
@@ -41,14 +44,17 @@ export function StoreLogo({ size = 44 }: { size?: number }) {
 // Κεφαλαία στα ελληνικά χωρίς τόνους (ΓΥΜΝΑΣΤΗΡΙΟ, όχι ΓΥΜΝΑΣΤΉΡΙΟ).
 export const upper = (x: string) => x.normalize('NFD').replace(/́/g, '').normalize('NFC').toUpperCase();
 
-/* Κορυφή κάθε καρτέλας: «‹ SpotOn», και από κάτω λογότυπο, όνομα καταστήματος και ο τίτλος της καρτέλας. */
+/* Κορυφή κάθε καρτέλας: «‹ SpotOn» και τα αρχικά σου (ο λογαριασμός), και από κάτω λογότυπο, όνομα καταστήματος και ο τίτλος της καρτέλας. */
 export function StoreTop({ title, right }: { title: string; right?: React.ReactNode }) {
   const S = useStore();
   const top = useSafeAreaInsets().top;
   if (useWide()) return <DeskTitle title={title} right={right} />;
   return (
     <View style={{ paddingTop: top + 8, paddingHorizontal: 20, paddingBottom: 14, gap: 14, borderBottomWidth: 1, borderBottomColor: C.line, backgroundColor: C.bg }}>
-      <ExitPill />
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <ExitPill />
+        <AccountButton />
+      </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <StoreLogo size={44} />
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -61,38 +67,85 @@ export function StoreTop({ title, right }: { title: string; right?: React.ReactN
   );
 }
 
-/* Υπόλοιπο πακέτου σε μικρό μέγεθος (5/8 · στο πακέτο). */
-export function Credits() {
-  const { pack } = useStore();
-  if (!pack) return null;
+/* Τα αρχικά σου πάνω δεξιά: ανοίγουν τον λογαριασμό (στοιχεία, ρυθμίσεις). Επισκέπτης: «Σύνδεση». */
+export function AccountButton({ size = 34 }: { size?: number }) {
+  const S = useStore();
+  const P = usePerson();
+  const router = useRouter();
+  if (P.guest) return (
+    <Pressable onPress={() => askLogin(`/store/${S.id}`)} accessibilityRole="button" hitSlop={6}
+      style={({ pressed }) => ({ height: size, paddingHorizontal: 14, borderRadius: size / 2, backgroundColor: C.text, justifyContent: 'center', opacity: pressed ? 0.8 : 1 })}>
+      <Text style={{ color: C.bg, fontWeight: '800', fontSize: 13 }}>Σύνδεση</Text>
+    </Pressable>
+  );
   return (
-    <View style={{ alignItems: 'flex-end' }}>
-      <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }}>{pack.left}<Text style={{ color: C.mute, fontWeight: '600' }}>/{pack.total}</Text></Text>
-      <Text style={{ color: C.mute, fontSize: 11 }}>στο πακέτο</Text>
+    <Pressable onPress={() => router.push(`/store/${S.id}/account`)} accessibilityRole="button" accessibilityLabel="Ο λογαριασμός μου" hitSlop={6}
+      style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+      <Initials text={P.initials} size={size} />
+    </Pressable>
+  );
+}
+
+/* Πλαίσιο με το τελευταίο μήνυμα του καταστήματος (από τις τελευταίες 7 μέρες), πάνω στην Κράτηση.
+   Όλα τα μηνύματα είναι στην καρτέλα «Κατάστημα». */
+export function Notice({ style }: { style?: object }) {
+  const S = useStore();
+  const m = S.messages[0];
+  if (!m || Date.now() - new Date(m.created_at).getTime() > 7 * 864e5) return null;
+  const { subject, body } = splitMsg(m, String(S.biz?.name ?? ''));
+  return (
+    <View style={[style, { flexDirection: 'row', gap: 10, backgroundColor: alpha(C.text, 0.04), borderWidth: 1, borderColor: C.line, borderRadius: 16, paddingVertical: 11, paddingHorizontal: 13 }]}>
+      <Text style={{ fontSize: 15 }}>📌</Text>
+      <View style={{ flex: 1, gap: 2 }}>
+        {!!subject && <Text style={{ color: C.text, fontWeight: '800', fontSize: 14 }}>{subject}</Text>}
+        <Text style={{ color: C.text, fontSize: 13.5, lineHeight: 19 }} numberOfLines={3}>{body}</Text>
+        <Text style={{ color: C.mute, fontSize: 11.5, marginTop: 2 }}>Από το κατάστημα · {when(m.created_at)}</Text>
+      </View>
     </View>
   );
 }
 
-/* Δαχτυλίδι προόδου (σχέδιο 8): πόσες προπονήσεις απομένουν από το πακέτο.
-   Φτιαγμένο μόνο με View: δύο μισά δαχτυλίδια που γυρίζουν μέσα σε «παράθυρα» μισού πλάτους. */
-export function Ring({ left, total, size = 92 }: { left: number; total: number; size?: number }) {
-  const sw = 9, deg = 360 * Math.max(0, Math.min(1, left / Math.max(1, total)));
-  const circle = (color: string) => ({ position: 'absolute' as const, top: 0, width: size, height: size, borderRadius: size / 2, borderWidth: sw, borderColor: color });
-  const Half = ({ side, rot }: { side: 'right' | 'left'; rot: number }) => (
-    <View style={{ position: 'absolute', top: 0, left: side === 'right' ? size / 2 : 0, width: size / 2, height: size, overflow: 'hidden' }}>
-      <View style={{ position: 'absolute', top: 0, left: side === 'right' ? -size / 2 : 0, width: size, height: size, transform: [{ rotate: `${rot}deg` }] }}>
-        <View style={{ position: 'absolute', top: 0, left: side === 'right' ? 0 : size / 2, width: size / 2, height: size, overflow: 'hidden' }}>
-          <View style={[circle(C.text), { left: side === 'right' ? 0 : -size / 2 }]} />
-        </View>
-      </View>
+const when = (ts: string) => {
+  const d = new Date(ts), now = new Date();
+  const hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  if (d.toDateString() === now.toDateString()) return `σήμερα ${hm}`;
+  return `${d.getDate()}/${d.getMonth() + 1} · ${hm}`;
+};
+// Ο τίτλος είναι «Όνομα καταστήματος · θέμα»· δείχνουμε μόνο το θέμα.
+const splitMsg = (m: any, name: string) => ({ subject: String(m.title).slice(name.length).replace(/^\s*·\s*/, ''), body: String(m.body ?? '') });
+
+/* Οι ανακοινώσεις του καταστήματος σαν φυσαλίδες (καρτέλα «Κατάστημα»). */
+export function MessageList() {
+  const S = useStore();
+  const name = String(S.biz?.name ?? '');
+  return (
+    <View style={{ gap: 10 }}>
+      {S.messages.map((m) => {
+        const { subject, body } = splitMsg(m, name);
+        return (
+          <View key={m.id} style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-end' }}>
+            <StoreLogo size={30} />
+            <View style={{ flex: 1, backgroundColor: C.card, borderRadius: 18, borderBottomLeftRadius: 6, padding: 14, gap: 4 }}>
+              {!!subject && <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{subject}</Text>}
+              <Text style={{ color: C.text, fontSize: 15, lineHeight: 21 }}>{body}</Text>
+              <Text style={{ color: C.mute, fontSize: 11, alignSelf: 'flex-end' }}>{when(m.created_at)}</Text>
+            </View>
+          </View>
+        );
+      })}
     </View>
   );
+}
+
+/* Υπόλοιπο πακέτου σε μικρό κουτάκι (9/12): το μόνο σημείο του πακέτου έξω από τις «Οι κρατήσεις μου». */
+export function Credits() {
+  const S = useStore();
+  const pack = S.pack ?? (S.packInfo && !S.packInfo.pending && S.packInfo.total ? { left: S.packInfo.left, total: S.packInfo.total } : null);
+  if (!pack) return null;
   return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={[circle(alpha(C.text, 0.1)), { left: 0 }]} />
-      {deg > 0 && <Half side="right" rot={Math.min(deg, 180)} />}
-      {deg > 180 && <Half side="left" rot={deg - 180} />}
-      <Text style={{ color: C.text, fontWeight: '800', fontSize: size * 0.26, letterSpacing: -0.5 }}>{left}</Text>
+    <View accessibilityLabel={`Πακέτο: απομένουν ${pack.left} από ${pack.total}`} style={{ alignItems: 'center', backgroundColor: C.soft, borderRadius: 12, paddingVertical: 5, paddingHorizontal: 10 }}>
+      <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }}>{pack.left}<Text style={{ color: C.mute, fontWeight: '600', fontSize: 12 }}>/{pack.total}</Text></Text>
+      <Text style={{ color: C.mute, fontSize: 9.5, fontWeight: '700', letterSpacing: 0.5 }}>ΠΑΚΕΤΟ</Text>
     </View>
   );
 }

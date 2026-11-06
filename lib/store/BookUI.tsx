@@ -16,10 +16,10 @@ import { useWide } from '../wide';
 const TITLE: Record<Step, string> = { service: 'Τι θα κάνεις;', staff: 'Με ποιον;', time: 'Πότε;', confirm: 'Όλα σωστά;' };
 /* Το πακέτο που θα χρεωθεί: το ενεργό πακέτο του καταστήματος (και στα μαθήματα χωρίς «μονάδες»). */
 const packOf = (S: any): { left: number } | null => S.pack ?? (S.packInfo && !S.packInfo.pending && S.packInfo.total ? { left: S.packInfo.left } : null);
-const dur = (m: number) => (m >= 60 && m % 60 === 0 ? `${m / 60} ώρ${m === 60 ? 'α' : 'ες'}` : `${m}′`);
+export const dur = (m: number) => (m >= 60 && m % 60 === 0 ? `${m / 60} ώρ${m === 60 ? 'α' : 'ες'}` : `${m}′`);
 
 /* ---------- μικρά κομμάτια ---------- */
-function Face({ st, size = 64, any, on }: { st?: Staff | null; size?: number; any?: boolean; on?: boolean }) {
+export function Face({ st, size = 64, any, on }: { st?: Staff | null; size?: number; any?: boolean; on?: boolean }) {
   return (
     <View style={{ width: size + 8, height: size + 8, borderRadius: (size + 8) / 2, borderWidth: 2, borderColor: on ? C.text : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
       <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: any ? C.soft : st?.color ?? C.accent, alignItems: 'center', justifyContent: 'center' }}>
@@ -313,16 +313,16 @@ export function UsualCard() {
   );
 }
 
-/* ---------- αρχική καρτέλα καταστήματος με ραντεβού (κινητό) ---------- */
+/* ---------- αρχική καρτέλα καταστήματος με ραντεβού (κινητό): το συνηθισμένο σου και οι υπηρεσίες.
+   Περιγραφή, ομάδα και ωράριο είναι στην καρτέλα «Κατάστημα». ---------- */
 export function BookHome() {
   const S = useStore(); const B = useBook();
   return (
     <View style={{ gap: 18, paddingHorizontal: 20, paddingTop: 16 }}>
       <UsualCard />
-      {!!S.biz?.description && <Text style={{ color: C.mute, fontSize: 14, lineHeight: 20 }}>{S.biz.description}</Text>}
       {S.services.length > 0 && (
         <View>
-          <Text style={{ color: C.text, fontWeight: '800', fontSize: 18, marginBottom: 2 }}>Υπηρεσίες</Text>
+          <Text style={{ color: C.text, fontWeight: '800', fontSize: 18, marginBottom: 2 }}>{B.favStaff && B.usualService ? 'Ή διάλεξε υπηρεσία' : 'Διάλεξε υπηρεσία'}</Text>
           {S.services.map((sv, i) => (
             <Pressable key={sv.id} onPress={() => B.start({ service: sv })} style={({ pressed }) => [s.row, { gap: 12, paddingVertical: 13, borderBottomWidth: i === S.services.length - 1 ? 0 : 1, borderBottomColor: C.line, opacity: pressed ? 0.7 : 1 }]}>
               <View style={{ flex: 1, minWidth: 0 }}>
@@ -333,19 +333,6 @@ export function BookHome() {
               <Icon name="chevron" size={16} color={C.mute} />
             </Pressable>
           ))}
-        </View>
-      )}
-      {B.staff.length > 1 && (
-        <View style={{ gap: 10 }}>
-          <Text style={{ color: C.text, fontWeight: '800', fontSize: 18 }}>Η ομάδα</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-            {B.staff.map((st) => (
-              <View key={st.id} style={{ width: 84, alignItems: 'center', gap: 4 }}>
-                <Face st={st} size={60} />
-                <Text style={{ color: C.text, fontSize: 13, fontWeight: '700' }} numberOfLines={1}>{firstName(st.name)}{B.favStaff?.id === st.id ? ' ♥' : ''}</Text>
-              </View>
-            ))}
-          </ScrollView>
         </View>
       )}
     </View>

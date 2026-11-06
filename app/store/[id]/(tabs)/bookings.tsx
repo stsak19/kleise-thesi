@@ -40,7 +40,7 @@ export default function StoreBookings() {
             <Section title="Το πακέτο σου" />
             <PackCard name={S.biz?.name ?? ''} biz={S.biz} color={color} p={S.packInfo} />
           </>}
-          {n === 0 && <Empty text="Δεν έχεις κλείσει ώρα εδώ. Διάλεξε μία από το Πρόγραμμα." />}
+          {n === 0 && <Empty text="Δεν έχεις κλείσει ώρα εδώ. Διάλεξε μία από την Κράτηση." />}
           {!!next && <>
             {!!S.packInfo && <Section title="Η επόμενη κράτηση" />}
             <Hero b={next} biz={S.biz} color={color} onCancel={() => S.cancelBooking(next)} />

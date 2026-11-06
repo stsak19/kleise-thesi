@@ -3,7 +3,7 @@ import { Text } from '../../../../lib/Txt';
 import { Btn, C, DAYS, MONTHS, TAB_SPACE, alpha } from '../../../../lib/ui';
 import { usePerson } from '../../../../lib/profile/data';
 import { useStore, type Slot } from '../../../../lib/store/data';
-import { Credits, StoreTop } from '../../../../lib/store/parts';
+import { Credits, Notice, StoreTop } from '../../../../lib/store/parts';
 import { screenFor } from '../../../../lib/bizscreen';
 import { useBook } from '../../../../lib/store/book';
 import { BookHome, BookPage, BookSheet } from '../../../../lib/store/BookUI';
@@ -11,26 +11,22 @@ import { useWide } from '../../../../lib/wide';
 
 const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
 
-/* Πρόγραμμα (σχέδιο 1, όπως το Gym_Schedule): λωρίδα ημερών με κουτάκια, τίτλος ημέρας με το υπόλοιπο
-   του πακέτου, και η λίστα με τις ώρες: Κράτηση · Ακύρωση · Αναμονή · Απόσυρση. */
+/* Πρόγραμμα (σχέδιο 1, όπως το Gym_Schedule): λωρίδα ημερών με κουτάκια, τίτλος ημέρας (το πακέτο
+   φαίνεται πάνω δεξιά), και η λίστα με τις ώρες: Κράτηση · Ακύρωση · Αναμονή · Απόσυρση. */
 export default function Program() {
   const S = useStore();
-  const B = useBook();
   const wide = useWide();
   const { p } = usePerson();
   if (S.layout && S.layout !== 'classes') {
-    /* Ραντεβού: η ροή κράτησης (lib/store/book). Κινητό: υπηρεσίες + φύλλο βημάτων· υπολογιστής: όλα σε μία σελίδα. */
+    /* Ραντεβού: η ροή κράτησης (lib/store/book). Κινητό: υπηρεσίες + φύλλο βημάτων (πατάς υπηρεσία και ανοίγει)·
+       υπολογιστής: όλα σε μία σελίδα. Πάνω πάνω το τελευταίο μήνυμα του καταστήματος. */
     return (
       <View style={{ flex: 1, backgroundColor: C.bg }}>
         <StoreTop title={wide ? 'Κλείσε ραντεβού' : p.first_name ? `Γεια σου, ${p.first_name}` : 'Κλείσε ραντεβού'} right={<Credits />} />
-        <ScrollView contentContainerStyle={{ paddingBottom: wide ? 40 : TAB_SPACE + 70 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: wide ? 40 : TAB_SPACE }}>
+          <Notice style={{ marginHorizontal: 20, marginTop: wide ? 0 : 16, marginBottom: wide ? 14 : 0 }} />
           {wide ? <BookPage /> : <BookHome />}
         </ScrollView>
-        {!wide && S.services.length > 0 && (
-          <View style={{ position: 'absolute', left: 20, right: 20, bottom: TAB_SPACE - 14 }}>
-            <Btn title={B.favStaff && B.usualService ? 'Κλείσε κάτι άλλο' : 'Κλείσε ραντεβού'} onPress={() => B.start()} />
-          </View>
-        )}
         <BookSheet />
       </View>
     );
@@ -82,7 +78,7 @@ function Classes() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <StoreTop title={p.first_name ? `Γεια σου, ${p.first_name}` : 'Πρόγραμμα'} />
+      <StoreTop title={p.first_name ? `Γεια σου, ${p.first_name}` : 'Πρόγραμμα'} right={<Credits />} />
       <ScrollView contentContainerStyle={{ paddingBottom: TAB_SPACE }} stickyHeaderIndices={[0]}>
         <View style={{ backgroundColor: C.bg }}>
           {/* λωρίδα ημερών */}
@@ -119,10 +115,10 @@ function Classes() {
               <Text style={{ color: C.text, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 }}>{DAY_FULL[d.getDay()]} {d.getDate()} {MONTHS[d.getMonth()]}</Text>
               <Text style={{ color: C.mute, fontSize: 13, marginTop: 2 }}>{screenFor(S.biz?.category).times}</Text>
             </View>
-            <Credits />
           </View>
         </View>
 
+        <Notice style={{ marginHorizontal: 20, marginTop: 12 }} />
         {!!S.pack && S.pack.left <= 0 && (
           <View style={{ paddingHorizontal: 20, paddingVertical: 12, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.line }}>
             <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>Τελείωσε το πακέτο σου</Text>
