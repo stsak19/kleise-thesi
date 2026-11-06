@@ -14,7 +14,7 @@ import { Photo } from '../../../lib/Photo';
 import { CAT_ART } from '../../../lib/catArt';
 import { setSearchOpen } from '../../../lib/searchOpen';
 import { useWide } from '../../../lib/wide';
-import { DeskSearch } from '../../../lib/client/desk';
+import { useHomeQuery } from '../../../lib/client/desk';
 type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null };
 
 
@@ -81,8 +81,11 @@ function TodayToast({ b, onPress }: { b: Next; onPress: () => void }) {
 export default function Home() {
   const router = useRouter();
   const [cat, setCat] = useState<string | null>(null);
-  const [q, setQ] = useState('');
+  const [mobileQ, setMobileQ] = useState('');
+  /* Στον υπολογιστή η αναζήτηση είναι στην πάνω μπάρα (lib/client/desk) και φτάνει εδώ μέσω useHomeQuery. */
   const wide = useWide();
+  const [deskQ, setDeskQ] = useHomeQuery();
+  const q = wide ? deskQ : mobileQ, setQ = wide ? setDeskQ : setMobileQ;
   const [list, setList] = useState<Biz[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -205,7 +208,7 @@ export default function Home() {
   const empty = <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα ή άλλη κατηγορία."
     action={filtering ? 'Καθαρισμός φίλτρων' : undefined} onAction={() => { setCat(null); setQ(''); }} />;
 
-  if (wide) return <DeskHome {...{ q, setQ, chips, sections, list, loaded, filtering, empty, cat, onOpen: (b: Biz) => router.push(`/store/${b.id}`) }} />;
+  if (wide) return <DeskHome {...{ chips, sections, list, loaded, filtering, empty, cat, onOpen: (b: Biz) => router.push(`/store/${b.id}`) }} />;
 
   return (
     <View style={s.screen}>
@@ -228,10 +231,10 @@ export default function Home() {
   );
 }
 
-/* Η αρχική σε υπολογιστή (εκδοχή Β): γυάλινη αναζήτηση στο κέντρο, πλακίδια κατηγοριών
-   και ενότητες σε πλέγμα αντί για οριζόντια κύλιση. Το μενού είναι αριστερά (lib/client/desk). */
-function DeskHome({ q, setQ, chips, sections, list, loaded, filtering, empty, cat, onOpen }:
-  { q: string; setQ: (v: string) => void; chips: React.ReactNode; sections: { title: string; items: Biz[] }[]; list: Biz[]; loaded: boolean; filtering: boolean; empty: React.ReactNode; cat: string | null; onOpen: (b: Biz) => void }) {
+/* Η αρχική σε υπολογιστή: πλακίδια κατηγοριών και ενότητες σε πλέγμα αντί για οριζόντια κύλιση.
+   Η αναζήτηση και το μενού είναι στην πάνω μπάρα (lib/client/desk). */
+function DeskHome({ chips, sections, list, loaded, filtering, empty, cat, onOpen }:
+  { chips: React.ReactNode; sections: { title: string; items: Biz[] }[]; list: Biz[]; loaded: boolean; filtering: boolean; empty: React.ReactNode; cat: string | null; onOpen: (b: Biz) => void }) {
   const [w, setW] = useState(0);
   const [more, setMore] = useState<Record<string, boolean>>({});
   const cols = w >= 1100 ? 4 : w >= 700 ? 3 : 2, GAP = 20;
@@ -251,7 +254,6 @@ function DeskHome({ q, setQ, chips, sections, list, loaded, filtering, empty, ca
     <ScrollView style={s.screen} contentContainerStyle={{ paddingVertical: 26, paddingHorizontal: 40, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
       <View style={{ width: '100%', maxWidth: 1320, alignSelf: 'center' }}>
         <View style={{ gap: 26 }} onLayout={(e) => setW(Math.floor(e.nativeEvent.layout.width))}>
-          <DeskSearch value={q} onChange={setQ} />
           {chips}
           {!loaded ? null : list.length === 0 ? empty
             : filtering ? (

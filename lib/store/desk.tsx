@@ -1,54 +1,55 @@
 import { Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../Txt';
-import { Photo } from '../Photo';
 import { usePerson } from '../profile/data';
 import { Initials } from '../profile/parts';
 import { C, Icon, fmtDay, price, s } from '../ui';
 import type { IconName } from '../Icon';
 import { useStore } from './data';
-import { ExitPill, StoreLogo, upper } from './parts';
-import { LoginButton } from '../client/desk';
+import { ExitPill, StoreLogo } from './parts';
+import { askLogin } from '../guest';
 
-/* Το κατάστημα σε υπολογιστή: σαν ξεχωριστή εφαρμογή με δικό του πλαϊνό μενού (‹ SpotOn, εξώφυλλο, όνομα, καρτέλες),
-   περιεχόμενο σε στήλη στη μέση και δεξιά η κράτησή σου, το πακέτο, οι υπηρεσίες και το ωράριο. Στο κινητό μένει η κάτω μπάρα. */
+/* Το κατάστημα σε υπολογιστή: σαν ξεχωριστή εφαρμογή, με δική του πάνω μπάρα (‹ SpotOn, λογότυπο και όνομα, καρτέλες,
+   Σύνδεση ή ο λογαριασμός), περιεχόμενο σε στήλη στη μέση και δεξιά η κράτησή σου, το πακέτο, οι υπηρεσίες και το ωράριο.
+   Στο κινητό μένει η κάτω μπάρα. */
 
-export function StoreSide({ items, state, navigateToTab }: { items: Record<string, { icon: IconName; label: string }>; state: { index: number; routes: { key: string; name: string }[] }; navigateToTab: (key: string) => void }) {
+export function StoreTopBar({ items, state, navigateToTab }: { items: Record<string, { icon: IconName; label: string }>; state: { index: number; routes: { key: string; name: string }[] }; navigateToTab: (key: string) => void }) {
   const S = useStore();
   const P = usePerson();
   const activeKey = state.routes[state.index]?.key;
-  const color = S.st?.color ?? C.accent;
+  const profile = state.routes.find((r) => r.name === 'profile');
   return (
-    <View style={{ width: 260, backgroundColor: C.card, borderRightWidth: 1, borderRightColor: C.line, paddingVertical: 20, paddingHorizontal: 14, gap: 4 }}>
+    <View style={[s.row, { gap: 20, paddingVertical: 12, paddingHorizontal: 40, borderBottomWidth: 1, borderBottomColor: C.line, backgroundColor: C.bg }]}>
       <ExitPill />
-      <View style={{ height: 116, borderRadius: 16, overflow: 'hidden', marginTop: 16, backgroundColor: color }}>
-        <Photo uri={S.biz?.cover_url} color={color} />
-      </View>
-      <View style={[s.row, { gap: 10, paddingTop: 12, paddingHorizontal: 4, paddingBottom: 18 }]}>
-        <StoreLogo size={38} />
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }} numberOfLines={1}>{S.biz?.name ?? ''}</Text>
+      <View style={[s.row, { gap: 10, flex: 1, minWidth: 0 }]}>
+        <StoreLogo size={40} />
+        <View style={{ flexShrink: 1, minWidth: 0 }}>
+          <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{S.biz?.name ?? ''}</Text>
           <Text style={{ color: C.mute, fontSize: 12 }} numberOfLines={1}>{[S.biz?.address, S.biz?.city].filter(Boolean).join(' · ')}</Text>
         </View>
       </View>
-      {state.routes.filter((r) => items[r.name]).map((r) => {
-        const on = r.key === activeKey;
-        return (
-          <Pressable key={r.key} onPress={() => navigateToTab(r.key)} accessibilityRole="tab" accessibilityState={{ selected: on }}
-            style={({ pressed, hovered }: any) => [s.row, { gap: 12, paddingVertical: 11, paddingHorizontal: 12, borderRadius: 12,
-              backgroundColor: on ? C.text : pressed || hovered ? C.soft : 'transparent' }]}>
-            <Icon name={items[r.name].icon} size={19} color={on ? C.bg : C.text} />
-            <Text style={{ color: on ? C.bg : C.text, fontWeight: '700', fontSize: 15 }}>{items[r.name].label}</Text>
-          </Pressable>
-        );
-      })}
-      <View style={{ flex: 1 }} />
-      {P.guest ? <LoginButton /> : <View style={[s.row, { gap: 10, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.line }]}>
-        <Initials text={P.initials} size={34} />
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={{ color: C.text, fontWeight: '700', fontSize: 14 }} numberOfLines={1}>{P.name || 'Ο λογαριασμός μου'}</Text>
-          <Text style={{ color: C.mute, fontSize: 12 }} numberOfLines={1}>{P.email}</Text>
-        </View>
-      </View>}
+      <View style={[s.row, { gap: 4 }]}>
+        {state.routes.filter((r) => items[r.name]).map((r) => {
+          const on = r.key === activeKey;
+          return (
+            <Pressable key={r.key} onPress={() => navigateToTab(r.key)} accessibilityRole="tab" accessibilityState={{ selected: on }}
+              style={({ pressed, hovered }: any) => [s.row, { gap: 8, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12,
+                backgroundColor: on ? C.text : pressed || hovered ? C.soft : 'transparent' }]}>
+              <Icon name={items[r.name].icon} size={17} color={on ? C.bg : C.text} />
+              <Text style={{ color: on ? C.bg : C.text, fontWeight: '700', fontSize: 14 }}>{items[r.name].label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      {P.guest ? (
+        <Pressable onPress={() => askLogin()} accessibilityRole="button"
+          style={({ pressed, hovered }: any) => ({ paddingVertical: 11, paddingHorizontal: 18, borderRadius: 12, backgroundColor: C.text, opacity: pressed || hovered ? 0.85 : 1 })}>
+          <Text style={{ color: C.bg, fontWeight: '800', fontSize: 14 }}>Σύνδεση</Text>
+        </Pressable>
+      ) : (
+        <Pressable onPress={() => profile && navigateToTab(profile.key)} accessibilityLabel="Προφίλ" style={({ hovered }: any) => ({ opacity: hovered ? 0.8 : 1 })}>
+          <Initials text={P.initials} size={38} />
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -124,14 +125,12 @@ export function StoreAside() {
   );
 }
 
-/* Τίτλος καρτέλας σε υπολογιστή: το κατάστημα φαίνεται ήδη στο πλαϊνό μενού, εδώ μένει μόνο ο τίτλος. */
+/* Τίτλος καρτέλας σε υπολογιστή: το κατάστημα φαίνεται ήδη στην πάνω μπάρα, εδώ μένει μόνο ο τίτλος. */
 export function DeskTitle({ title, right }: { title: string; right?: React.ReactNode }) {
-  const S = useStore();
   return (
     <View style={{ paddingTop: 26, paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row', alignItems: 'flex-end', gap: 12, backgroundColor: C.bg }}>
       <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={{ color: C.mute, fontWeight: '800', fontSize: 11, letterSpacing: 1.8 }} numberOfLines={1}>{upper(String(S.biz?.name ?? ''))}</Text>
-        <Text style={{ color: C.text, fontWeight: '800', fontSize: 28, letterSpacing: -0.5, marginTop: 2 }} numberOfLines={1}>{title}</Text>
+        <Text style={{ color: C.text, fontWeight: '800', fontSize: 28, letterSpacing: -0.5 }} numberOfLines={1}>{title}</Text>
       </View>
       {right}
     </View>
