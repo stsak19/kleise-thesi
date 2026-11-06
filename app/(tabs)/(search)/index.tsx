@@ -110,9 +110,9 @@ export default function Home() {
   /* Αναζήτηση ανοιχτή: η οθόνη πίσω θολώνει και τα αποτελέσματα εμφανίζονται σε κάρτες (λογότυπο + όνομα) καθώς γράφεις. */
   const overlay = (
     <Animated.View pointerEvents={open ? 'auto' : 'none'} style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 20, opacity: fade }}>
-      <BlurView intensity={40} tint={isLight(C.bg) ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
-        style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: alpha(C.bg, 0.85) }} />
-      <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: alpha(C.bg, 0.8) }} />
+      <BlurView intensity={15} tint={isLight(C.bg) ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: alpha(C.bg, 0.3) }} />
+      <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: alpha(C.bg, 0.25) }} />
       <Pressable onPress={close} style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }} />
       <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1 }} contentContainerStyle={{ paddingTop: top + 110, paddingHorizontal: 20, paddingBottom: TAB_SPACE, gap: 6 }}>
         {!!q.trim() && list.map((b) => (

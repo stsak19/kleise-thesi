@@ -96,9 +96,9 @@ export function FloatBar({ items, state, navigateToTab, labels }: { items: TabIt
         })}
       </BlurView>
       </View>
-      {blurred && <BlurView pointerEvents="none" intensity={30} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
+      {blurred && <BlurView pointerEvents="none" intensity={12} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
         style={{ position: 'absolute', left: 0, right: 0, top: -10, bottom: 0 }} />}
-      {blurred && <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: -10, bottom: 0, backgroundColor: alpha(C.bg, 0.6) }} />}
+      {blurred && <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: -10, bottom: 0, backgroundColor: alpha(C.bg, 0.25) }} />}
     </View>
   );
 }
