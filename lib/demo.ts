@@ -1,17 +1,22 @@
 /* Demo: η εφαρμογή τρέχει με δοκιμαστικά καταστήματα, χωρίς λογαριασμό και χωρίς βάση.
    Όσο είναι ενεργό, κάθε κλήση προς το Supabase απαντιέται από εδώ (μνήμη της συσκευής).
-   Ενεργοποιείται από το κουμπί «Δες το demo» στη σύνδεση· φεύγει με την Αποσύνδεση. */
+   Ενεργοποιείται από το κουμπί «Συνέχεια χωρίς λογαριασμό» στη σύνδεση· φεύγει με την Αποσύνδεση. */
+
+/* ΔΙΑΚΟΠΤΗΣ: όσο είναι true, ΟΛΗ η εφαρμογή (πελάτης, επισκέπτης στην ιστοσελίδα, επιχείρηση,
+   κινητό και υπολογιστής) δείχνει τα δοκιμαστικά δεδομένα, όποιος κι αν συνδεθεί (κάθε email/κωδικός
+   μπαίνει ως «Χριστίνα Αντωνίου»). Όταν το project είναι έτοιμο, γίνεται false και όλα πάνε στη βάση. */
+export const DEMO_EVERYWHERE = true;
 
 const DEMO_KEY = 'spoton.demo';
 const ls = (): Storage | null => { try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch { return null; } };
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NAMES, OWN } from './demoOwner';
-let on = ls()?.getItem(DEMO_KEY) === '1';
+let on = DEMO_EVERYWHERE || ls()?.getItem(DEMO_KEY) === '1';
 // Στο κινητό η σημαία διαβάζεται ασύγχρονα· οι κλήσεις περιμένουν να φορτώσει.
 const ready = AsyncStorage.getItem(DEMO_KEY).then((v) => { if (v === '1') on = true; }).catch(() => {});
 export const isDemo = () => on;
 export function setDemo(v: boolean) {
-  on = v;
+  on = v || DEMO_EVERYWHERE;
   try { v ? ls()?.setItem(DEMO_KEY, '1') : ls()?.removeItem(DEMO_KEY); } catch {}
   (v ? AsyncStorage.setItem(DEMO_KEY, '1') : AsyncStorage.removeItem(DEMO_KEY)).catch(() => {});
 }
@@ -175,6 +180,41 @@ db.notifications.push(
   { id: 'n3', user_id: DEMO_UID, title: 'Ελευθερώθηκε θέση 🎉', body: 'Σου κλείστηκε αυτόματα Spinning στο FitZone Gym.', read: true, created_at: ago(30) },
   { id: 'n4', user_id: DEMO_UID, title: 'Η κράτηση ακυρώθηκε', body: 'Ακύρωσες το μασάζ στο Aqua Spa.', read: true, created_at: ago(170) });
 db.memberships.push({ business_id: 'b-zen', user_id: DEMO_UID, status: 'approved', credits: 6, expires: plus(18) });
+
+/* Ώστε κάθε κατάστημα να έχει κάτι στις «Κρατήσεις», στα «Πακέτα» και στα «Μηνύματα» του πελάτη. */
+addBooking('s-face', plus(-9), '12:00', DEMO_UID, 'attended'); addBooking('s-wax', plus(6), '11:00', DEMO_UID, 'booked');
+addBooking('s-clean', plus(8), '10:20', DEMO_UID, 'booked'); addBooking('s-clean', plus(-180), '09:40', DEMO_UID, 'attended');
+addBooking('s-mass', plus(-31), '19:00', DEMO_UID, 'attended'); addBooking('s-exam', plus(-45), '18:20', DEMO_UID, 'attended');
+addBooking('s-color', plus(-18), '10:00', DEMO_UID, 'attended', 'st-eleni'); addBooking('s-blow', plus(-46), '17:00', DEMO_UID, 'attended', 'st-maria');
+addBooking('s-spin', plus(-2), '19:00', DEMO_UID, 'attended', 'st-dora'); addBooking('s-cross', plus(-9), '09:00', DEMO_UID, 'attended', 'st-alex');
+addBooking('s-eval', plus(-24), '18:00', DEMO_UID, 'attended', 'st-kostas'); addBooking('s-pt', plus(-10), '19:00', DEMO_UID, 'attended', 'st-kostas');
+addBooking('s-pt', plus(-3), '19:00', DEMO_UID, 'attended', 'st-kostas'); addBooking('s-pt', plus(2), '19:00', DEMO_UID, 'booked', 'st-kostas');
+addBooking('s-phyeval', plus(-17), '17:00', DEMO_UID, 'attended', 'st-petros'); addBooking('s-phy', plus(-8), '18:30', DEMO_UID, 'attended', 'st-petros');
+addBooking('s-consult', plus(-14), '13:00', DEMO_UID, 'attended', 'st-sofia'); addBooking('s-tat', plus(9), '12:00', DEMO_UID, 'booked', 'st-sofia');
+db.memberships.push(
+  { business_id: 'b-fit', user_id: DEMO_UID, status: 'approved', credits: 9, expires: plus(11) },
+  { business_id: 'b-pt', user_id: DEMO_UID, status: 'approved', credits: 4, expires: plus(23) },
+  { business_id: 'b-physio', user_id: DEMO_UID, status: 'approved', credits: 3, expires: plus(40) },
+  { business_id: 'b-ink', user_id: DEMO_UID, status: 'pending', credits: 0, expires: null });
+/* Μηνύματα από τα καταστήματα: ο τίτλος είναι «Κατάστημα · θέμα», όπως τα στέλνει η επιχείρηση. */
+const msg = (b: string, subject: string, body: string, h: number, read = true) =>
+  db.notifications.push({ id: uid(), user_id: DEMO_UID, title: `${bz(b).name} · ${subject}`, body, read, created_at: ago(h) });
+msg('b-zen', 'Νέα τμήματα', 'Ανοίξαμε Reformer προχωρημένο κάθε Τρίτη και Πέμπτη στις 20:00. Κλείσε θέση από την εφαρμογή!', 5, false);
+msg('b-zen', 'Υπενθύμιση', 'Το πακέτο σου λήγει σε λίγες μέρες. Ανανέωσέ το στο studio για να κρατήσεις τις θέσεις σου.', 52);
+msg('b-zen', 'Κλειστά', 'Την Κυριακή του Αγίου Δημητρίου το studio θα είναι κλειστό. Καλή γιορτή!', 220);
+msg('b-fit', 'Αλλαγή ωραρίου', 'Από Δευτέρα το Spinning των 19:00 μεταφέρεται στις 19:30.', 9, false);
+msg('b-fit', 'Προσφορά', 'Φέρε έναν φίλο τον Νοέμβριο και κερδίστε και οι δύο μία εβδομάδα δωρεάν.', 96);
+msg('b-eleni', 'Προσφορά', 'Αυτή την εβδομάδα έκπτωση 20% στη θεραπεία κερατίνης.', 30);
+msg('b-eleni', 'Ευχαριστούμε', 'Ευχαριστούμε που μας προτίμησες! Πες μας πώς σου φάνηκε η βαφή.', 410);
+msg('b-niki', 'Νέα χρώματα', 'Ήρθαν τα φθινοπωρινά χρώματα: μπορντό, σοκολατί και chrome. Σε περιμένουμε!', 20, false);
+msg('b-barber', 'Νέες ώρες', 'Ανοίξαμε ώρες και την Κυριακή 11:00–15:00 για τον Νοέμβριο.', 70);
+msg('b-pt', 'Πρόγραμμα', 'Σου έστειλα το νέο πρόγραμμα διατροφής. Τα λέμε την Πέμπτη στις 19:00 💪', 26, false);
+msg('b-physio', 'Ασκήσεις για το σπίτι', 'Κάνε τις διατάσεις 2 φορές τη μέρα, 10 επαναλήψεις. Στην επόμενη συνεδρία θα δούμε την πρόοδο.', 150);
+msg('b-ink', 'Σχέδιο', 'Το σχέδιο είναι έτοιμο! Θα το δούμε μαζί πριν ξεκινήσουμε στο ραντεβού σου.', 40, false);
+msg('b-glow', 'Υπενθύμιση', 'Σε περιμένουμε για την αποτρίχωση. Αν δεν μπορείς, ακύρωσε από την εφαρμογή.', 3, false);
+msg('b-dent', 'Υπενθύμιση', 'Ήρθε η ώρα για τον εξαμηνιαίο καθαρισμό σου. Σε περιμένουμε!', 60);
+msg('b-spa', 'Προσφορά', 'Μασάζ για δύο με 20% έκπτωση κάθε Τετάρτη.', 300);
+msg('b-dr', 'Αποτελέσματα', 'Τα αποτελέσματα των εξετάσεών σου είναι φυσιολογικά. Επόμενος έλεγχος σε 6 μήνες.', 500);
 
 /* ---------- «βάση»: διαθεσιμότητα και RPC ---------- */
 const hm = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
