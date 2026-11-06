@@ -13,6 +13,7 @@ const Head = ({ t }: { t: string }) => <Text style={{ color: C.text, fontWeight:
 
 /* Κατάστημα: ό,τι χρειάζεται ο πελάτης για να αποφασίσει, σε ένα μέρος. Περιγραφή, διεύθυνση, τηλέφωνο, κανόνες,
    ωράριο, υπηρεσίες με τιμές, η ομάδα και οι ανακοινώσεις του καταστήματος (πριν ήταν η καρτέλα «Μηνύματα»).
+   Οι υπηρεσίες με τις τιμές μπαίνουν πρώτες, σε κάθε είδος καταστήματος.
    Ο λογαριασμός και οι ρυθμίσεις ανοίγουν από τα αρχικά πάνω δεξιά. Υπολογιστής: δύο στήλες, χωρίς δεξιά στήλη. */
 export default function StoreInfo() {
   const S = useStore();
@@ -58,14 +59,16 @@ export default function StoreInfo() {
 
   const services = S.services.length > 0 && (
     <View>
-      <Head t="Υπηρεσίες" />
+      <Head t={S.layout === 'classes' ? 'Μαθήματα και τιμές' : 'Υπηρεσίες και τιμές'} />
       {S.services.map((sv, i) => (
         <View key={sv.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: i === S.services.length - 1 ? 0 : 1, borderBottomColor: C.line }}>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={{ color: C.text, fontSize: 15, fontWeight: '700' }} numberOfLines={1}>{sv.name}</Text>
             <Text style={{ color: C.mute, fontSize: 12.5 }}>{dur(sv.duration_min)}</Text>
           </View>
-          <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{sv.price_cents == null ? '' : price(sv.price_cents)}</Text>
+          {sv.price_cents != null
+            ? <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{price(sv.price_cents)}</Text>
+            : S.layout === 'classes' && <Text style={{ color: C.mute, fontWeight: '700', fontSize: 13 }}>Με πακέτο</Text>}
         </View>
       ))}
     </View>
@@ -108,9 +111,9 @@ export default function StoreInfo() {
         ) : (
           <>
             {about}
+            {services}
             {contact}
             {hours}
-            {services}
             {team}
             {news}
             {!!phone && <Btn kind="ghost" icon="phone" title="Κλήση στο κατάστημα" onPress={() => Linking.openURL(`tel:${phone}`)} style={{ marginTop: 8 }} />}
