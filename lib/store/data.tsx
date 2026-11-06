@@ -5,6 +5,7 @@ import { styleOf, type Layout } from '../presets';
 import { fmtLong, iso } from '../ui';
 import { useAuth } from '../auth';
 import { askLogin } from '../guest';
+import { packInfo } from '../bookings/cards';
 
 /* Τα δεδομένα της «εφαρμογής» ενός καταστήματος (app/store/[id]).
    Όπως οι κρατήσεις του Gym_Schedule: πρόγραμμα ημέρας, οι κρατήσεις μου, μηνύματα, πακέτο.
@@ -101,6 +102,8 @@ function useStoreData(id: string) {
     const used = all.filter((b) => b.status !== 'cancelled' && (!since || b.date >= since)).length;
     return { left, total: Math.max(left + used, left, 1), expires: membership.expires as string | null };
   }, [membership, biz, all.length]);
+  /* Η κάρτα πακέτου (ίδια με τη γενική λίστα Πακέτα): και όταν περιμένει έγκριση. */
+  const packCard = useMemo(() => (membership && (membership.expires || membership.status === 'pending') ? packInfo(membership, biz, all) : null), [membership, biz, all.length]);
   // Μηνύματα του καταστήματος: οι ειδοποιήσεις που ξεκινούν με το όνομά του.
   const messages = biz ? notes.filter((n) => String(n.title ?? '').startsWith(biz.name)) : [];
 
@@ -150,7 +153,7 @@ function useStoreData(id: string) {
 
   return {
     id, biz, st, layout, services, hours, days, date, setDate, service, setService, slots, note, busy,
-    upcoming, past, waits, pack, membership, messages, state, waitAt, book, wait, cancel, unwait, cancelBooking, leave, reload,
+    upcoming, past, waits, pack, packInfo: packCard, membership, messages, state, waitAt, book, wait, cancel, unwait, cancelBooking, leave, reload,
   };
 }
 

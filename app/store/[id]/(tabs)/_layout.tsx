@@ -19,10 +19,10 @@ export default function StoreTabsLayout() {
   const wide = useWide();
   return (
     <Tabs backBehavior="none" tabBar={(p) => (wide ? <StoreTopBar items={ITEMS} {...(p as any)} /> : <StoreBar items={ITEMS} {...(p as any)} />)}
-      screenLayout={wide ? ({ children }) => (
+      screenLayout={wide ? ({ children, route }) => (
         <View style={{ flex: 1, flexDirection: 'row', backgroundColor: C.bg }}>
           <View style={{ flex: 1, minWidth: 0, alignItems: 'center' }}><View style={{ flex: 1, width: '100%', maxWidth: 780, paddingHorizontal: 12 }}>{children}</View></View>
-          <StoreAside />
+          <StoreAside route={route.name} />
         </View>
       ) : undefined}
       screenOptions={{ headerShown: false, tabBarPosition: wide ? 'top' : 'bottom', sceneStyle: { backgroundColor: C.bg } }}>

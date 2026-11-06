@@ -1,33 +1,31 @@
-import { Pressable, ScrollView, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Text } from '../Txt';
 import { Photo, Scrim } from '../Photo';
-import { C, Icon, alpha, fmtLong, s, shadow } from '../ui';
-import { type Booking, type BookingsData, countdown } from './data';
+import { C, Icon, alpha, fmtLong, s } from '../ui';
+import { type Biz, type Booking, type BookingsData, countdown } from './data';
+import { BookingRow } from './cards';
 import { BizLogo, CancelBtn } from './parts';
 
 /* Τα επερχόμενα ραντεβού: το επόμενο μεγάλο, με τη φωτογραφία του καταστήματος και αντίστροφη μέτρηση,
-   τα υπόλοιπα σε κάρτες που κυλάνε οριζόντια. */
+   τα υπόλοιπα σε κάρτες κράτησης (οι ίδιες με το κατάστημα, lib/bookings/cards). */
 export default function Upcoming({ D }: { D: BookingsData }) {
   const [next, ...rest] = D.upcoming;
   return <>
-    <Hero b={next} D={D} />
+    <Hero b={next} biz={D.biz[next.business_id]} color={D.color(next)} onOpen={() => D.open(next)} onCancel={() => D.cancel(next)} />
     {rest.length > 0 && <>
       <View style={[s.row, { marginTop: 10 }]}>
         <Text style={[s.h, { flex: 1 }]}>Προγραμματισμένα</Text>
         <Text style={{ color: C.mute, fontWeight: '600' }}>{rest.length}</Text>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }}
-        contentContainerStyle={{ gap: 12, paddingHorizontal: 20, paddingVertical: 6 }}>
-        {rest.map((b) => <Mini key={b.id} b={b} D={D} />)}
-      </ScrollView>
+      {rest.map((b) => <BookingRow key={b.id} b={b} color={D.color(b)} store={b.business} onOpen={() => D.open(b)} onCancel={() => D.cancel(b)} />)}
     </>}
   </>;
 }
 
-function Hero({ b, D }: { b: Booking; D: BookingsData }) {
-  const c = D.color(b), biz = D.biz[b.business_id];
+/* Η επόμενη κράτηση σε μεγάλη κάρτα. Μέσα στο κατάστημα δεν ανοίγει πουθενά (onOpen κενό). */
+export function Hero({ b, biz, color: c, onOpen, onCancel }: { b: Booking; biz?: Biz | any; color: string; onOpen?: () => void; onCancel: () => void }) {
   return (
-    <Pressable onPress={() => D.open(b)} style={({ pressed }) => ({ transform: [{ scale: pressed ? 0.985 : 1 }] })}>
+    <Pressable onPress={onOpen} disabled={!onOpen} style={({ pressed }) => ({ transform: [{ scale: pressed ? 0.985 : 1 }] })}>
       <View style={{ borderRadius: 26, overflow: 'hidden', backgroundColor: c, boxShadow: `0px 14px 30px ${alpha(c, 0.35)}` }}>
         <View style={{ height: 88 }}>
           <Photo uri={biz?.cover_url} color={c} />
@@ -51,7 +49,7 @@ function Hero({ b, D }: { b: Booking; D: BookingsData }) {
           <View style={[s.row, { gap: 6 }]}>
             {!!b.address && <Icon name="pin" size={15} color={C.mute} />}
             <Text style={{ color: C.mute, fontSize: 14, flex: 1 }} numberOfLines={1}>{b.address ?? ''}</Text>
-            <CancelBtn onPress={() => D.cancel(b)} />
+            <CancelBtn onPress={onCancel} />
           </View>
         </View>
       </View>
@@ -65,26 +63,3 @@ const Fact = ({ icon, text, color }: { icon: 'calendar' | 'clock'; text: string;
     <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{text}</Text>
   </View>
 );
-
-function Mini({ b, D }: { b: Booking; D: BookingsData }) {
-  const c = D.color(b);
-  return (
-    <Pressable onPress={() => D.open(b)} style={({ pressed }) => [{ width: 200, borderRadius: 20, backgroundColor: C.card, overflow: 'hidden',
-      transform: [{ scale: pressed ? 0.97 : 1 }] }, shadow(1)]}>
-      <View style={{ height: 4, backgroundColor: c }} />
-      <View style={{ padding: 11, gap: 6 }}>
-        <View style={{ gap: 1 }}>
-          <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }} numberOfLines={1}>{b.business}</Text>
-          <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{b.service}</Text>
-        </View>
-        <View style={[s.row, { gap: 6 }]}>
-          <Text style={{ color: C.text, fontWeight: '900', fontSize: 17 }}>{b.time}</Text>
-          <Text style={{ color: C.mute, fontWeight: '600', fontSize: 13, flex: 1 }}>{fmtLong(b.date)}</Text>
-        </View>
-        <Pressable onPress={() => D.cancel(b)} hitSlop={6}>
-          <Text style={{ color: C.bad, fontWeight: '700', fontSize: 13 }}>Ακύρωση</Text>
-        </Pressable>
-      </View>
-    </Pressable>
-  );
-}

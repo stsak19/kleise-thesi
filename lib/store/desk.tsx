@@ -2,11 +2,13 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../Txt';
 import { usePerson } from '../profile/data';
 import { Initials } from '../profile/parts';
-import { C, Icon, fmtDay, price, s } from '../ui';
+import { C, Icon, price, s } from '../ui';
 import type { IconName } from '../Icon';
 import { useStore } from './data';
 import { ExitPill, StoreLogo } from './parts';
 import { askLogin } from '../guest';
+import { useRouter } from 'expo-router';
+import { AllLink, BookingRow, PackCard } from '../bookings/cards';
 
 /* Το κατάστημα σε υπολογιστή: σαν ξεχωριστή εφαρμογή, με δική του πάνω μπάρα (‹ SpotOn, λογότυπο και όνομα, καρτέλες,
    Σύνδεση ή ο λογαριασμός), περιεχόμενο σε στήλη στη μέση και δεξιά η κράτησή σου, το πακέτο, οι υπηρεσίες και το ωράριο.
@@ -63,8 +65,12 @@ const Box = ({ title, children }: { title: string; children: React.ReactNode }) 
   </View>
 );
 
-export function StoreAside() {
+export function StoreAside({ route }: { route?: string }) {
   const S = useStore();
+  const P = usePerson();
+  const router = useRouter();
+  const onBookings = route === 'bookings';
+  const color = S.st?.color ?? C.accent;
   // Ωράριο: μία γραμμή ανά μέρα (ενώνει τα διαστήματα της ίδιας μέρας).
   const hours = WEEK.map((wd) => {
     const h = S.hours.filter((x) => x.weekday === wd && !x.service_id).sort((a, b) => a.opens.localeCompare(b.opens));
@@ -74,33 +80,16 @@ export function StoreAside() {
   const today = new Date().getDay();
   return (
     <ScrollView style={{ width: 340, flexGrow: 0 }} contentContainerStyle={{ gap: 14, paddingVertical: 26, paddingRight: 32 }}>
-      {S.upcoming.length > 0 && (
-        <Box title={S.upcoming.length === 1 ? 'Η κράτησή σου' : 'Οι κρατήσεις σου'}>
-          {S.upcoming.slice(0, 4).map((b: any, i: number) => (
-            <View key={b.id} style={[s.row, { gap: 10, paddingTop: i ? 10 : 0, borderTopWidth: i ? 1 : 0, borderTopColor: C.line }]}>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ color: C.text, fontWeight: '800', fontSize: 18 }}>{String(b.time).slice(0, 5)}</Text>
-                <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{fmtDay(b.date)} · {b.service}</Text>
-              </View>
-              <Pressable onPress={() => S.cancelBooking(b)} style={({ hovered }: any) => ({ paddingVertical: 7, paddingHorizontal: 12, borderRadius: 10, backgroundColor: hovered ? C.line : C.btn })}>
-                <Text style={{ color: C.bad, fontWeight: '700', fontSize: 13 }}>Ακύρωση</Text>
-              </Pressable>
-            </View>
-          ))}
-        </Box>
+      {/* Οι ίδιες κάρτες κράτησης/πακέτου με τη γενική λίστα. Στην καρτέλα Κρατήσεις υπάρχουν ήδη στη μέση, οπότε εδώ κρύβονται. */}
+      {!onBookings && !!S.packInfo && <PackCard name={S.biz?.name ?? ''} biz={S.biz} color={color} p={S.packInfo} />}
+      {!onBookings && S.upcoming.length > 0 && (
+        <View style={{ gap: 8 }}>
+          <Text style={{ color: C.text, fontWeight: '800', fontSize: 15, paddingHorizontal: 2 }}>{S.upcoming.length === 1 ? 'Η κράτησή σου' : 'Οι κρατήσεις σου'}</Text>
+          {S.upcoming.slice(0, 3).map((b: any) => <BookingRow key={b.id} b={b} color={color} onCancel={() => S.cancelBooking(b)} />)}
+          {S.upcoming.length > 3 && <Text style={{ color: C.mute, fontSize: 13, paddingHorizontal: 2 }}>και {S.upcoming.length - 3} ακόμα στην καρτέλα Κρατήσεις</Text>}
+        </View>
       )}
-      {!!S.pack && (
-        <Box title="Το πακέτο σου">
-          <View style={[s.row, { alignItems: 'baseline', gap: 6 }]}>
-            <Text style={{ color: C.text, fontWeight: '800', fontSize: 28 }}>{S.pack.left}</Text>
-            <Text style={{ color: C.mute, fontWeight: '600', fontSize: 15 }}>/ {S.pack.total} κρατήσεις</Text>
-          </View>
-          <View style={{ height: 6, borderRadius: 3, backgroundColor: C.soft }}>
-            <View style={{ width: `${Math.min(100, (100 * S.pack.left) / S.pack.total)}%`, height: 6, borderRadius: 3, backgroundColor: C.text }} />
-          </View>
-          {!!S.pack.expires && <Text style={{ color: C.mute, fontSize: 13 }}>Ισχύει έως {fmtDay(S.pack.expires)}</Text>}
-        </Box>
-      )}
+      {!onBookings && !P.guest && <AllLink text="Όλες οι κρατήσεις σου" onPress={() => router.navigate('/bookings')} />}
       {S.services.length > 0 && (
         <Box title="Υπηρεσίες">
           {S.services.map((x) => (

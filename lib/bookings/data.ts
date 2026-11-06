@@ -46,7 +46,10 @@ export function useMyBookings() {
     { text: 'Ακύρωση', style: 'destructive', onPress: async () => { const r = await rpc('cancel_booking', { p_booking: b.id }); if (!r.ok) say(r.error); load(); } },
   ]);
 
-  return { ready: !!d, loading, load, notes, biz, upcoming, past, waitlist, packs, color, open, cancel, find: () => router.navigate('/') };
+  const leave = (w: { service_id: string; date: string; time: string }) => rpc('leave_waitlist', { p_service: w.service_id, p_date: w.date, p_time: String(w.time).slice(0, 5) + ':00' })
+    .then((r: any) => { if (r && r.ok === false) say(r.error); load(); });
+
+  return { ready: !!d, leave, loading, load, notes, biz, upcoming, past, waitlist, packs, color, open, cancel, find: () => router.navigate('/') };
 }
 export type BookingsData = ReturnType<typeof useMyBookings>;
 

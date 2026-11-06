@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Text } from '../Txt';
 import { Photo } from '../Photo';
-import { Btn, C, DAYS, Group, Icon, IconBubble, MONTHS, Pill, Row, Section, T, type Tone, alpha, catLabel, fmtDay, fmtLong, s, shadow } from '../ui';
+import { Btn, C, DAYS, Group, Icon, IconBubble, MONTHS, Pill, Section, T, type Tone, alpha, catLabel, fmtDay, s, shadow } from '../ui';
 import type { Biz, Booking, BookingsData } from './data';
+import { WaitRow } from './cards';
 
 /* Μπλοκ ημερομηνίας: μέρα, αριθμός, μήνας. */
 export const DateBlock = ({ date, color }: { date: string; color: string }) => {
@@ -59,13 +60,8 @@ export function Segmented<K extends string>({ value, onChange, items }: { value:
 /* Λίστα ενδιαφέροντος (κάτω από τα επερχόμενα). Τα πακέτα έχουν δική τους καρτέλα. */
 export const Extras = ({ D }: { D: BookingsData }) => <>
   {D.waitlist.length > 0 && <>
-    <Section title="Σε αναμονή" sub="Αν ελευθερωθεί θέση, σου κλείνεται αυτόματα." />
-    <Group>
-      {D.waitlist.map((w: any, i: number) => (
-        <Row key={w.id} icon="bell" title={`${w.business} · ${w.service}`} sub={`${fmtLong(w.date)} · ${w.time}`} last={i === D.waitlist.length - 1}
-          right={<Pill text="Αναμονή" tone="accent" />} />
-      ))}
-    </Group>
+    <Section title="Σε αναμονή" />
+    {D.waitlist.map((w: any) => <WaitRow key={w.id} w={w} store={w.business} onLeave={() => D.leave(w)} />)}
   </>}
 </>;
 
@@ -75,13 +71,39 @@ const STATUS: Record<string, [string, Tone]> = {
 };
 const visits = (n: number) => `${n} ${n === 1 ? 'κράτηση' : 'κρατήσεις'}`;
 
+/* Οι παλιές κρατήσεις ενός καταστήματος (ημερομηνία, υπηρεσία, ώρα, έκβαση). Τις ίδιες γραμμές δείχνει και το κατάστημα. */
+export function PastRows({ items, color }: { items: Booking[]; color: string }) {
+  return <>
+    {items.map((b, i) => { const [t, tone] = STATUS[b.status] ?? (['', 'mute'] as [string, Tone]); return (
+      <View key={b.id} style={[s.row, { gap: 12, paddingVertical: 9 }, i < items.length - 1 && { borderBottomWidth: 1, borderBottomColor: alpha(C.mute, 0.12) }]}>
+        <DateBlock date={b.date} color={b.status === 'cancelled' ? C.mute : color} />
+        <View style={{ flex: 1, gap: 1 }}>
+          <Text style={{ color: C.text, fontWeight: '700', fontSize: 15, textDecorationLine: b.status === 'cancelled' ? 'line-through' : 'none' }} numberOfLines={1}>{b.service}</Text>
+          <Text style={{ color: C.mute, fontSize: 13 }}>{b.time}</Text>
+        </View>
+        <View><Pill text={t} tone={tone} /></View>
+      </View>); })}
+  </>;
+}
+
+/* Σύνοψη: Ήρθες · Ακυρώσεις · Δεν ήρθες. */
+export function PastPills({ items }: { items: Booking[] }) {
+  const came = items.filter((b) => b.status === 'attended' || b.status === 'booked').length;
+  const off = items.filter((b) => b.status === 'cancelled').length;
+  const miss = items.filter((b) => b.status === 'no_show').length;
+  return (
+    <View style={[s.row, { flexWrap: 'wrap', gap: 6, paddingVertical: 10 }]}>
+      {came > 0 && <Pill text={`Ήρθες ${came}`} tone="ok" />}
+      {off > 0 && <Pill text={`Ακυρώσεις ${off}`} />}
+      {miss > 0 && <Pill text={`Δεν ήρθες ${miss}`} tone="bad" />}
+    </View>
+  );
+}
+
 /* Ένας «φάκελος» καταστήματος: κεφαλίδα με λογότυπο και σύνοψη, ανοίγει και δείχνει όλες τις κρατήσεις εκεί. */
 function Folder({ items, D, start }: { items: Booking[]; D: BookingsData; start?: boolean }) {
   const [open, setOpen] = useState(!!start);
   const b0 = items[0], biz = D.biz[b0.business_id], c = D.color(b0);
-  const came = items.filter((b) => b.status === 'attended' || b.status === 'booked').length;
-  const off = items.filter((b) => b.status === 'cancelled').length;
-  const miss = items.filter((b) => b.status === 'no_show').length;
   return (
     <View style={[s.card, shadow(1), { padding: 0, gap: 0, overflow: 'hidden' }]}>
       <Pressable onPress={() => setOpen(!open)} accessibilityRole="button" accessibilityState={{ expanded: open }}
@@ -97,20 +119,8 @@ function Folder({ items, D, start }: { items: Booking[]; D: BookingsData; start?
       </Pressable>
       {open && (
         <View style={{ borderTopWidth: 1, borderTopColor: C.line, paddingHorizontal: 14, paddingBottom: 14, gap: 4 }}>
-          <View style={[s.row, { flexWrap: 'wrap', gap: 6, paddingVertical: 10 }]}>
-            {came > 0 && <Pill text={`Ήρθες ${came}`} tone="ok" />}
-            {off > 0 && <Pill text={`Ακυρώσεις ${off}`} />}
-            {miss > 0 && <Pill text={`Δεν ήρθες ${miss}`} tone="bad" />}
-          </View>
-          {items.map((b, i) => { const [t, tone] = STATUS[b.status] ?? (['', 'mute'] as [string, Tone]); return (
-            <View key={b.id} style={[s.row, { gap: 12, paddingVertical: 9 }, i < items.length - 1 && { borderBottomWidth: 1, borderBottomColor: alpha(C.mute, 0.12) }]}>
-              <DateBlock date={b.date} color={b.status === 'cancelled' ? C.mute : c} />
-              <View style={{ flex: 1, gap: 1 }}>
-                <Text style={{ color: C.text, fontWeight: '700', fontSize: 15, textDecorationLine: b.status === 'cancelled' ? 'line-through' : 'none' }} numberOfLines={1}>{b.service}</Text>
-                <Text style={{ color: C.mute, fontSize: 13 }}>{b.time}</Text>
-              </View>
-              <View><Pill text={t} tone={tone} /></View>
-            </View>); })}
+          <PastPills items={items} />
+          <PastRows items={items} color={c} />
           <Btn kind="tint" size="sm" color={c} icon="calendar" title="Κλείσε ξανά εδώ" onPress={() => D.open(b0)} style={{ marginTop: 8 }} />
         </View>
       )}
