@@ -10,7 +10,7 @@ import { Btn, C, Icon, Toggle, s } from '../ui';
 import type { IconName } from '../Icon';
 import { signOut, usePerson, useProfileExtras } from './data';
 import { Initials, MeForm } from './parts';
-import { AppearancePicker, NotifyPrefs, PasswordForm } from './Settings';
+import { AdminRow, AppearancePicker, NotifyPrefs, PasswordForm } from './Settings';
 
 /* Το προφίλ σε υπολογιστή (εκδοχή Α): όνομα πάνω, ενότητες αριστερά και η φόρμα της επιλεγμένης δεξιά,
    όπως στις ρυθμίσεις λογαριασμού μιας ιστοσελίδας. Όλα αλλάζουν επιτόπου, χωρίς να ανοίγει άλλη οθόνη. */
@@ -64,6 +64,7 @@ export function DeskProfile() {
     </View>
   ) : sel === 'safe' ? (
     <View style={{ gap: 6 }}>
+      <AdminRow line={(go) => <Line title="Super admin" sub="Διαχείριση όλης της πλατφόρμας" right={<Btn size="sm" title="Άνοιγμα" onPress={go} />} />} />
       <Label t="Αλλαγή κωδικού" /><PasswordForm />
       <View style={{ height: 18 }} />
       <Line title="Πολιτική απορρήτου" sub="Τι κρατάμε και ποιος τα βλέπει" right={<Btn size="sm" kind="ghost" title="Άνοιγμα" onPress={() => router.push('/privacy')} />} />

@@ -12,6 +12,8 @@ import { DARK, LIGHT, type Mode, type Theme, getMode, setMode } from '../theme';
 import { Btn, C, Chip, Group, Icon, Input, Row, Section, SwitchRow, alpha, shadow } from '../ui';
 import { signOut, usePerson } from './data';
 import { useDeletion } from '../account/deletion';
+import { useIsAdmin } from '../admin/data';
+import { isDemo } from '../demo';
 
 /* Μικρογραφία οθόνης στα χρώματα μιας παλέτας (για την επιλογή εμφάνισης). */
 function Mini({ P }: { P: Theme }) {
@@ -136,6 +138,14 @@ function DeleteRow() {
   return <Row icon="close" title="Διαγραφή λογαριασμού" sub={deleteOn ? `Αίτηση σε εξέλιξη · διαγράφεται ${deleteOn}` : 'Με αίτηση, και ακύρωση ως 7 μέρες'} danger onPress={() => router.push('/delete-account')} last />;
 }
 
+/* Μόνο για τον super admin της πλατφόρμας (platform_admins στη βάση): είσοδος στον πίνακα /admin. */
+export function AdminRow({ line }: { line?: (go: () => void) => React.ReactNode }) {
+  const ok = useIsAdmin(isDemo() ? null : usePerson().uid);
+  if (!ok) return null;
+  const go = () => router.push('/admin' as any);
+  return <>{line ? line(go) : <Row icon="lock" title="Super admin" sub="Διαχείριση όλης της πλατφόρμας" onPress={go} />}</>;
+}
+
 /* Όλες οι ρυθμίσεις της εφαρμογής. Η εμφάνιση εφαρμόζεται αμέσως σε όλη την εφαρμογή. */
 export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
   const prefs = usePrefs();
@@ -154,6 +164,7 @@ export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
       <Section title="Λογαριασμός" />
       <Group>
         {onEdit && <Row icon="user" title="Τα στοιχεία μου" sub="Όνομα, επώνυμο, κινητό" onPress={onEdit} />}
+        <AdminRow />
         <Password />
         <Row icon="eye" title="Πολιτική απορρήτου" onPress={() => router.push('/privacy')} />
         <DeleteRow />

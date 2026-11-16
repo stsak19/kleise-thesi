@@ -56,7 +56,7 @@ function Gate() {
     return <Redirect href="/login" />;
   }
   if (session && seg[0] === 'login' && !back) return <Redirect href={getMode() === 'biz' ? BIZ_HOME : '/'} />;
-  if (session && !booted) { booted = true; if (getMode() === 'biz' && !restore && seg[0] !== '(biz)') return <Redirect href={BIZ_HOME} />; }
+  if (session && !booted) { booted = true; if (getMode() === 'biz' && !restore && seg[0] !== '(biz)' && seg[0] !== 'admin' && seg[0] !== 'open') return <Redirect href={BIZ_HOME} />; }
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg } }}>
       <Stack.Screen name="(tabs)" />

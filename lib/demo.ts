@@ -16,6 +16,7 @@ try { if (typeof localStorage !== 'undefined') localStorage.removeItem('spoton.d
 const ls = (): Storage | null => { try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch { return null; } };
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NAMES, OWN } from './demoOwner';
+import { adminRPC } from './demoAdmin';
 let on = DEMO_EVERYWHERE || ls()?.getItem(DEMO_KEY) === '1';
 // Στο κινητό η σημαία διαβάζεται ασύγχρονα· οι κλήσεις περιμένουν να φορτώσει.
 const flagReady = AsyncStorage.getItem(DEMO_KEY).then((v) => { if (v === '1') on = true; }).catch(() => {});
@@ -518,6 +519,10 @@ const RPC: Record<string, (a: any) => any> = {
     return { ok: to.length > 0, sent: to.length, error: to.length ? undefined : 'Δεν βρέθηκε πελάτης' };
   },
 };
+
+/* Το super admin (/open/admin) στο demo. */
+Object.assign(RPC, adminRPC({ db, clients: CLIENTS, demoUid: DEMO_UID, demoName: 'Χριστίνα Αντωνίου', demoEmail: DEMO_EMAIL,
+  accounts: () => accounts, today: () => plus(0) }));
 
 /* ---------- μικρός «PostgREST» για select/insert/update/delete ---------- */
 function filters(u: URL) {
