@@ -13,6 +13,7 @@ import { Initials } from '../../../lib/profile/parts';
 import { modeLabel } from '../../../lib/profile/Settings';
 import { useSwitchTo } from '../../../lib/SwitchMode';
 import { deskCol, useWide } from '../../../lib/owner/desk';
+import { svcKind } from '../../../lib/owner/svcKind';
 
 /* «Κατάστημα»: πώς φαίνεται το κατάστημα στους πελάτες, η δημοσίευση και οι αλλαγές (υπηρεσίες, ωράριο, εμφάνιση).
    Στο κινητό από κάτω και ο λογαριασμός (στον υπολογιστή είναι στο πλαϊνό μενού). */
@@ -49,7 +50,7 @@ export default function Page() {
 
       <Section title="Αλλαγές" />
       <Group>
-        <Row icon="gear" title="Υπηρεσίες, ωράριο και κανόνες" sub="Τα στοιχεία του καταστήματος" onPress={() => router.push('/owner/setup')} />
+        <Row icon="gear" title={`${svcKind(biz.category).title}, ωράριο και κανόνες`} sub="Τα στοιχεία του καταστήματος" onPress={() => router.push(wide ? '/shop-settings?s=services' : '/owner/setup')} />
         <Row icon="eye" title="Εμφάνιση σελίδας" sub={`${LAYOUTS.find((l) => l.key === st.layout)?.name ?? ''} · ${st.theme.name}`} onPress={() => router.push('/owner/style')} />
         <Row icon="store" title="Δες τη σελίδα σαν πελάτης" sub="Έτσι τη βλέπουν όσοι κλείνουν θέση" onPress={() => router.push(`/store/${biz.id}`)} last />
       </Group>

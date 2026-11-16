@@ -25,6 +25,8 @@ export default function BizTabs() {
       <Tabs.Screen name="clients" options={{ title: 'Πελάτες' }} />
       <Tabs.Screen name="team" options={{ title: 'Ομάδα' }} />
       <Tabs.Screen name="page" options={{ title: 'Κατάστημα' }} />
+      {/* Δεν φαίνεται στη μπάρα (FloatBar/Sidebar δείχνουν μόνο ό,τι έχει το ICONS)· ανοίγει από το «Κατάστημα». */}
+      <Tabs.Screen name="shop-settings" options={{ title: 'Ρυθμίσεις καταστήματος' }} />
     </Tabs>
   );
 }

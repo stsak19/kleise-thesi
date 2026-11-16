@@ -13,6 +13,7 @@ import { Avatar, Btn, C, Icon, Input, alpha, catLabel, iso, price, s } from '../
 import type { IconName } from '../Icon';
 import { fetchMyBizList, pickActive, setActiveBiz, useActiveBizId } from './active';
 import { kindOf } from './kinds';
+import { SECTIONS, sectionLabel } from './settings';
 import { nowHHMM, type Slot } from './day';
 
 /* Η λειτουργία επιχείρησης σε υπολογιστή: πλαϊνό μενού αριστερά, περιεχόμενο στη μέση, στήλη «θέλουν απάντηση» δεξιά.
@@ -35,6 +36,9 @@ export function Sidebar({ items, state, navigateToTab }: { items: SideItems; sta
   const k = kindOf(biz?.category);
   const label = (name: string) => (name === 'clients' ? k.clients : name === 'team' ? k.team : items[name].label);
   const activeKey = state.routes[state.index]?.key;
+  const activeRoute: any = state.routes[state.index];
+  const inSettings = activeRoute?.name === 'shop-settings';
+  const sub = inSettings ? (activeRoute.params?.s ?? 'services') : null;
   return (
     <View style={{ width: 248, backgroundColor: alpha(C.text, 0.02), borderRightWidth: 1, borderRightColor: C.line, paddingVertical: 20, paddingHorizontal: 14, gap: 4 }}>
       {biz && (
@@ -47,15 +51,29 @@ export function Sidebar({ items, state, navigateToTab }: { items: SideItems; sta
         </Pressable>
       )}
       {state.routes.filter((r) => items[r.name]).map((r) => {
-        const on = r.key === activeKey;
-        return (
+        const on = r.key === activeKey || (r.name === 'page' && inSettings);
+        const settings = r.name === 'page' && (on || inSettings) && (
+          <View key="settings" style={{ gap: 2, marginTop: 10 }}>
+            <Text style={{ color: C.mute, fontWeight: '800', fontSize: 11.5, letterSpacing: 0.5, paddingHorizontal: 12, marginBottom: 4 }}>ΡΥΘΜΙΣΕΙΣ</Text>
+            {SECTIONS.map((x) => {
+              const here = sub === x.key;
+              return (
+                <Pressable key={x.key} onPress={() => router.navigate({ pathname: '/shop-settings', params: { s: x.key } } as any)}
+                  style={({ pressed, hovered }: any) => ({ paddingVertical: 9, paddingHorizontal: 12, borderRadius: 12,
+                    backgroundColor: here ? C.soft : pressed || hovered ? alpha(C.text, 0.04) : 'transparent' })}>
+                  <Text style={{ color: here ? C.text : C.mute, fontWeight: here ? '800' : '700', fontSize: 14.5 }}>{sectionLabel(x.key, biz?.category)}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        );
+        return [(
           <Pressable key={r.key} onPress={() => navigateToTab(r.key)} accessibilityRole="tab" accessibilityState={{ selected: on }}
             style={({ pressed, hovered }: any) => [s.row, { gap: 12, paddingVertical: 11, paddingHorizontal: 12, borderRadius: 12,
               backgroundColor: on ? C.text : pressed || hovered ? C.soft : 'transparent' }]}>
             <Icon name={items[r.name].icon} size={19} color={on ? C.bg : C.text} />
             <Text style={{ color: on ? C.bg : C.text, fontWeight: '700', fontSize: 15 }}>{label(r.name)}</Text>
-          </Pressable>
-        );
+          </Pressable>), settings];
       })}
       <View style={{ flex: 1 }} />
       <Pressable onPress={() => switchTo('client')} style={({ pressed }) => [s.row, { gap: 8, justifyContent: 'center', paddingVertical: 11, borderRadius: 12,

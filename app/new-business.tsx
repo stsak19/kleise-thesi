@@ -11,9 +11,11 @@ import { pickAndUpload } from '../lib/upload';
 import { PagePreview, upper } from '../lib/owner/PagePreview';
 import { screenFor } from '../lib/bizscreen';
 import { THEMES, styleOf } from '../lib/presets';
-import { Btn, C, DAYS, Icon, Input, alpha, catEmoji, catLabel, price, s, shadow } from '../lib/ui';
+import { Btn, C, DAYS, TextBtn, Icon, Input, alpha, catEmoji, catLabel, price, s, shadow } from '../lib/ui';
 import { EMPTY_BIZ, Hours, Svc, WEEK, newKey, badHours, loadBusiness, presetData, saveBusiness } from '../lib/owner/save';
-import { Choice, HoursEditor, ServiceForm, ServiceList, Swatches, ToggleCard, TypeGrid } from '../lib/owner/steps';
+import { Choice, HoursEditor, Swatches, ToggleCard, TypeGrid } from '../lib/owner/steps';
+import { ServiceBoard, ServiceFields, schedOf, withSched } from '../lib/owner/services';
+import { blankFor, groupOf, svcKind } from '../lib/owner/svcKind';
 
 /* Οδηγός «Νέα επιχείρηση»: ο ιδιοκτήτης φτιάχνει τη σελίδα του μία επιλογή τη φορά.
    Είδος → όνομα → πού είστε → φωτογραφίες & χρώμα → υπηρεσίες → ωράριο → κανόνες → τελικός έλεγχος.
@@ -76,11 +78,19 @@ export default function NewBusiness() {
   /* Υπηρεσίες: κάθε μία ανοίγει μόνη της. */
   const editing = svcEdit ? svcs.find((x) => x.key === svcEdit.key) : undefined;
   const openSvc = (key: string) => { dir.current = 1; setSvcEdit({ key, fresh: false, before: svcs.find((x) => x.key === key) }); };
-  const addSvc = () => {
-    const n: Svc = { key: newKey(), name: '', duration_min: '30', price: '', capacity: '1' };
+  const addSvc = (grp?: string) => {
+    const k = svcKind(cat);
+    const n: Svc = blankFor(k, newKey(), grp);
+    if (k.mode === 'class' && grp && grp !== k.groups[0]) n.capacity = '1';
     setSvcs([...svcs, n]); dir.current = 1; setSvcEdit({ key: n.key, fresh: true });
+    if (k.mode === 'class' && n.capacity !== '1') setHours((h) => withSched(h, n.key, [{ time: '19:00', days: [1, 3, 5] }], +n.duration_min));
   };
-  const patchSvc = (p: Partial<Svc>) => svcEdit && setSvcs((list) => list.map((x) => (x.key === svcEdit.key ? { ...x, ...p } : x)));
+  const patchSvc = (p: Partial<Svc>) => {
+    if (!svcEdit) return;
+    setSvcs((list) => list.map((x) => (x.key === svcEdit.key ? { ...x, ...p } : x)));
+    // Μάθημα: αν αλλάξει η διάρκεια, το πρόγραμμά του κρατά τις ίδιες ώρες έναρξης.
+    if (p.duration_min) setHours((h) => (h.some((y) => y.svc === svcEdit.key) ? withSched(h, svcEdit.key, schedOf(h, svcEdit.key), +p.duration_min!) : h));
+  };
   const dropSvc = (key: string) => {
     const x = svcs.find((y) => y.key === key);
     if (x?.id) setRemoved((r) => [...r, x.id!]);
@@ -165,14 +175,14 @@ export default function NewBusiness() {
     name: { title: 'Πώς λέγεται;', sub: 'Έτσι θα σε βρίσκουν οι πελάτες στην αναζήτηση.' },
     place: { title: 'Πού σε βρίσκουμε;', sub: 'Η πόλη χρειάζεται για την αναζήτηση. Τα υπόλοιπα βοηθούν τον πελάτη να έρθει.' },
     look: { title: 'Δώσε της πρόσωπο', sub: 'Ένα εξώφυλλο, το λογότυπό σου και ένα χρώμα. Μπορείς να τα βάλεις και αργότερα.' },
-    services: { title: `${scr.services}`, sub: 'Σου βάλαμε μερικές για αρχή. Πάτα μία για να την αλλάξεις ή να τη σβήσεις, ή πρόσθεσε καινούργια.' },
+    services: { title: `${scr.services}`, sub: `${svcKind(cat).badge}. Σου βάλαμε μερικές για αρχή. Πάτα μία για να την αλλάξεις ή να τη σβήσεις, ή πρόσθεσε καινούργια.` },
     hours: { title: 'Πότε είσαι ανοιχτά;', sub: 'Άνοιξε ή κλείσε κάθε μέρα. Για μεσημεριανό κενό πάτα «+ Διάλειμμα».' },
     rules: { title: 'Πώς κλείνουν θέση;', sub: 'Λίγοι κανόνες για τις κρατήσεις σου. Οι προτάσεις ταιριάζουν στο είδος σου.' },
     review: { title: 'Όλα έτοιμα;', sub: 'Ρίξε μια ματιά. Πάτα σε ό,τι θέλεις να αλλάξεις.' },
   };
   const optional = step === 'look' && !svcEdit;
-  const title = editing ? (svcEdit!.fresh ? 'Νέα υπηρεσία' : editing.name.trim() || 'Υπηρεσία') : head[step].title;
-  const sub = editing ? 'Μία υπηρεσία τη φορά: όνομα, διάρκεια, τιμή και πόσοι έρχονται μαζί.' : head[step].sub;
+  const title = editing ? (svcEdit!.fresh ? svcKind(cat).add : editing.name.trim() || svcKind(cat).one) : head[step].title;
+  const sub = editing ? `${svcKind(cat).badge}. Όνομα, διάρκεια, τιμή${svcKind(cat).mode === 'class' ? ', θέσεις και πρόγραμμα' : ''}.` : head[step].sub;
   const why = missing();
 
   const body = () => {
@@ -207,8 +217,12 @@ export default function NewBusiness() {
         </View>
       );
       case 'services': return editing
-        ? <ServiceForm svc={editing} onChange={patchSvc} onDelete={svcEdit?.fresh ? undefined : () => { dropSvc(editing.key); dir.current = -1; setSvcEdit(null); }} />
-        : <ServiceList svcs={svcs} onOpen={openSvc} onAdd={addSvc} category={cat} />;
+        ? <View style={{ gap: 22 }}>
+            <ServiceFields svc={editing} onChange={patchSvc} category={cat} groups={[...new Set(svcs.map((x) => groupOf(svcKind(cat), x)))]}
+              sched={schedOf(hours, editing.key)} onSched={(x) => setHours(withSched(hours, editing.key, x, +editing.duration_min))} />
+            {!svcEdit?.fresh && <TextBtn title="Διαγραφή" color={C.bad} onPress={() => { dropSvc(editing.key); dir.current = -1; setSvcEdit(null); }} />}
+          </View>
+        : <ServiceBoard svcs={svcs} category={cat} hours={hours} onOpen={openSvc} onAdd={addSvc} />;
       case 'hours': return <HoursEditor hours={hours} setHours={setHours} />;
       case 'rules': return (
         <View style={{ gap: 22 }}>

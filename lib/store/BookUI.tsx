@@ -8,6 +8,7 @@ import { useStore, endOf } from './data';
 import { ANY, firstName, useBook, withArticle, type Staff, type Step } from './book';
 import { StoreLogo } from './parts';
 import { fmtLong } from '../ui';
+import { grouped, svcKind } from '../owner/svcKind';
 import { useWide } from '../wide';
 
 /* Τα κομμάτια της ροής κράτησης (lib/store/book): βήματα, φύλλο κινητού, σελίδα και σύνοψη υπολογιστή,
@@ -47,27 +48,40 @@ const Note = ({ children }: { children: React.ReactNode }) => (
 /* ---------- βήμα: υπηρεσία ---------- */
 export function StepService({ grid }: { grid?: boolean }) {
   const S = useStore(); const B = useBook();
+  // Ομάδες όπως τις έστησε ο ιδιοκτήτης (Κούρεμα, Χρώμα…)· με μία μόνο ομάδα δεν δείχνουμε τίτλους.
+  const k = svcKind(S.biz?.category);
+  const asSvc = (sv: any) => ({ key: sv.id, name: sv.name, duration_min: String(sv.duration_min), price: '', capacity: String(sv.capacity ?? 1), grp: sv.grp ?? '' });
+  const groups = grouped(k, S.services.map(asSvc)).map((g) => ({ name: g.name, items: g.items.map((x) => S.services.find((sv) => sv.id === x.key)!) }));
+  const titled = groups.length > 1;
+  const row = (sv: any, last: boolean) => {
+    const on = B.service?.id === sv.id;
+    const pick = () => { B.pickService(sv); if (!grid) B.next(); };
+    return (
+      <Pressable key={sv.id} onPress={pick} accessibilityRole="radio" accessibilityState={{ checked: on }}
+        style={({ pressed, hovered }: any) => grid
+          ? { width: '48.8%', flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, borderWidth: on ? 2 : 1.5, borderColor: on ? C.text : C.line, backgroundColor: hovered ? C.soft : C.bg, opacity: pressed ? 0.8 : 1 }
+          : { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, borderBottomWidth: last ? 0 : 1, borderBottomColor: C.line, opacity: pressed ? 0.7 : 1 }}>
+        <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? C.text : C.line, backgroundColor: on ? C.text : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+          {on && <Icon name="check" size={13} color={C.bg} />}
+        </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={{ color: C.text, fontSize: 15, fontWeight: '700' }} numberOfLines={1}>{sv.name}</Text>
+          <Text style={{ color: C.mute, fontSize: 12.5, marginTop: 1 }} numberOfLines={2}>{[dur(sv.duration_min), sv.note].filter(Boolean).join(' · ')}</Text>
+        </View>
+        <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{sv.price_cents == null ? '' : `${sv.price_from ? 'από ' : ''}${price(sv.price_cents)}`}</Text>
+      </Pressable>
+    );
+  };
   return (
-    <View style={grid ? { flexDirection: 'row', flexWrap: 'wrap', gap: 10 } : undefined}>
-      {S.services.map((sv, i) => {
-        const on = B.service?.id === sv.id;
-        const pick = () => { B.pickService(sv); if (!grid) B.next(); };
-        return (
-          <Pressable key={sv.id} onPress={pick} accessibilityRole="radio" accessibilityState={{ checked: on }}
-            style={({ pressed, hovered }: any) => grid
-              ? { width: '48.8%', flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, borderWidth: on ? 2 : 1.5, borderColor: on ? C.text : C.line, backgroundColor: hovered ? C.soft : C.bg, opacity: pressed ? 0.8 : 1 }
-              : { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, borderBottomWidth: i === S.services.length - 1 ? 0 : 1, borderBottomColor: C.line, opacity: pressed ? 0.7 : 1 }}>
-            <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? C.text : C.line, backgroundColor: on ? C.text : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-              {on && <Icon name="check" size={13} color={C.bg} />}
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={{ color: C.text, fontSize: 15, fontWeight: '700' }} numberOfLines={1}>{sv.name}</Text>
-              <Text style={{ color: C.mute, fontSize: 12.5, marginTop: 1 }}>{dur(sv.duration_min)}</Text>
-            </View>
-            <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{sv.price_cents == null ? '' : price(sv.price_cents)}</Text>
-          </Pressable>
-        );
-      })}
+    <View style={{ gap: titled ? 14 : 0 }}>
+      {groups.map((g) => (
+        <View key={g.name} style={{ gap: grid ? 10 : 0 }}>
+          {titled && <Text style={{ color: C.mute, fontWeight: '800', fontSize: 12, letterSpacing: 0.6 }}>{g.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()}</Text>}
+          <View style={grid ? { flexDirection: 'row', flexWrap: 'wrap', gap: 10 } : undefined}>
+            {g.items.map((sv, i) => row(sv, i === g.items.length - 1))}
+          </View>
+        </View>
+      ))}
     </View>
   );
 }

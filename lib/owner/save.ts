@@ -7,7 +7,8 @@ import { presetFor } from '../presets';
 /* Κοινά της ρύθμισης καταστήματος: τύποι, έλεγχοι και αποθήκευση.
    Τα χρησιμοποιούν οι «Ρυθμίσεις καταστήματος» και ο οδηγός «Νέα επιχείρηση». */
 
-export type Svc = { key: string; id?: string; name: string; duration_min: string; price: string; capacity: string };
+/* grp: ομάδα στη λίστα (Κούρεμα, Χρώμα…)· note: οδηγία προς τον πελάτη· from: η τιμή είναι «από». */
+export type Svc = { key: string; id?: string; name: string; duration_min: string; price: string; capacity: string; grp?: string; note?: string; from?: boolean };
 /* svc: null = γενικό ωράριο, αλλιώς το key της υπηρεσίας. Πολλά διαστήματα την ίδια μέρα = διάλειμμα. */
 export type Slot = { weekday: number; opens: string; closes: string; svc: string | null };
 export type Hours = Slot[];
@@ -39,7 +40,8 @@ export async function loadBusiness(uid: string) {
   return {
     b: data,
     svcs: (sv ?? []).map((x): Svc => ({ key: x.id, id: x.id, name: x.name, duration_min: String(x.duration_min),
-      price: x.price_cents != null ? String(x.price_cents / 100) : '', capacity: String(x.capacity) })),
+      price: x.price_cents != null ? String(x.price_cents / 100) : '', capacity: String(x.capacity),
+      grp: x.grp ?? '', note: x.note ?? '', from: !!x.price_from })),
     hours: (h ?? []).map((x): Slot => ({ weekday: x.weekday, opens: x.opens.slice(0, 5), closes: x.closes.slice(0, 5), svc: x.service_id ?? null })),
   };
 }
@@ -50,7 +52,7 @@ export function badHours(hours: Hours) {
   return bad ? `${DAYS[bad.weekday]}: ${bad.opens}–${bad.closes}. Γράψε ώρες σαν 09:00 και το κλείσιμο μετά το άνοιγμα.` : null;
 }
 
-type SaveResult = { ok: true; id: string; warnings: string[] } | { ok: false; error: string };
+type SaveResult = { ok: true; id: string; warnings: string[]; ids: Record<string, string> } | { ok: false; error: string };
 
 /* Αποθηκεύει κατάστημα, υπηρεσίες και ωράριο. removed = υπηρεσίες που φεύγουν. */
 export async function saveBusiness(uid: string, b: any, svcs: Svc[], hours: Hours, removed: string[] = []): Promise<SaveResult> {
@@ -61,15 +63,18 @@ export async function saveBusiness(uid: string, b: any, svcs: Svc[], hours: Hour
   // Πραγματική βάση: όλα μαζί σε μία κλήση (supabase/migrations/005), ώστε να μη χαθεί το ωράριο αν κοπεί η σύνδεση.
   if (!isDemo()) {
     try {
-      const r = await rpc<{ ok: boolean; id?: string; error?: string }>('save_business', {
+      const r = await rpc<{ ok: boolean; id?: string; error?: string; ids?: Record<string, string> }>('save_business', {
         p_biz: row,
-        p_services: list.map((x) => ({ key: x.key, id: x.id ?? null, name: x.name.trim(), duration_min: +x.duration_min || 30, capacity: +x.capacity || 1, price_cents: cents(x.price) })),
+        p_services: list.map((x) => ({ key: x.key, id: x.id ?? null, name: x.name.trim(), duration_min: +x.duration_min || 30, capacity: +x.capacity || 1, price_cents: cents(x.price),
+          grp: x.grp?.trim() || null, note: x.note?.trim() || null, price_from: !!x.from })),
         p_hours: hours.map((h) => ({ weekday: h.weekday, opens: h.opens, closes: h.closes, svc: h.svc })),
         p_removed: removed,
       });
       if (!r.ok || !r.id) return { ok: false, error: r.error ?? 'Άγνωστο σφάλμα' };
       setActiveBiz(r.id);
-      return { ok: true, id: r.id, warnings: [] };
+      // Χωρίς τη βάση 008 το save_business δεν επιστρέφει ids: τότε κρατάμε μόνο όσα ήδη ξέρουμε.
+      const known = Object.fromEntries(list.filter((x) => x.id).map((x) => [x.key, x.id!]));
+      return { ok: true, id: r.id, warnings: [], ids: { ...known, ...(r.ids ?? {}) } };
     } catch (e: any) { return { ok: false, error: e?.message ?? 'Άγνωστο σφάλμα' }; }
   }
   // Demo: η ίδια αποθήκευση βήμα βήμα, μέσα στη μνήμη της συσκευής.
@@ -78,7 +83,8 @@ export async function saveBusiness(uid: string, b: any, svcs: Svc[], hours: Hour
   for (const rid of removed) await sb.from('services').update({ active: false }).eq('id', rid);
   const ids: Record<string, string> = {};
   for (const x of list) {
-    const r = { business_id: data.id, name: x.name.trim(), duration_min: +x.duration_min || 30, capacity: +x.capacity || 1, price_cents: cents(x.price) };
+    const r = { business_id: data.id, name: x.name.trim(), duration_min: +x.duration_min || 30, capacity: +x.capacity || 1, price_cents: cents(x.price),
+      grp: x.grp?.trim() || null, note: x.note?.trim() || null, price_from: !!x.from };
     if (x.id) { await sb.from('services').update(r).eq('id', x.id); ids[x.key] = x.id; }
     else { const { data: n } = await sb.from('services').insert(r).select('id').single(); if (n) ids[x.key] = n.id; }
   }
@@ -87,5 +93,5 @@ export async function saveBusiness(uid: string, b: any, svcs: Svc[], hours: Hour
     .map((h) => ({ business_id: data.id, weekday: h.weekday, opens: h.opens, closes: h.closes, ...(h.svc ? { service_id: ids[h.svc] } : {}) }));
   await sb.from('opening_hours').insert(rows);
   setActiveBiz(data.id);
-  return { ok: true, id: data.id, warnings: [] };
+  return { ok: true, id: data.id, warnings: [], ids };
 }
