@@ -9,7 +9,10 @@
    είναι δικός του λογαριασμός). Όταν το project είναι έτοιμο, γίνεται false και όλα πάνε στη βάση. */
 export const DEMO_EVERYWHERE = false;
 
-const DEMO_KEY = 'spoton.demo';
+/* v2: η σημαία του demo από την εποχή που ήταν παντού (π.χ. από παλιούς συνδέσμους /open/) δεν ισχύει πια·
+   αλλιώς η συσκευή θα έμενε για πάντα στο demo. Μόνο οι νέοι κρυφοί σύνδεσμοι το ανοίγουν. */
+const DEMO_KEY = 'spoton.demo.v2';
+try { if (typeof localStorage !== 'undefined') localStorage.removeItem('spoton.demo'); } catch {}
 const ls = (): Storage | null => { try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch { return null; } };
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NAMES, OWN } from './demoOwner';
