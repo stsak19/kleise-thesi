@@ -1,5 +1,5 @@
 -- ============================================================
--- 006: πρόσκληση υπαλλήλων και διαγραφή λογαριασμού. Θέλει πρώτα το 005.
+-- 006: πρόσκληση υπαλλήλων και διαγραφή λογαριασμού με αίτηση (7 μέρες περιθώριο). Θέλει πρώτα το 005.
 -- Μπορεί να ξανατρέξει.
 -- ============================================================
 
@@ -37,37 +37,63 @@ begin
   return jsonb_build_object('ok',true,'business_id',st.business_id);
 end $$;
 
--- ---------- Διαγραφή λογαριασμού ----------
--- Ακυρώνει τις μελλοντικές κρατήσεις του χρήστη (ενημερώνοντας τα καταστήματα), κλείνει τις επιχειρήσεις του
--- (ακυρώνοντας τα μελλοντικά τους ραντεβού με ειδοποίηση στους πελάτες) και σβήνει τον λογαριασμό.
-create or replace function delete_my_account() returns jsonb
-language plpgsql security definer set search_path=public, auth as $$
-declare uid uuid := auth.uid(); r record; today date := athens_today();
+-- ---------- Διαγραφή λογαριασμού: με αίτηση ----------
+-- Ο χρήστης κάνει αίτηση· ο λογαριασμός σβήνεται 7 μέρες μετά, ώστε να μη γίνει κατά λάθος.
+-- Ως τότε μπορεί να την ακυρώσει (Προφίλ → Ρυθμίσεις → Διαγραφή λογαριασμού).
+alter table profiles add column if not exists delete_requested_at timestamptz;
+
+create or replace function request_account_deletion() returns jsonb
+language plpgsql security definer set search_path=public as $$
+declare uid uuid := auth.uid(); at timestamptz;
 begin
   if uid is null then return jsonb_build_object('ok',false,'error','Συνδέσου πρώτα'); end if;
+  insert into profiles(id) values (uid) on conflict do nothing;
+  update profiles set delete_requested_at=coalesce(delete_requested_at, now()) where id=uid returning delete_requested_at into at;
+  perform notify(uid, 'SpotOn', format('Λάβαμε την αίτηση διαγραφής. Ο λογαριασμός σου σβήνεται στις %s. Ως τότε μπορείς να την ακυρώσεις από τις Ρυθμίσεις.',
+    to_char((at + interval '7 days') at time zone 'Europe/Athens','DD/MM')));
+  return jsonb_build_object('ok',true,'requested_at',at,'delete_on',at + interval '7 days');
+end $$;
 
-  -- 1) Τα ραντεβού του ως πελάτη: τα καταστήματα μαθαίνουν ότι ακυρώθηκαν.
-  for r in select bk.id, bk.date, bk.time, b.owner_id, b.name from bookings bk join businesses b on b.id=bk.business_id
-           where bk.user_id=uid and bk.status='booked' and bk.date >= today and b.owner_id<>uid loop
-    update bookings set status='cancelled', cancelled_at=now() where id=r.id;
-    perform notify(r.owner_id, r.name, format('Ακυρώθηκε η κράτηση %s %s (ο πελάτης διέγραψε τον λογαριασμό του).', to_char(r.date,'DD/MM'), to_char(r.time,'HH24:MI')));
-  end loop;
-
-  -- 2) Οι επιχειρήσεις του: οι πελάτες με μελλοντικό ραντεβού ενημερώνονται, μετά σβήνονται (μαζί με υπηρεσίες, ωράριο, κρατήσεις).
-  for r in select distinct bk.user_id, b.name from bookings bk join businesses b on b.id=bk.business_id
-           where b.owner_id=uid and bk.status='booked' and bk.date >= today and bk.user_id<>uid loop
-    perform notify(r.user_id, r.name, 'Το κατάστημα έκλεισε στο SpotOn και τα επόμενα ραντεβού σου εκεί ακυρώθηκαν.');
-  end loop;
-  delete from waitlist where service_id in (select s.id from services s join businesses b on b.id=s.business_id where b.owner_id=uid);
-  delete from businesses where owner_id=uid;
-
-  -- 3) Ο λογαριασμός: τα υπόλοιπα (προφίλ, κρατήσεις, αναμονή, πακέτα, μηνύματα) σβήνονται μαζί του.
-  update staff set user_id=null where user_id=uid;
-  delete from credit_log where user_id=uid;
-  delete from auth.users where id=uid;
+create or replace function cancel_account_deletion() returns jsonb
+language plpgsql security definer set search_path=public as $$
+begin
+  if auth.uid() is null then return jsonb_build_object('ok',false,'error','Συνδέσου πρώτα'); end if;
+  update profiles set delete_requested_at=null where id=auth.uid();
   return jsonb_build_object('ok',true);
 end $$;
 
-grant execute on function staff_invite_info(text), accept_staff_invite(text), delete_my_account() to authenticated;
-revoke all on function delete_my_account() from anon, public;
-grant execute on function delete_my_account() to authenticated;
+-- Η πραγματική διαγραφή ενός χρήστη (μόνο από το προγραμματισμένο job, όχι από την εφαρμογή).
+-- Ακυρώνει τις μελλοντικές κρατήσεις του (ενημερώνοντας τα καταστήματα), κλείνει τις επιχειρήσεις του
+-- (ενημερώνοντας τους πελάτες με μελλοντικό ραντεβού) και σβήνει τον λογαριασμό.
+drop function if exists delete_my_account();
+create or replace function delete_account_now(p_user uuid) returns void
+language plpgsql security definer set search_path=public, auth as $$
+declare r record; today date := athens_today();
+begin
+  for r in select bk.id, bk.date, bk.time, b.owner_id, b.name from bookings bk join businesses b on b.id=bk.business_id
+           where bk.user_id=p_user and bk.status='booked' and bk.date >= today and b.owner_id<>p_user loop
+    update bookings set status='cancelled', cancelled_at=now() where id=r.id;
+    perform notify(r.owner_id, r.name, format('Ακυρώθηκε η κράτηση %s %s (ο πελάτης διέγραψε τον λογαριασμό του).', to_char(r.date,'DD/MM'), to_char(r.time,'HH24:MI')));
+  end loop;
+  for r in select distinct bk.user_id, b.name from bookings bk join businesses b on b.id=bk.business_id
+           where b.owner_id=p_user and bk.status='booked' and bk.date >= today and bk.user_id<>p_user loop
+    perform notify(r.user_id, r.name, 'Το κατάστημα έκλεισε στο SpotOn και τα επόμενα ραντεβού σου εκεί ακυρώθηκαν.');
+  end loop;
+  delete from businesses where owner_id=p_user;
+  update staff set user_id=null where user_id=p_user;
+  delete from credit_log where user_id=p_user;
+  delete from auth.users where id=p_user;
+end $$;
+
+create or replace function process_account_deletions() returns void
+language plpgsql security definer set search_path=public as $$
+declare u uuid;
+begin
+  for u in select id from profiles where delete_requested_at is not null and delete_requested_at <= now() - interval '7 days' loop
+    perform delete_account_now(u);
+  end loop;
+end $$;
+revoke all on function delete_account_now(uuid), process_account_deletions() from public, anon, authenticated;
+select cron.schedule('account-deletions', '15 1 * * *', 'select process_account_deletions()');
+
+grant execute on function staff_invite_info(text), accept_staff_invite(text), request_account_deletion(), cancel_account_deletion() to authenticated;

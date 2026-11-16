@@ -67,7 +67,7 @@ export function DeskProfile() {
       <Label t="Αλλαγή κωδικού" /><PasswordForm />
       <View style={{ height: 18 }} />
       <Line title="Πολιτική απορρήτου" sub="Τι κρατάμε και ποιος τα βλέπει" right={<Btn size="sm" kind="ghost" title="Άνοιγμα" onPress={() => router.push('/privacy')} />} />
-      <Line title="Διαγραφή λογαριασμού" sub="Σβήνει οριστικά τα στοιχεία, τις κρατήσεις και τα πακέτα σου" right={<Btn size="sm" kind="danger" title="Διαγραφή" onPress={() => router.push('/delete-account')} />} />
+      <Line title="Διαγραφή λογαριασμού" sub="Με αίτηση: σβήνεται σε 7 μέρες και ως τότε ακυρώνεται" right={<Btn size="sm" kind="danger" title="Αίτηση" onPress={() => router.push('/delete-account')} />} />
     </View>
   ) : sel === 'notify' ? (
     <NotifyPrefs bare />

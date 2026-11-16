@@ -487,12 +487,18 @@ const RPC: Record<string, (a: any) => any> = {
     st.user_id = me; st.invite_code = null;
     return { ok: true, business_id: st.business_id };
   },
-  /* Διαγραφή λογαριασμού: σβήνει ό,τι έκανε ο χρήστης. Η «Συνέχεια χωρίς λογαριασμό» μένει όπως είναι. */
-  delete_my_account: () => {
-    if (!me || me === DEMO_UID) return { ok: true };
-    const gone = me;
-    MINE.forEach((t) => { db[t] = db[t].filter((r: any) => (r.user_id ?? r.id) !== gone); });
-    accounts = accounts.filter((x) => x.id !== gone);
+  /* Διαγραφή λογαριασμού με αίτηση: σβήνεται 7 μέρες μετά, ως τότε ακυρώνεται (όπως στη βάση, migration 006). */
+  request_account_deletion: () => {
+    if (!me) return { ok: false, error: 'Συνδέσου πρώτα' };
+    let pr = db.profiles.find((x) => x.id === me);
+    if (!pr) { pr = { id: me, first_name: '', last_name: '', phone: null }; db.profiles.push(pr); }
+    pr.delete_requested_at ??= new Date().toISOString();
+    const on = new Date(new Date(pr.delete_requested_at).getTime() + 7 * 864e5);
+    db.notifications.push({ id: uid(), user_id: me, title: 'SpotOn', body: `Λάβαμε την αίτηση διαγραφής. Ο λογαριασμός σου σβήνεται στις ${on.getDate()}/${on.getMonth() + 1}. Ως τότε μπορείς να την ακυρώσεις από τις Ρυθμίσεις.`, read: false, created_at: new Date().toISOString() });
+    return { ok: true, requested_at: pr.delete_requested_at, delete_on: on.toISOString() };
+  },
+  cancel_account_deletion: () => {
+    const pr = db.profiles.find((x) => x.id === me); if (pr) pr.delete_requested_at = null;
     return { ok: true };
   },
   owner_set_note: (a) => {

@@ -10,7 +10,8 @@ import { setPref, usePrefs } from '../prefs';
 import { sb } from '../supabase';
 import { DARK, LIGHT, type Mode, type Theme, getMode, setMode } from '../theme';
 import { Btn, C, Chip, Group, Icon, Input, Row, Section, SwitchRow, alpha, shadow } from '../ui';
-import { signOut } from './data';
+import { signOut, usePerson } from './data';
+import { useDeletion } from '../account/deletion';
 
 /* Μικρογραφία οθόνης στα χρώματα μιας παλέτας (για την επιλογή εμφάνισης). */
 function Mini({ P }: { P: Theme }) {
@@ -129,6 +130,12 @@ export function NotifyPrefs({ bare }: { bare?: boolean } = {}) {
   );
 }
 
+/* «Διαγραφή λογαριασμού»: αν υπάρχει αίτηση, δείχνει πότε σβήνεται. */
+function DeleteRow() {
+  const { deleteOn } = useDeletion(usePerson().uid);
+  return <Row icon="close" title="Διαγραφή λογαριασμού" sub={deleteOn ? `Αίτηση σε εξέλιξη · διαγράφεται ${deleteOn}` : 'Με αίτηση, και ακύρωση ως 7 μέρες'} danger onPress={() => router.push('/delete-account')} last />;
+}
+
 /* Όλες οι ρυθμίσεις της εφαρμογής. Η εμφάνιση εφαρμόζεται αμέσως σε όλη την εφαρμογή. */
 export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
   const prefs = usePrefs();
@@ -149,7 +156,7 @@ export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
         {onEdit && <Row icon="user" title="Τα στοιχεία μου" sub="Όνομα, επώνυμο, κινητό" onPress={onEdit} />}
         <Password />
         <Row icon="eye" title="Πολιτική απορρήτου" onPress={() => router.push('/privacy')} />
-        <Row icon="close" title="Διαγραφή λογαριασμού" danger onPress={() => router.push('/delete-account')} last />
+        <DeleteRow />
       </Group>
 
       <Section title="Βοήθεια" />
