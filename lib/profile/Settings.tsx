@@ -1,3 +1,4 @@
+import { PassInput, PassRules, passProblem } from '../password';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Text } from '../Txt';
@@ -67,9 +68,9 @@ export const modeLabel = () => MODES.find((o) => o.key === getMode())?.label ?? 
 export function PasswordForm({ onDone }: { onDone?: () => void }) {
   const [a, setA] = useState(''); const [b, setB] = useState('');
   const [busy, setBusy] = useState(false);
+  const [show, setShow] = useState(false);
   const go = async () => {
-    if (a.length < 6) return say('Ο κωδικός θέλει τουλάχιστον 6 χαρακτήρες');
-    if (a !== b) return say('Οι δύο κωδικοί δεν είναι ίδιοι');
+    const bad = passProblem(a, b); if (bad) return say(bad);
     setBusy(true);
     const { error } = await sb.auth.updateUser({ password: a });
     setBusy(false);
@@ -78,8 +79,9 @@ export function PasswordForm({ onDone }: { onDone?: () => void }) {
   };
   return (
     <View style={{ gap: 10 }}>
-      <Input icon="lock" placeholder="Νέος κωδικός" secureTextEntry autoCapitalize="none" value={a} onChangeText={setA} />
-      <Input icon="lock" placeholder="Ξανά ο νέος κωδικός" secureTextEntry autoCapitalize="none" value={b} onChangeText={setB} />
+      <PassInput placeholder="Νέος κωδικός" autoComplete="new-password" show={show} onShow={setShow} value={a} onChangeText={setA} />
+      <PassInput placeholder="Ξανά ο νέος κωδικός" autoComplete="new-password" show={show} onShow={setShow} value={b} onChangeText={setB} />
+      <PassRules value={a} again={b} />
       <Btn size="sm" title={busy ? 'Μια στιγμή…' : 'Αλλαγή κωδικού'} onPress={go} disabled={busy || !a} />
     </View>
   );

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { WEB_URL, sb } from '../supabase';
+import { passProblem } from '../password';
 import { demoSession, setDemo } from '../demo';
 
 export type Mode = 'in' | 'up';
@@ -10,6 +11,7 @@ export function useLogin(initial: Mode = 'in') {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
+  const [pass2, setPass2] = useState('');
   const [show, setShow] = useState(false);
   const [err, setErr] = useState('');
   const [info, setInfo] = useState('');
@@ -22,7 +24,8 @@ export function useLogin(initial: Mode = 'in') {
   const go = async () => {
     const e = cleanEmail();
     if (!emailOk(e)) return setErr('Το email δεν φαίνεται σωστό');
-    if (pass.length < 6) return setErr('Ο κωδικός θέλει τουλάχιστον 6 χαρακτήρες');
+    if (mode === 'up') { const bad = passProblem(pass, pass2); if (bad) return setErr(bad); }
+    else if (!pass) return setErr('Γράψε τον κωδικό σου');
     setBusy(true); setErr(''); setInfo('');
     const { data, error } = mode === 'in'
       ? await sb.auth.signInWithPassword({ email: e, password: pass })
@@ -33,6 +36,7 @@ export function useLogin(initial: Mode = 'in') {
       setErr(m.includes('invalid login') ? 'Λάθος email ή κωδικός'
         : m.includes('already registered') ? 'Υπάρχει ήδη λογαριασμός με αυτό το email. Κάνε σύνδεση.'
         : m.includes('not confirmed') ? 'Το email δεν έχει επιβεβαιωθεί'
+        : m.includes('password') ? 'Ο κωδικός δεν είναι αρκετά ισχυρός. Δες τους κανόνες κάτω από το πεδίο.'
         : 'Κάτι πήγε στραβά, δοκίμασε ξανά');
       return;
     }
@@ -63,6 +67,6 @@ export function useLogin(initial: Mode = 'in') {
     if (error) { setDemo(false); setErr('Κάτι πήγε στραβά, δοκίμασε ξανά'); }
   };
 
-  return { mode, setMode, name, setName, email, setEmail, pass, setPass, show, setShow, err, info, busy, go, forgot, guest };
+  return { mode, setMode, name, setName, email, setEmail, pass, setPass, pass2, setPass2, show, setShow, err, info, busy, go, forgot, guest };
 }
 export type LoginState = ReturnType<typeof useLogin>;

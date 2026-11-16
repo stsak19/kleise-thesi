@@ -5,6 +5,7 @@ import { Text } from '../Txt';
 import { C, Icon, Input, alpha } from '../ui';
 import { isLight } from '../theme';
 import type { LoginState } from './useLogin';
+import { PassInput, PassRules } from '../password';
 
 /* Κοινά κομμάτια των οθονών σύνδεσης. */
 
@@ -27,14 +28,16 @@ export function Fields({ L, labels = true }: { L: LoginState; labels?: boolean }
       )}
       <Input label={labels ? 'Email' : undefined} icon="mail" placeholder="esy@email.gr" autoCapitalize="none" keyboardType="email-address"
         autoComplete="email" value={L.email} onChangeText={L.setEmail} />
-      <View>
-        <Input label={labels ? 'Κωδικός' : undefined} icon="lock" placeholder={L.mode === 'up' ? 'Τουλάχιστον 6 χαρακτήρες' : 'Ο κωδικός σου'}
-          secureTextEntry={!L.show} value={L.pass} onChangeText={L.setPass} onSubmitEditing={L.go} style={{ paddingRight: 34 }} />
-        <Pressable onPress={() => L.setShow(!L.show)} hitSlop={10} accessibilityLabel={L.show ? 'Απόκρυψη κωδικού' : 'Εμφάνιση κωδικού'}
-          style={{ position: 'absolute', right: 14, bottom: 15, opacity: L.show ? 1 : 0.55 }}>
-          <Icon name="eye" size={20} color={L.show ? C.tint : C.mute} />
-        </Pressable>
-      </View>
+      <PassInput label={labels ? 'Κωδικός' : undefined} placeholder={L.mode === 'up' ? 'Νέος κωδικός' : 'Ο κωδικός σου'}
+        autoComplete={L.mode === 'up' ? 'new-password' : 'current-password'} show={L.show} onShow={L.setShow}
+        value={L.pass} onChangeText={L.setPass} onSubmitEditing={L.mode === 'up' ? undefined : L.go} />
+      {L.mode === 'up' && (
+        <>
+          <PassInput label={labels ? 'Επιβεβαίωση κωδικού' : undefined} placeholder="Ξανά ο κωδικός" autoComplete="new-password"
+            show={L.show} onShow={L.setShow} value={L.pass2} onChangeText={L.setPass2} onSubmitEditing={L.go} />
+          <PassRules value={L.pass} again={L.pass2} />
+        </>
+      )}
     </View>
   );
 }

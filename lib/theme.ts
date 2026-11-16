@@ -11,7 +11,7 @@ export const LIGHT = {
   bg: '#ffffff', card: '#f6f6f6', soft: '#f1f1f1', line: '#ececec', text: '#0a0a0a', mute: '#6b6b6b',
   accent: '#e3e3e8', onAccent: '#0a0a0a', tint: '#2b2b30',
   btn: '#e3e3e8', btnText: '#0a0a0a', btn2: '#ffffff', btn2Text: '#0a0a0a', btn2Line: '#dedede',
-  ok: '#00a855', bad: '#ff3b5c',
+  ok: '#00a855', bad: '#ff3b5c', warn: '#e8930c',
   shade: '#000000',
   neon: '#e3e3e8', glow: '#000000', ink: '#ededf0', inkText: '#0a0a0a', inkLine: '#e0e0e5',
 };
@@ -22,7 +22,7 @@ export const DARK: Theme = {
   bg: '#262624', card: '#30302e', soft: '#30302e', line: '#3e3e3a', text: '#f0eee6', mute: '#a6a39a',
   accent: '#454540', onAccent: '#f0eee6', tint: '#f0eee6',
   btn: '#454540', btnText: '#f0eee6', btn2: '#30302e', btn2Text: '#f0eee6', btn2Line: '#4a4a45',
-  ok: '#5bb98a', bad: '#e5707e',
+  ok: '#5bb98a', bad: '#e5707e', warn: '#d9a64e',
   shade: '#000000',
   neon: '#454540', glow: '#000000', ink: '#30302e', inkText: '#f0eee6', inkLine: '#3e3e3a',
 };
