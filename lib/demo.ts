@@ -118,7 +118,9 @@ const statusFor = (d: number, t: number) => {
 };
 
 OWN.forEach((o, bi) => {
-  o.staff.forEach((st) => db.staff.push({ id: st.id, business_id: o.id, name: st.name, role: st.role, color: st.color, days: st.days, bio: st.bio, photo_url: st.photo ?? null,
+  // Ο πρώτος της ομάδας είναι ο ιδιοκτήτης· ο δεύτερος έχει ήδη δεχτεί την πρόσκληση (κατάσταση «Στην εφαρμογή»).
+  o.staff.forEach((st, si) => db.staff.push({ id: st.id, business_id: o.id, name: st.name, role: st.role, color: st.color, days: st.days, bio: st.bio, photo_url: st.photo ?? null,
+    user_id: si === 0 ? DEMO_UID : si === 1 ? `u-staff-${st.id}` : null, access: 'staff', invite_code: null,
     services: o.services.filter((s) => !s.staff || s.staff.includes(st.id)).map((s) => s.id) }));
   o.services.forEach((s) => db.services.push({ id: s.id, business_id: o.id, name: s.name, duration_min: s.dur, price_cents: s.price == null ? null : s.price * 100, capacity: s.cap ?? 1, active: true }));
   o.hours.forEach(([days, spans]) => hours(o.id, days, spans));
@@ -244,6 +246,9 @@ const isAcc = (id: string) => id !== DEMO_UID && accounts.some((a) => a.id === i
 function persist() {
   const data: any = { accounts: accounts.filter((a) => a.id !== DEMO_UID) };
   MINE.forEach((t) => { data[t] = db[t].filter((r) => isAcc(r.user_id ?? r.id)); });
+  // Προσκλήσεις υπαλλήλων (ο σύνδεσμος πρέπει να δουλεύει και μετά από ανανέωση της σελίδας).
+  data.staffInv = db.staff.filter((x) => x.invite_code || (x.user_id && x.user_id !== DEMO_UID && !String(x.user_id).startsWith('u-staff-')))
+    .map((x) => ({ id: x.id, invite_code: x.invite_code, access: x.access, user_id: x.user_id }));
   const txt = JSON.stringify(data);
   try { ls()?.setItem(SAVE_KEY, txt); } catch {}
   AsyncStorage.setItem(SAVE_KEY, txt).catch(() => {});
@@ -257,6 +262,7 @@ function restore(txt: string | null | undefined) {
       const dup = t === 'profiles' ? db[t].some((x) => x.id === r.id) : t === 'memberships' ? db[t].some((x) => x.user_id === r.user_id && x.business_id === r.business_id) : db[t].some((x) => x.id === r.id);
       if (!dup) db[t].push(r);
     }));
+    (d.staffInv ?? []).forEach((r: any) => { const st = db.staff.find((x) => x.id === r.id); if (st) Object.assign(st, r); });
   } catch {}
 }
 restore(ls()?.getItem(SAVE_KEY));
@@ -469,6 +475,26 @@ const RPC: Record<string, (a: any) => any> = {
   owner_client_history: (a) => db.bookings.filter((b) => b.business_id === a.p_business && b.user_id === a.p_user)
     .sort((x, y) => (y.date + y.time).localeCompare(x.date + x.time)).slice(0, 30)
     .map((b) => ({ id: b.id, date: b.date, time: b.time.slice(0, 5), status: b.status, service: svc(b.service_id).name, staff: staffOf(b.staff_id)?.name ?? null, price_cents: svc(b.service_id).price_cents })),
+  /* Πρόσκληση υπαλλήλου: τι λέει ο σύνδεσμος, και η αποδοχή του από τον συνδεδεμένο χρήστη. */
+  staff_invite_info: (a) => {
+    const st = db.staff.find((x) => x.invite_code && x.invite_code === a.p_code);
+    if (!st) return { ok: false, error: 'Η πρόσκληση δεν ισχύει πια. Ζήτα νέα από την επιχείρηση.' };
+    return { ok: true, business: bz(st.business_id).name, business_id: st.business_id, staff: st.name, access: st.access ?? 'staff' };
+  },
+  accept_staff_invite: (a) => {
+    const st = db.staff.find((x) => x.invite_code && x.invite_code === a.p_code);
+    if (!st) return { ok: false, error: 'Η πρόσκληση δεν ισχύει πια. Ζήτα νέα από την επιχείρηση.' };
+    st.user_id = me; st.invite_code = null;
+    return { ok: true, business_id: st.business_id };
+  },
+  /* Διαγραφή λογαριασμού: σβήνει ό,τι έκανε ο χρήστης. Η «Συνέχεια χωρίς λογαριασμό» μένει όπως είναι. */
+  delete_my_account: () => {
+    if (!me || me === DEMO_UID) return { ok: true };
+    const gone = me;
+    MINE.forEach((t) => { db[t] = db[t].filter((r: any) => (r.user_id ?? r.id) !== gone); });
+    accounts = accounts.filter((x) => x.id !== gone);
+    return { ok: true };
+  },
   owner_set_note: (a) => {
     let c = db.client_cards.find((x) => x.business_id === a.p_business && x.user_id === a.p_user);
     if (!c) { c = { business_id: a.p_business, user_id: a.p_user, fields: [] }; db.client_cards.push(c); }
@@ -515,7 +541,8 @@ function rest(method: string, u: URL, table: string, body: any, h: Headers) {
   };
   if (method === 'GET' || method === 'HEAD') {
     // Οι δοκιμαστικές επιχειρήσεις ανήκουν σε όποιον είναι συνδεδεμένος, ώστε η λειτουργία επιχείρησης να είναι πάντα γεμάτη.
-    const src = table === 'businesses' && me ? rows.map((r) => (r.owner_id === DEMO_UID ? { ...r, owner_id: me } : r)) : rows;
+    const src = table === 'businesses' && me ? rows.map((r) => (r.owner_id === DEMO_UID ? { ...r, owner_id: me } : r))
+      : table === 'staff' && me ? rows.map((r) => (r.user_id === DEMO_UID ? { ...r, user_id: me } : r)) : rows;
     let out = order(src.filter(filters(u)), u);
     if (table === 'notifications') out = out.filter((r) => r.user_id === me); // όπως το RLS: βλέπεις μόνο τις δικές σου
     const lim = u.searchParams.get('limit'); if (lim) out = out.slice(0, +lim);

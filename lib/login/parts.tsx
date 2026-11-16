@@ -1,3 +1,5 @@
+import { router } from 'expo-router';
+import { setLoginOpen } from '../guest';
 import { Pressable, View } from 'react-native';
 import { Text } from '../Txt';
 import { C, Icon, Input, alpha } from '../ui';
@@ -58,6 +60,6 @@ export const LinkText = ({ title, onPress, color = C.tint, align = 'center' }:
 export const Terms = () => (
   <Text style={{ color: C.mute, fontSize: 12.5, lineHeight: 18, textAlign: 'center' }}>
     Με τη δημιουργία λογαριασμού αποδέχεσαι τους <Text style={{ color: C.text, fontWeight: '700' }}>Όρους χρήσης</Text> και
-    την <Text style={{ color: C.text, fontWeight: '700' }}>Πολιτική απορρήτου</Text>.
+    την <Text style={{ color: C.text, fontWeight: '700', textDecorationLine: 'underline' }} onPress={() => { setLoginOpen(false); router.push('/privacy'); }}>Πολιτική απορρήτου</Text>.
   </Text>
 );

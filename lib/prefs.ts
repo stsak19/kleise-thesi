@@ -3,9 +3,15 @@ import { useEffect, useState } from 'react';
 
 /* Προτιμήσεις της εφαρμογής (Προφίλ → Ρυθμίσεις), αποθηκευμένες στη συσκευή.
    Η εμφάνιση (ανοιχτή/σκούρα) είναι στο lib/theme.ts. */
-export type Prefs = { reduceMotion: boolean };
+/* Ειδοποιήσεις: ποιες θέλει ο χρήστης και πόσα λεπτά πριν το ραντεβού έρχεται η υπενθύμιση. */
+export type Prefs = {
+  reduceMotion: boolean;
+  nRemind: boolean; nRemindMin: number; nWaitlist: boolean; nChanges: boolean; nPacks: boolean; nPromos: boolean;
+  nBizBookings: boolean; nBizDaily: boolean;
+};
 const KEY = 'prefs.v1';
-const P: Prefs = { reduceMotion: false };
+const P: Prefs = { reduceMotion: false, nRemind: true, nRemindMin: 180, nWaitlist: true, nChanges: true, nPacks: true, nPromos: false,
+  nBizBookings: true, nBizDaily: true };
 const subs = new Set<() => void>();
 AsyncStorage.getItem(KEY).then((v) => { if (v) { Object.assign(P, JSON.parse(v)); subs.forEach((f) => f()); } }).catch(() => {});
 

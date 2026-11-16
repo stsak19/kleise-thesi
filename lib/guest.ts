@@ -8,7 +8,8 @@ import { Platform } from 'react-native';
 export const GUEST_OK = Platform.OS === 'web';
 
 /* Οι σελίδες που ανοίγουν χωρίς λογαριασμό: η αρχική, η αρχική ενός καταστήματος (στοιχεία και κράτηση). */
-export const openToGuests = (path: string) => GUEST_OK && (path === '/' || /^\/store\/[^/]+\/?$/.test(path));
+/* Το απόρρητο ανοίγει πάντα χωρίς λογαριασμό (το ζητούν τα stores). */
+export const openToGuests = (path: string) => path === '/privacy' || GUEST_OK && (path === '/' || /^\/store\/[^/]+\/?$/.test(path));
 
 let back: string | null = null;
 export const setReturnTo = (path: string | null) => { back = path; };

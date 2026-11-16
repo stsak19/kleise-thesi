@@ -9,6 +9,7 @@ import { kindOf } from '../../../lib/owner/kinds';
 import { Face, NoBiz, useMyBiz, useStaff } from '../../../lib/owner/hub';
 import { Btn, C, Card, DAYS, Empty, Input, Pill, ScreenHeader, T, TAB_SPACE, iso, s } from '../../../lib/ui';
 import { deskCol, useWide } from '../../../lib/owner/desk';
+import { InviteSheet, accessLabel } from '../../../lib/owner/Invite';
 
 /* «Η ομάδα»: ποιος δουλεύει στην επιχείρηση, ποιες μέρες, ποιες υπηρεσίες κάνει και πόσα ραντεβού έχει σήμερα. */
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
@@ -21,6 +22,7 @@ export default function Team() {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
+  const [inv, setInv] = useState<any>(null);
   const wide = useWide();
 
   useFocusEffect(useCallback(() => {
@@ -61,6 +63,14 @@ export default function Team() {
             </View>
             <Pill text={`${today[p.id] ?? 0} σήμερα`} tone={today[p.id] ? 'accent' : 'mute'} />
           </View>
+          {/* Λογαριασμός στην εφαρμογή: συνδεδεμένος, πρόσκληση σε αναμονή, ή κουμπί πρόσκλησης. */}
+          <View style={[s.row, { gap: 10 }]}>
+            {p.user_id && p.user_id === biz.owner_id ? <Pill text="Εσύ · ιδιοκτήτης" tone="mute" />
+              : p.user_id ? <Pill text={`Στην εφαρμογή · ${accessLabel(p.access)}`} tone="ok" />
+              : p.invite_code ? <Pill text="Η πρόσκληση περιμένει" tone="mute" /> : null}
+            <View style={{ flex: 1 }} />
+            {!p.user_id && <Btn size="sm" kind="ghost" icon="mail" title={p.invite_code ? 'Ξανά πρόσκληση' : 'Πρόσκληση'} onPress={() => setInv(p)} />}
+          </View>
           {!!p.bio && <T style={{ fontSize: 14 }}>{p.bio}</T>}
           <View style={[s.row, { gap: 6 }]}>
             {WEEK.map((d) => {
@@ -94,6 +104,7 @@ export default function Team() {
           </View>
         </Card>
       ) : <Btn kind="ghost" icon="plus" title="Προσθήκη ατόμου" onPress={() => setAdding(true)} />}
+      {inv && <InviteSheet person={inv} biz={biz} onClose={() => { setInv(null); reload(); }} />}
     </ScrollView>
   );
 }

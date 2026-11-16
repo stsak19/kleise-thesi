@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Text } from '../Txt';
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
+import { getMode as appMode } from '../mode';
 import { say } from '../alert';
 import { replayIntro } from '../Intro';
 import { setPref, usePrefs } from '../prefs';
 import { sb } from '../supabase';
 import { DARK, LIGHT, type Mode, type Theme, getMode, setMode } from '../theme';
-import { Btn, C, Group, Icon, Input, Row, Section, SwitchRow, alpha, shadow } from '../ui';
+import { Btn, C, Chip, Group, Icon, Input, Row, Section, SwitchRow, alpha, shadow } from '../ui';
 import { signOut } from './data';
 
 /* Μικρογραφία οθόνης στα χρώματα μιας παλέτας (για την επιλογή εμφάνισης). */
@@ -96,6 +98,37 @@ function Password({ last }: { last?: boolean }) {
   );
 }
 
+const REMIND = [{ m: 60, label: '1 ώρα πριν' }, { m: 180, label: '3 ώρες πριν' }, { m: 1440, label: 'Μία μέρα πριν' }];
+
+/* Ειδοποιήσεις στο κινητό: ποιες θέλει ο πελάτης (και η επιχείρηση, όταν είναι σε λειτουργία επιχείρησης). */
+export function NotifyPrefs({ bare }: { bare?: boolean } = {}) {
+  const p = usePrefs();
+  const biz = appMode() === 'biz';
+  return (
+    <>
+      {!bare && <Section title="Ειδοποιήσεις" sub="Έρχονται στο κινητό, ακόμα κι όταν η εφαρμογή είναι κλειστή." />}
+      {biz && (
+        <Group>
+          <SwitchRow label="Νέες κρατήσεις και ακυρώσεις" sub="Και αιτήματα πακέτων, νέοι πελάτες για έγκριση" value={p.nBizBookings} onChange={(v) => setPref('nBizBookings', v)} />
+          <SwitchRow label="Η μέρα σου, κάθε πρωί" sub="Στις 8:00: πόσα ραντεβού έχεις και ποιο είναι το πρώτο" value={p.nBizDaily} onChange={(v) => setPref('nBizDaily', v)} last />
+        </Group>
+      )}
+      <Group>
+        <SwitchRow label="Υπενθύμιση ραντεβού" sub="Πριν από κάθε κράτηση" value={p.nRemind} onChange={(v) => setPref('nRemind', v)} last={!p.nRemind} />
+        {p.nRemind && (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: C.line }}>
+            {REMIND.map((o) => <Chip key={o.m} label={o.label} on={p.nRemindMin === o.m} onPress={() => setPref('nRemindMin', o.m)} />)}
+          </View>
+        )}
+        <SwitchRow label="Θέση από αναμονή" sub="Όταν σου κλείνεται θέση αυτόματα" value={p.nWaitlist} onChange={(v) => setPref('nWaitlist', v)} />
+        <SwitchRow label="Αλλαγές από το κατάστημα" sub="Ακύρωση, αλλαγή ώρας, έγκριση" value={p.nChanges} onChange={(v) => setPref('nChanges', v)} />
+        <SwitchRow label="Πακέτα" sub="Ενεργοποίηση, λίγες επισκέψεις, λήξη" value={p.nPacks} onChange={(v) => setPref('nPacks', v)} />
+        <SwitchRow label="Μηνύματα καταστημάτων" sub="Ανακοινώσεις και προσφορές" value={p.nPromos} onChange={(v) => setPref('nPromos', v)} last />
+      </Group>
+    </>
+  );
+}
+
 /* Όλες οι ρυθμίσεις της εφαρμογής. Η εμφάνιση εφαρμόζεται αμέσως σε όλη την εφαρμογή. */
 export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
   const prefs = usePrefs();
@@ -109,10 +142,14 @@ export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
         <SwitchRow label="Λιγότερη κίνηση" sub="Σταματά τα κινούμενα εφέ στις οθόνες" value={prefs.reduceMotion} onChange={(v) => setPref('reduceMotion', v)} last />
       </Group>
 
+      <NotifyPrefs />
+
       <Section title="Λογαριασμός" />
       <Group>
         {onEdit && <Row icon="user" title="Τα στοιχεία μου" sub="Όνομα, επώνυμο, κινητό" onPress={onEdit} />}
-        <Password last />
+        <Password />
+        <Row icon="eye" title="Πολιτική απορρήτου" onPress={() => router.push('/privacy')} />
+        <Row icon="close" title="Διαγραφή λογαριασμού" danger onPress={() => router.push('/delete-account')} last />
       </Group>
 
       <Section title="Βοήθεια" />

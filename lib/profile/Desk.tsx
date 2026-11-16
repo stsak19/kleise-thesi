@@ -10,15 +10,16 @@ import { Btn, C, Icon, Toggle, s } from '../ui';
 import type { IconName } from '../Icon';
 import { signOut, usePerson, useProfileExtras } from './data';
 import { Initials, MeForm } from './parts';
-import { AppearancePicker, PasswordForm } from './Settings';
+import { AppearancePicker, NotifyPrefs, PasswordForm } from './Settings';
 
 /* Το προφίλ σε υπολογιστή (εκδοχή Α): όνομα πάνω, ενότητες αριστερά και η φόρμα της επιλεγμένης δεξιά,
    όπως στις ρυθμίσεις λογαριασμού μιας ιστοσελίδας. Όλα αλλάζουν επιτόπου, χωρίς να ανοίγει άλλη οθόνη. */
-type Key = 'me' | 'look' | 'safe' | 'biz' | 'help';
+type Key = 'me' | 'look' | 'notify' | 'safe' | 'biz' | 'help';
 const SECTIONS: { key: Key; icon: IconName; label: string; sub: string }[] = [
   { key: 'me', icon: 'user', label: 'Τα στοιχεία μου', sub: 'Όνομα, επώνυμο και κινητό.' },
   { key: 'look', icon: 'eye', label: 'Εμφάνιση', sub: 'Η «Αυτόματα» ακολουθεί τη ρύθμιση του υπολογιστή.' },
-  { key: 'safe', icon: 'lock', label: 'Ασφάλεια', sub: 'Ο κωδικός με τον οποίο συνδέεσαι.' },
+  { key: 'notify', icon: 'bell', label: 'Ειδοποιήσεις', sub: 'Έρχονται στο κινητό, ακόμα κι όταν η εφαρμογή είναι κλειστή.' },
+  { key: 'safe', icon: 'lock', label: 'Λογαριασμός', sub: 'Κωδικός, απόρρητο και διαγραφή λογαριασμού.' },
   { key: 'biz', icon: 'store', label: 'Για επιχειρήσεις', sub: 'Πρόγραμμα, κρατήσεις, μηνύματα και σελίδα του καταστήματός σου.' },
   { key: 'help', icon: 'gear', label: 'Βοήθεια', sub: 'Ξενάγηση και έκδοση της εφαρμογής.' },
 ];
@@ -62,7 +63,14 @@ export function DeskProfile() {
       <Line title="Λιγότερη κίνηση" sub="Σταματά τα κινούμενα εφέ στις οθόνες" right={<Toggle value={prefs.reduceMotion} onChange={(v) => setPref('reduceMotion', v)} />} />
     </View>
   ) : sel === 'safe' ? (
-    <View style={{ gap: 6 }}><Label t="Αλλαγή κωδικού" /><PasswordForm /></View>
+    <View style={{ gap: 6 }}>
+      <Label t="Αλλαγή κωδικού" /><PasswordForm />
+      <View style={{ height: 18 }} />
+      <Line title="Πολιτική απορρήτου" sub="Τι κρατάμε και ποιος τα βλέπει" right={<Btn size="sm" kind="ghost" title="Άνοιγμα" onPress={() => router.push('/privacy')} />} />
+      <Line title="Διαγραφή λογαριασμού" sub="Σβήνει οριστικά τα στοιχεία, τις κρατήσεις και τα πακέτα σου" right={<Btn size="sm" kind="danger" title="Διαγραφή" onPress={() => router.push('/delete-account')} />} />
+    </View>
+  ) : sel === 'notify' ? (
+    <NotifyPrefs bare />
   ) : sel === 'biz' ? (
     hasBiz === false
       ? <Line title="Έχω επιχείρηση" sub="Φτιάξε τη σελίδα σου βήμα-βήμα, σε λίγα λεπτά" right={<Btn size="sm" title="Ξεκίνα" onPress={() => router.push('/new-business')} />} />
