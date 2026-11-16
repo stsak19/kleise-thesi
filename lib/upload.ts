@@ -2,18 +2,34 @@ import * as ImagePicker from 'expo-image-picker';
 import { sb } from './supabase';
 
 /* Διαλέγεις φωτογραφία από τη συσκευή και ανεβαίνει στο Supabase Storage (bucket business-media).
-   Επιστρέφει το δημόσιο URL ή null αν ακυρώθηκε. */
-export async function pickAndUpload(uid: string, kind: 'logo' | 'cover'): Promise<string | null> {
-  const r = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ['images'], allowsEditing: true, aspect: kind === 'logo' ? [1, 1] : [16, 9], quality: 0.7,
-  });
-  if (r.canceled || !r.assets?.length) return null;
-  const a = r.assets[0];
+   logo = τετράγωνο, cover = οριζόντιο εξώφυλλο, photo = φωτογραφία του χώρου (χωρίς περικοπή). */
+export type PhotoKind = 'logo' | 'cover' | 'photo';
+
+async function put(uid: string, kind: PhotoKind, a: ImagePicker.ImagePickerAsset) {
   const type = a.mimeType || 'image/jpeg';
   const ext = type.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg';
   const body = await (await fetch(a.uri)).arrayBuffer();
-  const path = `${uid}/${kind}-${Date.now()}.${ext}`;
+  const path = `${uid}/${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
   const { error } = await sb.storage.from('business-media').upload(path, body, { contentType: type, upsert: true });
   if (error) throw new Error(error.message);
   return sb.storage.from('business-media').getPublicUrl(path).data.publicUrl;
+}
+
+/* Μία φωτογραφία. Επιστρέφει το δημόσιο URL ή null αν ακυρώθηκε. */
+export async function pickAndUpload(uid: string, kind: PhotoKind): Promise<string | null> {
+  const r = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'], allowsEditing: kind !== 'photo', aspect: kind === 'logo' ? [1, 1] : [16, 9], quality: 0.7,
+  });
+  if (r.canceled || !r.assets?.length) return null;
+  return put(uid, kind, r.assets[0]);
+}
+
+/* Πολλές φωτογραφίες του χώρου μαζί (έως max). Επιστρέφει τα URL όσων ανέβηκαν. */
+export async function pickAndUploadMany(uid: string, max: number): Promise<string[]> {
+  if (max <= 0) return [];
+  const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: true, selectionLimit: max, quality: 0.7 });
+  if (r.canceled || !r.assets?.length) return [];
+  const out: string[] = [];
+  for (const a of r.assets.slice(0, max)) out.push(await put(uid, 'photo', a));
+  return out;
 }

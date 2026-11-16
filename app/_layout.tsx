@@ -52,7 +52,7 @@ function Gate() {
   if (!introSeen && !GUEST_OK) return <Intro onDone={setIntroSeen} />;
   if (!session && seg[0] !== 'login' && !openToGuests(path)) {
     // Ιστοσελίδα: μένει στην αρχική και ανοίγει το παράθυρο σύνδεσης· μετά τη σύνδεση πάει εκεί που ήθελε.
-    if (GUEST_OK) { setTimeout(() => askLogin(path), 0); return <Redirect href="/" />; }
+    if (GUEST_OK) { setTimeout(() => askLogin(path, path === '/new-business' ? 'up' : 'in'), 0); return <Redirect href="/" />; }
     return <Redirect href="/login" />;
   }
   if (session && seg[0] === 'login' && !back) return <Redirect href={getMode() === 'biz' ? BIZ_HOME : '/'} />;

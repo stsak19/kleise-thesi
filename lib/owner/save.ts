@@ -56,7 +56,7 @@ type SaveResult = { ok: true; id: string; warnings: string[]; ids: Record<string
 /* Αποθηκεύει κατάστημα, υπηρεσίες και ωράριο. removed = υπηρεσίες που φεύγουν. */
 export async function saveBusiness(uid: string, b: any, svcs: Svc[], hours: Hours, removed: string[] = []): Promise<SaveResult> {
   const row = { ...b, owner_id: uid, max_days_ahead: +b.max_days_ahead || 14, cancel_before_min: +b.cancel_before_min || 0, package_days: +b.package_days || 30 };
-  delete row.created_at;
+  delete row.created_at; delete row.photos;
   const cents = (p: string) => (p ? Math.round(parseFloat(p.replace(',', '.')) * 100) : null);
   const list = svcs.filter((x) => x.name.trim());
   // Πραγματική βάση: όλα μαζί σε μία κλήση (supabase/migrations/005), ώστε να μη χαθεί το ωράριο αν κοπεί η σύνδεση.
@@ -71,9 +71,15 @@ export async function saveBusiness(uid: string, b: any, svcs: Svc[], hours: Hour
       });
       if (!r.ok || !r.id) return { ok: false, error: r.error ?? 'Άγνωστο σφάλμα' };
       setActiveBiz(r.id);
+      // Φωτογραφίες του χώρου: ξεχωριστή στήλη (supabase/migrations/011). Αν η βάση δεν την έχει ακόμα, το κατάστημα αποθηκεύεται κανονικά.
+      const warnings: string[] = [];
+      if (Array.isArray(b.photos)) {
+        const { error } = await sb.from('businesses').update({ photos: b.photos }).eq('id', r.id);
+        if (error && b.photos.length) warnings.push('Οι φωτογραφίες του χώρου δεν αποθηκεύτηκαν ακόμα: η βάση χρειάζεται την ενημέρωση 011.');
+      }
       // Χωρίς τη βάση 008 το save_business δεν επιστρέφει ids: τότε κρατάμε μόνο όσα ήδη ξέρουμε.
       const known = Object.fromEntries(list.filter((x) => x.id).map((x) => [x.key, x.id!]));
-      return { ok: true, id: r.id, warnings: [], ids: { ...known, ...(r.ids ?? {}) } };
+      return { ok: true, id: r.id, warnings, ids: { ...known, ...(r.ids ?? {}) } };
     } catch (e: any) { return { ok: false, error: e?.message ?? 'Άγνωστο σφάλμα' }; }
   }
 }

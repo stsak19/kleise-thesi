@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Text } from '../Txt';
 import { useAuth } from '../auth';
 import { Btn, C, Icon, alpha } from '../ui';
-import { getReturnTo, setLoginOpen, setReturnTo, useLoginOpen } from '../guest';
+import { getReturnTo, loginWant, setLoginOpen, setReturnTo, useLoginOpen } from '../guest';
 import { useLogin } from './useLogin';
 import { Fields, LinkText, Logo, Notice, Terms } from './parts';
 
@@ -17,6 +17,7 @@ export function LoginModal() {
   const up = L.mode === 'up';
   const close = () => { setReturnTo(null); setLoginOpen(false); };
 
+  useEffect(() => { if (open) L.setMode(loginWant()); }, [open]);
   useEffect(() => {
     if (!open || !session) return;
     const to = getReturnTo();

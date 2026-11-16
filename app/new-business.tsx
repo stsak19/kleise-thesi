@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { switchMode } from '../lib/mode';
 import { goHome } from '../lib/SwitchMode';
-import { Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
+import { Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { Text } from '../lib/Txt';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../lib/auth';
 import { say } from '../lib/alert';
-import { pickAndUpload } from '../lib/upload';
+import { PhotosEditor } from '../lib/owner/Photos';
+import { DeskPreview } from '../lib/owner/LivePreview';
+import { WIDE } from '../lib/wide';
 import { PagePreview, upper } from '../lib/owner/PagePreview';
 import { screenFor } from '../lib/bizscreen';
 import { THEMES, styleOf } from '../lib/presets';
@@ -29,6 +31,11 @@ const NAME_HINT: Record<string, string> = {
   hair: 'Κομμωτήριο Ελένη', barber: 'Barber Κώστας', beauty: 'Αισθητική Μαρίνα', massage_spa: 'Ήρεμο Spa',
   physio: 'Φυσικοθεραπεία Κίνηση', medical: 'Ιατρείο Δρ. Παππά', dental: 'Οδοντιατρείο Χαμόγελο', tattoo: 'Black Ink Tattoo', other: 'Το κατάστημά μου',
 };
+/* Τα ονόματα των βημάτων κάτω από τη γραμμή προόδου (υπολογιστής). */
+const RAIL: Record<Step, (svc: string) => string> = {
+  type: () => 'Είδος', name: () => 'Όνομα', place: () => 'Πού', look: () => 'Εικόνα',
+  services: (x) => x, hours: () => 'Ωράριο', rules: () => 'Κανόνες', review: () => 'Έλεγχος',
+};
 const COLORS = Array.from(new Set(THEMES.map((t) => t.color)));
 const hrs = (m: number) => (m < 60 ? `${m} λεπτά` : m % 1440 === 0 ? `${m / 1440} ${m === 1440 ? 'μέρα' : 'μέρες'}` : `${m / 60} ${m === 60 ? 'ώρα' : 'ώρες'}`);
 
@@ -37,13 +44,16 @@ export default function NewBusiness() {
   const { session } = useAuth();
   const uid = session!.user.id;
   const { top, bottom } = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const wide = width >= WIDE;
+  const side = width >= 1180; // χωράει και η προεπισκόπηση δεξιά
 
   const [i, setI] = useState(0);
+  const [far, setFar] = useState(0); // το πιο μακρινό βήμα που έφτασε (στον υπολογιστή πατιούνται τα βήματα ως εκεί)
   const [b, setB] = useState<any>({ ...EMPTY_BIZ, category: null, is_published: true });
   const [svcs, setSvcs] = useState<Svc[]>([]);
   const [hours, setHours] = useState<Hours>([]);
   const [removed, setRemoved] = useState<string[]>([]);
-  const [up, setUp] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<string | null>(null); // id καταστήματος όταν αποθηκευτεί
   const [svcEdit, setSvcEdit] = useState<{ key: string; fresh: boolean; before?: Svc } | null>(null); // μία υπηρεσία ανοιχτή
@@ -69,7 +79,7 @@ export default function NewBusiness() {
   const scr = screenFor(cat);
   const look = styleOf(b);
   const named = svcs.filter((x) => x.name.trim());
-  const go = (n: number) => { dir.current = n > i ? 1 : -1; setI(n); };
+  const go = (n: number) => { dir.current = n > i ? 1 : -1; setI(n); setFar((f) => Math.max(f, n)); };
   const back = () => {
     if (svcEdit) return closeSvc(true);
     return i === 0 ? router.back() : go(i - 1);
@@ -113,12 +123,6 @@ export default function NewBusiness() {
     setRemoved((r) => [...r, ...svcs.filter((x) => x.id).map((x) => x.id!)]);
     setSvcs(p.svcs); setHours(p.hours);
   };
-  const photo = async (kind: 'logo' | 'cover') => {
-    setUp(kind);
-    try { const url = await pickAndUpload(uid, kind); if (url) setB((x: any) => ({ ...x, [kind === 'logo' ? 'logo_url' : 'cover_url']: url })); }
-    catch (e: any) { say('Δεν ανέβηκε η φωτογραφία', e.message); }
-    setUp(null);
-  };
 
   /* Τι λείπει για να πας στο επόμενο βήμα (κενό = όλα καλά). */
   const missing = (): string => {
@@ -148,7 +152,7 @@ export default function NewBusiness() {
 
   /* ---------- τέλος ---------- */
   if (done) return (
-    <View style={[s.screen, { paddingTop: top + 18, paddingBottom: bottom + 24, paddingHorizontal: 20 }]}>
+    <View style={[s.screen, { paddingTop: top + 18, paddingBottom: bottom + 24, paddingHorizontal: 20 }, wide && { width: '100%', maxWidth: 560, alignSelf: 'center', paddingVertical: 48 }]}>
       <Animated.View style={[{ flex: 1, justifyContent: 'center', gap: 22 }, fade]}>
         <View style={{ alignSelf: 'center', width: 88, height: 88, borderRadius: 44, backgroundColor: alpha(C.ok, 0.12), alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="check" size={40} color={C.ok} />
@@ -174,7 +178,7 @@ export default function NewBusiness() {
     type: { title: 'Τι επιχείρηση έχεις;', sub: 'Με βάση αυτό σου ετοιμάζουμε υπηρεσίες, ωράριο και εμφάνιση. Όλα αλλάζουν μετά.' },
     name: { title: 'Πώς λέγεται;', sub: 'Έτσι θα σε βρίσκουν οι πελάτες στην αναζήτηση.' },
     place: { title: 'Πού σε βρίσκουμε;', sub: 'Η πόλη χρειάζεται για την αναζήτηση. Τα υπόλοιπα βοηθούν τον πελάτη να έρθει.' },
-    look: { title: 'Δώσε της πρόσωπο', sub: 'Ένα εξώφυλλο, το λογότυπό σου και ένα χρώμα. Μπορείς να τα βάλεις και αργότερα.' },
+    look: { title: 'Δώσε της πρόσωπο', sub: 'Ανέβασε εξώφυλλο, λογότυπο και φωτογραφίες του χώρου. Μπορείς να τα βάλεις και αργότερα.' },
     services: { title: `${scr.services}`, sub: `${svcKind(cat).badge}. Σου βάλαμε μερικές για αρχή. Πάτα μία για να την αλλάξεις ή να τη σβήσεις, ή πρόσθεσε καινούργια.` },
     hours: { title: 'Πότε είσαι ανοιχτά;', sub: 'Άνοιξε ή κλείσε κάθε μέρα. Για μεσημεριανό κενό πάτα «+ Διάλειμμα».' },
     rules: { title: 'Πώς κλείνουν θέση;', sub: 'Λίγοι κανόνες για τις κρατήσεις σου. Οι προτάσεις ταιριάζουν στο είδος σου.' },
@@ -204,14 +208,11 @@ export default function NewBusiness() {
         </View>
       );
       case 'look': return (
-        <View style={{ gap: 18 }}>
-          <PagePreview biz={b} />
-          <View style={[s.row, { gap: 10 }]}>
-            <Btn kind="tint" size="sm" style={{ flex: 1 }} title={up === 'cover' ? 'Ανέβασμα…' : b.cover_url ? 'Άλλαξε εξώφυλλο' : '📷 Εξώφυλλο'} onPress={() => photo('cover')} />
-            <Btn kind="tint" size="sm" style={{ flex: 1 }} title={up === 'logo' ? 'Ανέβασμα…' : b.logo_url ? 'Άλλαξε λογότυπο' : '🏷️ Λογότυπο'} onPress={() => photo('logo')} />
-          </View>
+        <View style={{ gap: 22 }}>
+          {!side && <PagePreview biz={b} />}
+          <PhotosEditor uid={uid} b={b} setB={setB} wide={wide} />
           <View style={{ gap: 10 }}>
-            <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }}>Χρώμα σελίδας</Text>
+            <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>Χρώμα σελίδας</Text>
             <Swatches colors={COLORS} value={look.color} onPick={(c) => setB({ ...b, brand_color: c })} />
           </View>
         </View>
@@ -247,9 +248,11 @@ export default function NewBusiness() {
         ];
         return (
           <View style={{ gap: 14 }}>
-            <Pressable onPress={() => go(STEPS.indexOf('look'))}>
-              <PagePreview biz={b} />
-            </Pressable>
+            {!side && (
+              <Pressable onPress={() => go(STEPS.indexOf('look'))}>
+                <PagePreview biz={b} />
+              </Pressable>
+            )}
             <View style={[s.card, shadow(1), { padding: 0, gap: 0, overflow: 'hidden' }]}>
               {rows.map((r, k) => (
                 <Pressable key={r.label} onPress={() => go(STEPS.indexOf(r.to))}
@@ -271,6 +274,92 @@ export default function NewBusiness() {
     }
   };
 
+  const mainTitle = busy ? 'Μια στιγμή…' : svcEdit ? why || (svcEdit.fresh ? 'Προσθήκη' : 'Έτοιμο') : step === 'review' ? 'Δημιουργία σελίδας' : why || 'Συνέχεια';
+  const heading = (
+    <View style={{ gap: 6 }}>
+      <Text style={{ color: C.tint, fontSize: 13, fontWeight: '800', letterSpacing: 0.3 }}>
+        ΒΗΜΑ {i + 1} ΑΠΟ {STEPS.length}{i > 0 && b.category && !wide ? `  ·  ${catEmoji(cat)} ${upper(scr.kicker)}` : ''}
+      </Text>
+      <Text style={[s.title, { fontSize: 30 }]}>{title}</Text>
+      <Text style={{ color: C.mute, fontSize: wide ? 15.5 : 16, lineHeight: 23 }}>{sub}</Text>
+    </View>
+  );
+  const skip = optional && !b.cover_url && !b.logo_url && !b.photos?.length && (
+    <Pressable onPress={() => go(i + 1)} hitSlop={8} style={({ pressed }) => ({ alignSelf: 'center', opacity: pressed ? 0.6 : 1, paddingHorizontal: wide ? 14 : 0 })}>
+      <Text style={{ color: C.mute, fontWeight: '700', fontSize: 15 }}>Θα τις βάλω αργότερα</Text>
+    </Pressable>
+  );
+
+  /* ---------- υπολογιστής: η φόρμα αριστερά, η σελίδα σου σε μεγάλη προεπισκόπηση δεξιά ---------- */
+  if (wide) {
+    const formW = side ? Math.min(760, Math.max(560, Math.round(width * 0.48))) : undefined;
+    return (
+      <View style={[s.screen, { flex: 1, flexDirection: 'row' }]}>
+        <View style={[{ minWidth: 0 }, formW ? { width: formW } : { flex: 1, maxWidth: 760, width: '100%', alignSelf: 'center' as const }]}>
+          {/* Πάνω: λογότυπο, κλείσιμο και πρόοδος (πατάς ένα βήμα που έχεις ήδη περάσει για να γυρίσεις εκεί) */}
+          <View style={{ paddingHorizontal: 56, paddingTop: 18, gap: 18 }}>
+            <View style={[s.row, { gap: 10 }]}>
+              <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: C.text, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: C.bg, fontWeight: '800', fontSize: 15 }}>S</Text>
+              </View>
+              <Text style={{ color: C.text, fontWeight: '800', fontSize: 20, letterSpacing: -0.5, flex: 1 }}>SpotOn</Text>
+              <Pressable onPress={() => router.back()} accessibilityLabel="Κλείσιμο" hitSlop={6}
+                style={({ pressed, hovered }: any) => ({ width: 38, height: 38, borderRadius: 19, backgroundColor: hovered ? C.accent : C.soft, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.75 : 1 })}>
+                <Icon name="close" size={14} color={C.text} />
+              </Pressable>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+              {STEPS.map((k, n) => {
+                const can = n <= far && n !== i && !svcEdit && !busy;
+                return (
+                  <Pressable key={k} disabled={!can} onPress={() => go(n)} accessibilityLabel={`Βήμα ${n + 1}: ${RAIL[k](scr.services)}`}
+                    style={{ flex: 1, paddingVertical: 6, gap: 6 }}>
+                    {({ hovered }: any) => (
+                      <>
+                        <View style={{ height: 5, borderRadius: 3, backgroundColor: n <= i ? C.text : hovered && can ? alpha(C.text, 0.25) : alpha(C.text, 0.1) }} />
+                        <Text style={{ color: n === i ? C.text : n <= far ? C.mute : alpha(C.mute, 0.6), fontSize: 11, fontWeight: n === i ? '800' : '600' }} numberOfLines={1}>
+                          {RAIL[k](scr.services)}</Text>
+                      </>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 56, paddingTop: 22, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+            <Animated.View style={[{ gap: 24 }, fade]}>
+              {heading}
+              {body()}
+            </Animated.View>
+          </ScrollView>
+
+          <View style={[s.row, { height: 84, gap: 10, paddingHorizontal: 56, borderTopWidth: 1, borderTopColor: C.line }]}>
+            {(i > 0 || svcEdit) ? (
+              <Pressable onPress={back} hitSlop={6} style={({ pressed, hovered }: any) => [s.row, { gap: 6, paddingVertical: 12, paddingHorizontal: 16, marginLeft: -16, borderRadius: 24,
+                backgroundColor: hovered ? C.soft : 'transparent', opacity: pressed ? 0.7 : 1 }]}>
+                <Icon name="back" size={16} color={C.mute} />
+                <Text style={{ color: C.mute, fontWeight: '700', fontSize: 15 }}>{svcEdit ? 'Ακύρωση' : 'Πίσω'}</Text>
+              </Pressable>
+            ) : null}
+            <View style={{ flex: 1 }} />
+            {skip}
+            <Btn title={mainTitle} onPress={next} disabled={!!why || busy} style={{ minWidth: 200, paddingHorizontal: 30 }} />
+          </View>
+        </View>
+
+        {/* Η σελίδα σου, όπως τη βλέπουν οι πελάτες στον υπολογιστή */}
+        {side && (
+          <View style={{ flex: 1, minWidth: 0, backgroundColor: C.soft }}>
+            <ScrollView contentContainerStyle={{ padding: 44, paddingTop: 40, flexGrow: 1 }}>
+              <DeskPreview biz={b} svcs={svcs} hours={hours} />
+            </ScrollView>
+          </View>
+        )}
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={s.screen}>
       {/* Πάνω: πίσω + πρόοδος */}
@@ -290,13 +379,7 @@ export default function NewBusiness() {
 
       <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 22, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
         <Animated.View style={[{ gap: 22 }, fade]}>
-          <View style={{ gap: 6 }}>
-            <Text style={{ color: C.tint, fontSize: 13, fontWeight: '800', letterSpacing: 0.3 }}>
-              ΒΗΜΑ {i + 1} ΑΠΟ {STEPS.length}{i > 0 && b.category ? `  ·  ${catEmoji(cat)} ${upper(scr.kicker)}` : ''}
-            </Text>
-            <Text style={[s.title, { fontSize: 30 }]}>{title}</Text>
-            <Text style={{ color: C.mute, fontSize: 16, lineHeight: 23 }}>{sub}</Text>
-          </View>
+          {heading}
           {body()}
         </Animated.View>
       </ScrollView>
@@ -304,12 +387,8 @@ export default function NewBusiness() {
       {/* Κάτω: συνέχεια */}
       <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: bottom + 16, gap: 10, backgroundColor: C.bg,
         borderTopWidth: 1, borderTopColor: alpha(C.text, 0.06) }}>
-        <Btn title={busy ? 'Μια στιγμή…' : svcEdit ? why || (svcEdit.fresh ? 'Προσθήκη' : 'Έτοιμο') : step === 'review' ? 'Δημιουργία σελίδας' : why || 'Συνέχεια'} onPress={next} disabled={!!why || busy} />
-        {optional && !b.cover_url && !b.logo_url && (
-          <Pressable onPress={() => go(i + 1)} hitSlop={8} style={({ pressed }) => ({ alignSelf: 'center', opacity: pressed ? 0.6 : 1 })}>
-            <Text style={{ color: C.mute, fontWeight: '700', fontSize: 15 }}>Θα τις βάλω αργότερα</Text>
-          </Pressable>
-        )}
+        <Btn title={mainTitle} onPress={next} disabled={!!why || busy} />
+        {skip}
       </View>
     </KeyboardAvoidingView>
   );

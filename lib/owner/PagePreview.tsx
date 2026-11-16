@@ -10,7 +10,8 @@ import { Photo, Scrim } from '../Photo';
    Ακολουθεί την «οθόνη» του είδους (lib/bizscreen.ts): photo, profile, clinic ή night. */
 export const upper = (x: string) => x.normalize('NFD').replace(/́/g, '').normalize('NFC').toUpperCase();
 
-export function PagePreview({ biz }: { biz: any }) {
+/* bare: χωρίς δικό της πλαίσιο, όταν μπαίνει μέσα σε μεγαλύτερη προεπισκόπηση (LivePreview). */
+export function PagePreview({ biz, bare }: { biz: any; bare?: boolean }) {
   const scr = screenFor(biz.category);
   const st = styleOf(biz);
   const brand = st.color, r = st.radius;
@@ -18,7 +19,7 @@ export function PagePreview({ biz }: { biz: any }) {
   const name = biz.name?.trim() || 'Το κατάστημά σου';
   const where = [biz.city, biz.address].filter(Boolean).join(' · ');
   const letter = name.slice(0, 1);
-  const frame = [{ borderRadius: 22, overflow: 'hidden' as const, backgroundColor: night ? NIGHT.bg : C.bg }, shadow(2)];
+  const frame = [{ borderRadius: bare ? 0 : 22, overflow: 'hidden' as const, backgroundColor: night ? NIGHT.bg : C.bg }, !bare && shadow(2)];
   const logo = (size: number, round?: boolean) => (
     <View style={{ width: size, height: size, borderRadius: round ? size / 2 : r + 2, backgroundColor: '#ffffff', padding: round ? 3 : 2, ...shadow(1) }}>
       <Photo uri={biz.logo_url} color={brand} letter={letter} style={{ borderRadius: round ? size / 2 : r }} />

@@ -26,8 +26,12 @@ export function useLoginOpen() {
   return v;
 }
 
-/* «Θέλει σύνδεση»: θυμάται πού να πάει μετά και ανοίγει το παράθυρο σύνδεσης. */
-export function askLogin(returnTo?: string) {
+/* «Θέλει σύνδεση»: θυμάται πού να πάει μετά και ανοίγει το παράθυρο σύνδεσης.
+   want: με ποια καρτέλα ανοίγει (π.χ. «Εγγραφή» όταν πάει να προσθέσει την επιχείρησή του, άρα μάλλον είναι καινούργιος). */
+let want: 'in' | 'up' = 'in';
+export const loginWant = () => want;
+export function askLogin(returnTo?: string, mode: 'in' | 'up' = 'in') {
   back = returnTo ?? null;
+  want = mode;
   setLoginOpen(true);
 }
