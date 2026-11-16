@@ -13,6 +13,7 @@ import { Initials } from '../../../lib/profile/parts';
 import { modeLabel } from '../../../lib/profile/Settings';
 import { useSwitchTo } from '../../../lib/SwitchMode';
 import { deskCol, useWide } from '../../../lib/owner/desk';
+import { Reviews } from '../../../lib/reviews';
 
 /* «Κατάστημα»: πώς φαίνεται το κατάστημα στους πελάτες, η δημοσίευση και οι αλλαγές (υπηρεσίες, ωράριο, εμφάνιση).
    Στο κινητό από κάτω και ο λογαριασμός (στον υπολογιστή είναι στο πλαϊνό μενού). */
@@ -54,6 +55,8 @@ export default function Page() {
         <Row icon="store" title="Δες τη σελίδα σαν πελάτης" sub="Έτσι τη βλέπουν όσοι κλείνουν θέση" onPress={() => router.push(`/store/${biz.id}`)} last />
       </Group>
       <Text style={{ color: C.mute, fontSize: 13, textAlign: 'center', marginTop: 4 }}>Οι αλλαγές φαίνονται αμέσως στους πελάτες.</Text>
+
+      <Reviews businessId={biz.id} title="Οι κριτικές σου" owner />
 
       {!wide && <>
         <Section title="Λογαριασμός" />

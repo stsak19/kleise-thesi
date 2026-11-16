@@ -5,6 +5,7 @@ import { Photo } from '../Photo';
 import { Btn, C, DAYS, Group, Icon, IconBubble, MONTHS, Pill, Section, T, type Tone, alpha, catLabel, fmtDay, s, shadow } from '../ui';
 import type { Biz, Booking, BookingsData } from './data';
 import { WaitRow } from './cards';
+import { Stars, canRate } from '../reviews';
 
 /* Μπλοκ ημερομηνίας: μέρα, αριθμός, μήνας. */
 export const DateBlock = ({ date, color }: { date: string; color: string }) => {
@@ -72,7 +73,7 @@ const STATUS: Record<string, [string, Tone]> = {
 const visits = (n: number) => `${n} ${n === 1 ? 'κράτηση' : 'κρατήσεις'}`;
 
 /* Οι παλιές κρατήσεις ενός καταστήματος (ημερομηνία, υπηρεσία, ώρα, έκβαση). Τις ίδιες γραμμές δείχνει και το κατάστημα. */
-export function PastRows({ items, color }: { items: Booking[]; color: string }) {
+export function PastRows({ items, color, onRate }: { items: Booking[]; color: string; onRate?: (b: any) => void }) {
   return <>
     {items.map((b, i) => { const [t, tone] = STATUS[b.status] ?? (['', 'mute'] as [string, Tone]); return (
       <View key={b.id} style={[s.row, { gap: 12, paddingVertical: 9 }, i < items.length - 1 && { borderBottomWidth: 1, borderBottomColor: alpha(C.mute, 0.12) }]}>
@@ -80,6 +81,12 @@ export function PastRows({ items, color }: { items: Booking[]; color: string }) 
         <View style={{ flex: 1, gap: 1 }}>
           <Text style={{ color: C.text, fontWeight: '700', fontSize: 15, textDecorationLine: b.status === 'cancelled' ? 'line-through' : 'none' }} numberOfLines={1}>{b.service}</Text>
           <Text style={{ color: C.mute, fontSize: 13 }}>{b.time}</Text>
+          {!!onRate && canRate(b) && (
+            <Pressable onPress={() => onRate(b)} hitSlop={6} style={{ alignSelf: 'flex-start', marginTop: 3 }}>
+              {(b as any).my_stars ? <Stars value={(b as any).my_stars} size={13} />
+                : <Text style={{ color: C.text, fontSize: 12.5, fontWeight: '700', textDecorationLine: 'underline' }}>★ Βαθμολόγησε</Text>}
+            </Pressable>
+          )}
         </View>
         <View><Pill text={t} tone={tone} /></View>
       </View>); })}
@@ -101,7 +108,7 @@ export function PastPills({ items }: { items: Booking[] }) {
 }
 
 /* Ένας «φάκελος» καταστήματος: κεφαλίδα με λογότυπο και σύνοψη, ανοίγει και δείχνει όλες τις κρατήσεις εκεί. */
-function Folder({ items, D, start }: { items: Booking[]; D: BookingsData; start?: boolean }) {
+function Folder({ items, D, start, onRate }: { items: Booking[]; D: BookingsData; start?: boolean; onRate?: (b: any) => void }) {
   const [open, setOpen] = useState(!!start);
   const b0 = items[0], biz = D.biz[b0.business_id], c = D.color(b0);
   return (
@@ -120,7 +127,7 @@ function Folder({ items, D, start }: { items: Booking[]; D: BookingsData; start?
       {open && (
         <View style={{ borderTopWidth: 1, borderTopColor: C.line, paddingHorizontal: 14, paddingBottom: 14, gap: 4 }}>
           <PastPills items={items} />
-          <PastRows items={items} color={c} />
+          <PastRows items={items} color={c} onRate={onRate} />
           <Btn kind="tint" size="sm" color={c} icon="calendar" title="Κλείσε ξανά εδώ" onPress={() => D.open(b0)} style={{ marginTop: 8 }} />
         </View>
       )}
@@ -129,7 +136,7 @@ function Folder({ items, D, start }: { items: Booking[]; D: BookingsData; start?
 }
 
 /* Το ιστορικό, οργανωμένο ανά κατάστημα (πιο πρόσφατη επίσκεψη πρώτη). */
-export function History({ D }: { D: BookingsData }) {
+export function History({ D, onRate }: { D: BookingsData; onRate?: (b: any) => void }) {
   const groups = new Map<string, Booking[]>();
   D.past.forEach((b) => { const k = b.business_id || b.business; groups.set(k, [...(groups.get(k) ?? []), b]); });
   const list = [...groups.values()];
@@ -151,6 +158,6 @@ export function History({ D }: { D: BookingsData }) {
       ))}
     </View>
     <Text style={{ color: C.mute, fontWeight: '700', fontSize: 13, marginTop: 6 }}>ΑΝΑ ΚΑΤΑΣΤΗΜΑ</Text>
-    {list.map((items, i) => <Folder key={items[0].business_id || items[0].business} items={items} D={D} start={i === 0} />)}
+    {list.map((items, i) => <Folder key={items[0].business_id || items[0].business} items={items} D={D} start={i === 0} onRate={onRate} />)}
   </>;
 }

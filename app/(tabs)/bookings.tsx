@@ -6,6 +6,7 @@ import { useMyBookings } from '../../lib/bookings/data';
 import { Extras, History, Segmented } from '../../lib/bookings/parts';
 import Upcoming from '../../lib/bookings/Upcoming';
 import { deskCol, useWide } from '../../lib/wide';
+import { RateCard, useRateBusiness } from '../../lib/reviews';
 
 let lastTab: 'up' | 'past' = 'up';
 
@@ -17,6 +18,7 @@ export default function Bookings() {
   const n = D.upcoming.length;
   const top = useSafeAreaInsets().top;
   const wide = useWide();
+  const R = useRateBusiness(D.load);
 
   return (
     <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: top + 12 }, wide && { paddingTop: 28, paddingBottom: 60 }, deskCol(wide)]} refreshControl={<RefreshControl refreshing={D.loading} onRefresh={D.load} />}>
@@ -30,9 +32,11 @@ export default function Bookings() {
           <Card><Empty emoji="📅" title="Καμία επερχόμενη κράτηση" text="Βρες ένα κατάστημα και κλείσε θέση σε λίγα δευτερόλεπτα."
             action="Βρες κατάστημα" onAction={D.find} /></Card>
         )}
+        <RateCard items={D.past} onRate={R.rate} />
         {n > 0 && <Upcoming D={D} />}
         <Extras D={D} />
-      </> : <History D={D} />}
+      </> : <History D={D} onRate={R.rate} />}
+      {R.sheet}
     </ScrollView>
   );
 }

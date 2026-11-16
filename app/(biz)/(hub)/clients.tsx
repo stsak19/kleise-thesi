@@ -7,6 +7,7 @@ import { kindOf } from '../../../lib/owner/kinds';
 import { NoBiz, daysTo, packLine, useClients, useMyBiz } from '../../../lib/owner/hub';
 import { Avatar, C, Card, Chip, Empty, Group, Icon, Input, Pill, Row, ScreenHeader, T, TAB_SPACE, fmtDay, s } from '../../../lib/ui';
 import { deskCol, useWide } from '../../../lib/owner/desk';
+import { ClientBadge } from '../../../lib/reviews';
 
 /* Καρτέλα «Πελάτες / Μέλη / Αθλούμενοι / Ασθενείς»: όλοι όσοι έχουν κλείσει θέση, με αναζήτηση και γρήγορα φίλτρα.
    Πάνω πάνω η είσοδος στα πακέτα/συνδρομές. */
@@ -60,6 +61,7 @@ export default function Clients() {
                 <View style={[s.row, { gap: 8 }]}>
                   <Text style={{ color: C.text, fontWeight: '700', fontSize: 15, flexShrink: 1 }} numberOfLines={1}>{c.name}</Text>
                   {!!c.tag && <Pill text={c.tag} />}
+                  <ClientBadge avg={c.rating} count={c.ratings} />
                 </View>
                 <T mute style={{ fontSize: 13 }}>
                   {[c.visits != null ? `${c.visits} ${c.visits === 1 ? 'επίσκεψη' : 'επισκέψεις'}` : null, c.last ? `τελευταία ${fmtDay(c.last)}` : null].filter(Boolean).join(' · ')}

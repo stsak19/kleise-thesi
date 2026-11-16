@@ -8,6 +8,7 @@ import { Hero } from '../../../../lib/bookings/Upcoming';
 import { AllLink, BookingRow, PackCard, WaitRow } from '../../../../lib/bookings/cards';
 import { useStore } from '../../../../lib/store/data';
 import { StoreTop } from '../../../../lib/store/parts';
+import { useRateBusiness } from '../../../../lib/reviews';
 
 /* Οι κρατήσεις μου σε αυτό το κατάστημα: το πακέτο, οι επερχόμενες, η αναμονή και το ιστορικό.
    Ίδιες κάρτες με τη γενική λίστα «Κρατήσεις» (lib/bookings/cards), μόνο που εδώ φαίνονται μόνο του καταστήματος,
@@ -17,6 +18,7 @@ export default function StoreBookings() {
   const router = useRouter();
   const [tab, setTab] = useState<'next' | 'past'>('next');
   const [busy, setBusy] = useState(false);
+  const R = useRateBusiness(S.reload);
   const refresh = async () => { setBusy(true); await S.reload(); setBusy(false); };
   const color = S.st?.color ?? C.accent;
   const [next, ...rest] = S.upcoming;
@@ -62,7 +64,7 @@ export default function StoreBookings() {
           {S.past.length === 0 ? <Empty text="Δεν υπάρχουν παλιές κρατήσεις ακόμα." /> : (
             <View style={[s.card, shadow(1), { paddingTop: 0, gap: 0 }]}>
               <PastPills items={S.past} />
-              <PastRows items={S.past} color={color} />
+              <PastRows items={S.past} color={color} onRate={R.rate} />
             </View>
           )}
         </>}
@@ -72,6 +74,7 @@ export default function StoreBookings() {
           {!!S.packInfo && <AllLink icon="pack" text="Πακέτα σε όλα τα καταστήματα" onPress={() => router.navigate('/packs')} />}
         </View>
       </ScrollView>
+      {R.sheet}
     </View>
   );
 }

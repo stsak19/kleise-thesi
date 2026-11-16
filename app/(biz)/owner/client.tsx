@@ -6,7 +6,8 @@ import { promptText, say } from '../../../lib/alert';
 import { rpc, sb } from '../../../lib/supabase';
 import { styleOf } from '../../../lib/presets';
 import { NoBiz, Stat, packLine, useClients, useMyBiz } from '../../../lib/owner/hub';
-import { Avatar, Btn, C, Card, Input, Pill, Section, T, fmtDay, iso, price, s } from '../../../lib/ui';
+import { Avatar, Btn, C, Card, Icon, Input, Pill, Section, T, fmtDay, iso, price, s } from '../../../lib/ui';
+import { StarInput, Stars, fmtAvg, useRateClient } from '../../../lib/reviews';
 
 /* Η καρτέλα ενός πελάτη: στοιχεία, πακέτο, ό,τι χρειάζεται να θυμάται η επιχείρηση (π.χ. συνταγή βαφής,
    στόχος προπόνησης, διάγνωση) και το ιστορικό των επισκέψεων. */
@@ -22,11 +23,16 @@ export default function Client() {
   const [hist, setHist] = useState<any[]>([]);
   const [note, setNote] = useState('');
   const [picks, setPicks] = useState<any[] | null>(null);
+  const [rating, setRating] = useState<any>(null);
   const c = (list ?? []).find((x) => x.user_id === id);
   useEffect(() => { if (c) setNote(c.note ?? ''); }, [c?.user_id, c?.note]);
-  useFocusEffect(useCallback(() => {
-    if (biz && id) rpc<any[]>('owner_client_history', { p_business: biz.id, p_user: id }).then((h) => setHist(h ?? [])).catch(() => setHist([]));
-  }, [biz?.id, id]));
+  const loadHist = useCallback(() => {
+    if (!biz || !id) return;
+    rpc<any[]>('owner_client_history', { p_business: biz.id, p_user: id }).then((h) => setHist(h ?? [])).catch(() => setHist([]));
+    rpc('owner_client_rating', { p_business: biz.id, p_user: id }).then(setRating).catch(() => setRating(null));
+  }, [biz?.id, id]);
+  useFocusEffect(loadHist);
+  const R = useRateClient(biz?.id, () => { loadHist(); reload(); });
 
   if (biz === undefined) return <View style={s.screen} />;
   if (biz === null) return <NoBiz />;
@@ -87,6 +93,32 @@ export default function Client() {
         <Stat n={c.no_shows ?? 0} label="Δεν ήρθε" color={c.no_shows ? C.bad : undefined} />
       </View>
 
+      {/* Βαθμολογία πελάτη: μέσος όρος από όλες τις επιχειρήσεις. Μόνο για επιχειρήσεις· ο πελάτης δεν τη βλέπει. */}
+      <Card style={{ gap: 10 }}>
+        <View style={[s.row, { gap: 14 }]}>
+          <View style={{ alignItems: 'center', minWidth: 64 }}>
+            <Text style={{ color: C.text, fontWeight: '900', fontSize: 30, letterSpacing: -0.8 }}>{rating?.count ? fmtAvg(rating.avg) : '–'}</Text>
+            <Stars value={rating?.avg ?? 0} size={11} />
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={{ color: C.text, fontWeight: '800', fontSize: 15.5 }}>Βαθμολογία πελάτη</Text>
+            <T mute style={{ fontSize: 13 }}>{rating?.count
+              ? `${rating.count} ${rating.count === 1 ? 'βαθμολογία' : 'βαθμολογίες'} από ${rating.businesses} ${rating.businesses === 1 ? 'επιχείρηση' : 'επιχειρήσεις'}`
+              : 'Δεν έχει βαθμολογηθεί ακόμα'}</T>
+          </View>
+        </View>
+        <View style={[s.row, { gap: 6 }]}>
+          <Icon name="lock" size={13} color={C.mute} />
+          <T mute style={{ fontSize: 12, flex: 1 }}>Τη βλέπουν μόνο επιχειρήσεις. Ο πελάτης δεν τη βλέπει.</T>
+        </View>
+        {(rating?.mine ?? []).filter((m: any) => m.note).slice(0, 3).map((m: any) => (
+          <View key={m.booking_id} style={{ borderTopWidth: 1, borderTopColor: C.line, paddingTop: 8, gap: 2 }}>
+            <View style={[s.row, { gap: 8 }]}><Stars value={m.stars} size={11} /><T mute style={{ fontSize: 12 }}>{fmtDay(m.date)} · εσύ</T></View>
+            <Text style={{ color: C.text, fontSize: 14 }}>{m.note}</Text>
+          </View>
+        ))}
+      </Card>
+
       {!!next && (
         <Card style={{ gap: 2 }}>
           <T mute style={{ fontSize: 13, fontWeight: '700' }}>Επόμενο ραντεβού</T>
@@ -138,11 +170,17 @@ export default function Client() {
                 <Text style={{ color: C.text, fontWeight: '700', fontSize: 15 }}>{h.service}</Text>
                 <T mute style={{ fontSize: 13 }}>{[`${fmtDay(h.date)} · ${h.time}`, h.staff?.split(' ')[0], h.price_cents ? price(h.price_cents) : null].filter(Boolean).join(' · ')}</T>
               </View>
-              <Pill text={STATUS[h.status]?.text ?? h.status} tone={STATUS[h.status]?.tone} />
+              <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                <Pill text={STATUS[h.status]?.text ?? h.status} tone={STATUS[h.status]?.tone} />
+                {(h.status === 'attended' || h.status === 'no_show') && (
+                  <StarInput value={h.my_stars ?? 0} onChange={(n) => R.rate({ ...h, client: c.name }, n)} size={15} gap={2} />
+                )}
+              </View>
             </View>
           ))}
         </Card>
       </>}
+      {R.sheet}
     </ScrollView>
   );
 }

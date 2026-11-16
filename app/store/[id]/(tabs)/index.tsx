@@ -12,6 +12,7 @@ import { StorePacks } from '../../../../lib/store/Packs';
 import { ScheduleSheet } from '../../../../lib/store/Schedule';
 import { screenFor } from '../../../../lib/bizscreen';
 import { useWide } from '../../../../lib/wide';
+import { RateCard, Rating, Reviews, useRateBusiness } from '../../../../lib/reviews';
 
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
 const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
@@ -31,6 +32,8 @@ export default function StoreHome() {
   const wide = useWide();
   const top = useSafeAreaInsets().top;
   const [sched, setSched] = useState(false);
+  const [rev, setRev] = useState(0);
+  const R = useRateBusiness(() => { S.reload(); setRev((n) => n + 1); });
   const biz = S.biz ?? {};
   const color = S.st?.color ?? C.accent;
   const scr = screenFor(biz.category);
@@ -75,7 +78,8 @@ export default function StoreHome() {
     </View>
   );
   const chips = (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+      <View style={{ paddingVertical: 6, paddingHorizontal: 10, borderRadius: 11, backgroundColor: C.soft }}><Rating avg={biz.rating_avg} count={biz.rating_count} size={12.5} /></View>
       {!!status && <Chip text={status.text} on={status.on} />}
       {!!phone && <Chip text="📞 Κλήση" onPress={call} />}
       {!!biz.address && <Chip text="📍 Οδηγίες" onPress={directions} />}
@@ -159,7 +163,9 @@ export default function StoreHome() {
     </View>
   );
 
-  const sheets = <><ScheduleSheet open={sched} onClose={() => setSched(false)} /><BookSheet /></>;
+  const rate = <RateCard items={S.past} onRate={R.rate} store={false} />;
+  const reviews = !!S.id && <Reviews businessId={S.id} reload={rev} />;
+  const sheets = <><ScheduleSheet open={sched} onClose={() => setSched(false)} /><BookSheet />{R.sheet}</>;
 
   /* ---------- υπολογιστής ---------- */
   if (wide) return (
@@ -174,10 +180,12 @@ export default function StoreHome() {
             {title}
             {chips}
             <Notice />
+            {rate}
             {about}
             {services}
             <StorePacks />
             {team}
+            {reviews}
             {news}
           </View>
           <View style={{ width: 340, gap: 14, marginTop: 22 }}>
@@ -211,6 +219,7 @@ export default function StoreHome() {
           {title}
           {chips}
           <Notice />
+          {rate}
           {!classes && <UsualCard />}
           {about}
           {services}
@@ -218,6 +227,7 @@ export default function StoreHome() {
           {rules}
           {hours}
           {team}
+          {reviews}
           {news}
         </View>
       </ScrollView>

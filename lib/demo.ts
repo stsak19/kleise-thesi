@@ -73,6 +73,8 @@ const db: Record<string, any[]> = {
   notifications: [{ id: 'n1', user_id: DEMO_UID, title: 'Καλώς ήρθες στο SpotOn 👋', body: 'Βρες το κατάστημα που θέλεις, κλείσε θέση σε λίγα δευτερόλεπτα και θα σου θυμίσουμε το ραντεβού σου.', read: false, created_at: new Date().toISOString() }],
   profiles: [{ id: DEMO_UID, first_name: 'Χριστίνα', last_name: 'Αντωνίου', phone: '6945812304' }],
   memberships: [] as any[],
+  reviews: [] as any[],
+  client_ratings: [] as any[],
 };
 /* Τηλέφωνο και πλήρης περιγραφή για κάθε demo κατάστημα, ώστε η σελίδα του να είναι γεμάτη. */
 const MORE: Record<string, { phone: string; description: string }> = {
@@ -230,6 +232,77 @@ msg('b-dent', 'Υπενθύμιση', 'Ήρθε η ώρα για τον εξαμ
 msg('b-spa', 'Προσφορά', 'Μασάζ για δύο με 20% έκπτωση κάθε Τετάρτη.', 300);
 msg('b-dr', 'Αποτελέσματα', 'Τα αποτελέσματα των εξετάσεών σου είναι φυσιολογικά. Επόμενος έλεγχος σε 6 μήνες.', 500);
 
+
+/* ---------- βαθμολογίες ----------
+   reviews: ο πελάτης βαθμολογεί το κατάστημα (φαίνεται σε όλους).
+   client_ratings: η επιχείρηση βαθμολογεί τον πελάτη (τη βλέπουν μόνο επιχειρήσεις, ποτέ πελάτες). */
+const SAY_ALL = ['Πολύ καλή εξυπηρέτηση, θα ξαναέρθω!', 'Όλα τέλεια, στην ώρα τους.', 'Ευγενικοί και επαγγελματίες.', 'Καθαρός χώρος, ωραία ατμόσφαιρα.',
+  'Από τα καλύτερα που έχω πάει.', 'Εύκολη κράτηση από την εφαρμογή, χωρίς αναμονή.', 'Καλή σχέση ποιότητας και τιμής.', 'Περίμενα λίγο, αλλά άξιζε.',
+  'Η καλύτερη επιλογή στην περιοχή.', 'Σε κάνουν να νιώθεις άνετα από την πρώτη στιγμή.', 'Λίγο ακριβό, αλλά πολύ προσεγμένο.', 'Πάντα χαμογελαστοί!'];
+const SAY: Record<string, string[]> = {
+  hair: ['Το χρώμα βγήκε ακριβώς όπως το ήθελα.', 'Η Μαρία είναι μάγισσα στο ψαλίδι!', 'Επιτέλους κούρεμα που κρατάει σχήμα.'],
+  barber: ['Fade όπως πρέπει, και καφεδάκι.', 'Το ξύρισμα με ζεστή πετσέτα αξίζει.', 'Ο Στάθης ξέρει τι κάνει.'],
+  nails: ['Το ημιμόνιμο κράτησε τρεις εβδομάδες!', 'Τέλειο nail art, πολύ λεπτομερές.'],
+  gym: ['Τα ομαδικά είναι φανταστικά, πολύ ενέργεια.', 'Ο Αλέξης σε πιέζει όσο χρειάζεται.', 'Καλός εξοπλισμός, γεμίζει όμως το απόγευμα.'],
+  pilates_yoga: ['Μικρά τμήματα, η δασκάλα σε προσέχει.', 'Μετά από ένα μήνα νιώθω τη διαφορά στη μέση μου.'],
+  personal_training: ['Ο Κώστας είναι πολύ μεθοδικός.', 'Έχασα 6 κιλά σε 2 μήνες!'],
+  physio: ['Το γόνατό μου είναι πολύ καλύτερα.', 'Εξηγεί τα πάντα και δίνει ασκήσεις για το σπίτι.'],
+  tattoo: ['Το σχέδιο βγήκε καλύτερο απ’ ό,τι φανταζόμουν.', 'Πολύ καθαρή δουλειά στο fine line.'],
+  massage_spa: ['Βγήκα καινούργιος άνθρωπος.', 'Το hot stones είναι must.'],
+  beauty: ['Το δέρμα μου λάμπει μετά τον καθαρισμό.'], medical: ['Ακούει και εξηγεί με υπομονή.'], dental: ['Ανώδυνος καθαρισμός, πολύ ευγενικοί.'],
+};
+const NOTE = ['Πάντα στην ώρα', 'Ευγενικός/ή', 'Ειδοποιεί όταν αργεί', 'Πολύ καλός πελάτης', 'Πληρώνει πάντα αμέσως'];
+const pickStars = (good = 0.72) => { const r = rnd(); return r < good ? 5 : r < 0.95 ? 4 : r < 0.985 ? 3 : r < 0.995 ? 2 : 1; };
+const daysAgoIso = (d: string) => new Date(d + 'T12:00').toISOString();
+{
+  const seen = new Set<string>(); const wants: Record<string, boolean> = {};
+  [...db.bookings].sort((a, z) => (z.date + z.time).localeCompare(a.date + a.time)).forEach((b) => {
+    const z = bz(b.business_id), today = iso(new Date());
+    const pair = b.business_id + b.user_id;
+    if (!(pair in wants)) wants[pair] = rnd() < 0.6; // περίπου 6 στους 10 πελάτες αφήνουν κριτική, σε μία τυχαία επίσκεψη
+    if (b.user_id !== DEMO_UID && b.status === 'attended' && b.date < today && wants[pair] && !seen.has(pair) && rnd() < 0.3) {
+      seen.add(pair);
+      const stars = pickStars(z.id === 'b-fit' ? 0.6 : 0.74);
+      const pool = [...(SAY[z.category] ?? []), ...SAY_ALL];
+      const comment = rnd() < 0.62 ? (stars <= 3 ? 'Καλό, αλλά περίμενα αρκετή ώρα.' : pool[Math.floor(rnd() * pool.length)]) : null;
+      db.reviews.push({ id: uid(), booking_id: b.id, business_id: b.business_id, user_id: b.user_id, stars, comment, created_at: daysAgoIso(b.date) });
+    }
+    // Η επιχείρηση βαθμολογεί τους περισσότερους πελάτες της· όσοι δεν ήρθαν παίρνουν χαμηλό βαθμό.
+    if (b.user_id !== DEMO_UID && (b.status === 'attended' || b.status === 'no_show') && rnd() < (b.status === 'no_show' ? 0.5 : 0.4)) {
+      const stars = b.status === 'no_show' ? (rnd() < 0.5 ? 1 : 2) : pickStars(0.8);
+      db.client_ratings.push({ id: uid(), booking_id: b.id, business_id: b.business_id, user_id: b.user_id, stars,
+        note: b.status === 'no_show' ? 'Δεν ήρθε χωρίς να ειδοποιήσει' : stars <= 3 ? 'Άργησε λίγο' : rnd() < 0.35 ? NOTE[Math.floor(rnd() * NOTE.length)] : null, created_at: daysAgoIso(b.date) });
+    }
+  });
+  // Η Χριστίνα έχει βαθμολογήσει τις παλιές της επισκέψεις· οι τρεις πιο πρόσφατες περιμένουν τη δική της βαθμολογία («Πώς ήταν;»).
+  db.bookings.filter((b) => b.user_id === DEMO_UID && b.status === 'attended').sort((a, z) => z.date.localeCompare(a.date)).slice(3).forEach((b, i) => {
+    db.reviews.push({ id: uid(), booking_id: b.id, business_id: b.business_id, user_id: DEMO_UID, stars: i % 4 === 1 ? 4 : 5, comment: null, created_at: daysAgoIso(b.date) });
+  });
+  const mine = (sv: string, d: number) => db.bookings.find((b) => b.user_id === DEMO_UID && b.service_id === sv && b.date === plus(d));
+  ([['s-barb', -20, 5, 'Ο Στάθης είναι ο καλύτερος, ήρθα ξανά σε μια εβδομάδα.'], ['s-ref', -26, 5, 'Μικρό γκρουπ και η Άννα προσέχει την κάθε μία.'],
+    ['s-mani', -15, 4, 'Ωραίο αποτέλεσμα, λίγη αναμονή.'], ['s-color', -18, 5, null], ['s-eval', -24, 4, null], ['s-mass', -31, 5, 'Το καλύτερο μασάζ που έχω κάνει.']] as const)
+    .forEach(([sv, d, stars, comment]) => { const b = mine(sv, d); const ex = b && db.reviews.find((r) => r.booking_id === b.id);
+      if (ex) Object.assign(ex, { stars, comment }); else if (b) db.reviews.push({ id: uid(), booking_id: b.id, business_id: b.business_id, user_id: DEMO_UID, stars, comment, created_at: daysAgoIso(b.date) }); });
+  // Και οι επιχειρήσεις έχουν βαθμολογήσει τη Χριστίνα (δεν το βλέπει η ίδια, μόνο οι επιχειρήσεις).
+  db.bookings.filter((b) => b.user_id === DEMO_UID && (b.status === 'attended' || b.status === 'no_show')).forEach((b, i) => {
+    if (i % 3 === 2) return;
+    db.client_ratings.push({ id: uid(), booking_id: b.id, business_id: b.business_id, user_id: DEMO_UID, stars: b.status === 'no_show' ? 2 : i % 4 === 0 ? 4 : 5,
+      note: b.status === 'no_show' ? 'Δεν ήρθε, ειδοποίησε αργά' : null, created_at: daysAgoIso(b.date) });
+  });
+}
+/* Μέσος όρος καταστήματος (για κάρτες, αναζήτηση, σελίδα). Στη βάση τον κρατά ενημερωμένο ένας trigger. */
+const bizRating = (id: string) => {
+  const r = db.reviews.filter((x) => x.business_id === id);
+  return { rating_avg: r.length ? Math.round((r.reduce((a, x) => a + x.stars, 0) / r.length) * 10) / 10 : null, rating_count: r.length };
+};
+/* Η βαθμολογία ενός πελάτη από ΟΛΕΣ τις επιχειρήσεις (μόνο για επιχειρήσεις). */
+const clientRating = (u: string) => {
+  const r = db.client_ratings.filter((x) => x.user_id === u);
+  return { avg: r.length ? Math.round((r.reduce((a, x) => a + x.stars, 0) / r.length) * 10) / 10 : null, count: r.length, businesses: new Set(r.map((x) => x.business_id)).size };
+};
+const shortName = (u: string) => { const n = String(who(u).name ?? 'Πελάτης').trim().split(/\s+/); return n.length > 1 ? `${n[0]} ${n[n.length - 1].slice(0, 1)}.` : n[0]; };
+const pastOrDone = (b: any) => b.status === 'attended' || (b.status === 'booked' && b.date < iso(new Date()));
+
 /* ---------- λογαριασμοί ----------
    Κάθε email είναι δικός του λογαριασμός. Ό,τι κάνει (προφίλ, κρατήσεις, αναμονή, πακέτα, μηνύματα)
    μένει στη συσκευή, ώστε να το βρίσκει ξανά μετά από ανανέωση της σελίδας ή επανεκκίνηση. */
@@ -237,7 +310,7 @@ type Acc = { id: string; email: string };
 let accounts: Acc[] = [{ id: DEMO_UID, email: DEMO_EMAIL }];
 let me: string | null = null; // ο λογαριασμός της τρέχουσας κλήσης
 const SAVE_KEY = 'spoton.demo.accounts.v1';
-const MINE = ['profiles', 'bookings', 'waitlist', 'memberships', 'notifications'] as const;
+const MINE = ['profiles', 'bookings', 'waitlist', 'memberships', 'notifications', 'reviews'] as const;
 const hex = (t: string) => { let a = 0x811c9dc5, b = 0x9747b28c; for (const ch of t) { a = Math.imul(a ^ ch.charCodeAt(0), 16777619) >>> 0; b = Math.imul(b ^ ch.charCodeAt(0), 2246822519) >>> 0; }
   return (a.toString(16).padStart(8, '0') + b.toString(16).padStart(8, '0')).slice(0, 12); };
 const isAcc = (id: string) => id !== DEMO_UID && accounts.some((a) => a.id === id);
@@ -424,7 +497,8 @@ const RPC: Record<string, (a: any) => any> = {
     bookings: db.bookings.filter((b) => b.user_id === me).sort((a, z) => (a.date + a.time).localeCompare(z.date + z.time)).map((b) => {
       const s = svc(b.service_id), z = bz(b.business_id);
       return { id: b.id, date: b.date, time: b.time.slice(0, 5), status: b.status, service: s.name, service_id: s.id, business: z.name, business_id: z.id, address: z.address,
-        staff_id: b.staff_id ?? null, staff: staffOf(b.staff_id)?.name ?? null };
+        staff_id: b.staff_id ?? null, staff: staffOf(b.staff_id)?.name ?? null,
+        my_stars: db.reviews.find((r) => r.booking_id === b.id)?.stars ?? null, my_comment: db.reviews.find((r) => r.booking_id === b.id)?.comment ?? null };
     }),
     waitlist: db.waitlist.filter((w) => w.user_id === me).map((w) => {
       const s = svc(w.service_id); return { id: w.id, date: w.date, time: w.time.slice(0, 5), service: s.name, service_id: s.id, business: bz(s.business_id).name };
@@ -436,7 +510,9 @@ const RPC: Record<string, (a: any) => any> = {
       const s = svc(b.service_id), st = staffOf(b.staff_id);
       return { id: b.id, time: b.time.slice(0, 5), status: b.status, service: s.name, service_id: s.id, duration_min: s.duration_min, capacity: s.capacity,
         price_cents: s.price_cents, user_id: b.user_id, client: who(b.user_id).name, phone: who(b.user_id).phone,
-        staff_id: st?.id ?? null, staff: st?.name ?? null, staff_color: st?.color ?? null };
+        staff_id: st?.id ?? null, staff: st?.name ?? null, staff_color: st?.color ?? null,
+        my_stars: db.client_ratings.find((r) => r.booking_id === b.id)?.stars ?? null, my_note: db.client_ratings.find((r) => r.booking_id === b.id)?.note ?? null,
+        client_rating: clientRating(b.user_id).avg, client_ratings: clientRating(b.user_id).count };
     }),
   owner_pending: (a) => pending[a.p_business] ?? [],
   owner_set_status: (a) => { const b = db.bookings.find((x) => x.id === a.p_booking); if (b) b.status = a.p_status; return { ok: true }; },
@@ -462,17 +538,58 @@ const RPC: Record<string, (a: any) => any> = {
     return Object.entries(by).filter(([u]) => u === DEMO_UID || CLIENTS[u] || accounts.some((x) => x.id === u))
       .map(([u, c]) => {
         const card = db.client_cards.find((x) => x.business_id === a.p_business && x.user_id === u);
-        return { user_id: u, ...who(u), ...c, last: c.last ?? c.first, tag: card?.tag ?? null, note: card?.note ?? null, fields: card?.fields ?? [], pack: card?.pack ?? null };
+        return { user_id: u, ...who(u), ...c, last: c.last ?? c.first, tag: card?.tag ?? null, note: card?.note ?? null, fields: card?.fields ?? [], pack: card?.pack ?? null,
+          rating: clientRating(u).avg, ratings: clientRating(u).count };
       })
       .sort((x, y) => y.visits - x.visits || String(y.last).localeCompare(String(x.last)));
   },
   owner_client_history: (a) => db.bookings.filter((b) => b.business_id === a.p_business && b.user_id === a.p_user)
     .sort((x, y) => (y.date + y.time).localeCompare(x.date + x.time)).slice(0, 30)
-    .map((b) => ({ id: b.id, date: b.date, time: b.time.slice(0, 5), status: b.status, service: svc(b.service_id).name, staff: staffOf(b.staff_id)?.name ?? null, price_cents: svc(b.service_id).price_cents })),
+    .map((b) => { const cr = db.client_ratings.find((r) => r.booking_id === b.id);
+      return { id: b.id, date: b.date, time: b.time.slice(0, 5), status: b.status, service: svc(b.service_id).name, staff: staffOf(b.staff_id)?.name ?? null, price_cents: svc(b.service_id).price_cents,
+        my_stars: cr?.stars ?? null, my_note: cr?.note ?? null }; }),
   owner_set_note: (a) => {
     let c = db.client_cards.find((x) => x.business_id === a.p_business && x.user_id === a.p_user);
     if (!c) { c = { business_id: a.p_business, user_id: a.p_user, fields: [] }; db.client_cards.push(c); }
     c.note = String(a.p_note ?? '').trim() || null; return { ok: true };
+  },
+
+  /* ---------- βαθμολογίες ---------- */
+  rate_business: (a) => {
+    const b = db.bookings.find((x) => x.id === a.p_booking);
+    if (!me || !b || b.user_id !== me) return { ok: false, error: 'Δεν βρέθηκε η κράτηση' };
+    if (!pastOrDone(b)) return { ok: false, error: 'Βαθμολογείς μετά την επίσκεψη' };
+    const stars = Math.round(Number(a.p_stars)); if (!(stars >= 1 && stars <= 5)) return { ok: false, error: 'Διάλεξε 1 έως 5 αστέρια' };
+    const comment = String(a.p_comment ?? '').trim().slice(0, 600) || null;
+    const ex = db.reviews.find((r) => r.booking_id === b.id);
+    if (ex) Object.assign(ex, { stars, comment, updated_at: new Date().toISOString() });
+    else db.reviews.push({ id: uid(), booking_id: b.id, business_id: b.business_id, user_id: me, stars, comment, created_at: new Date().toISOString() });
+    return { ok: true };
+  },
+  business_reviews: (a) => {
+    const list = db.reviews.filter((r) => r.business_id === a.p_business).sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)));
+    const dist = [1, 2, 3, 4, 5].map((k) => list.filter((r) => r.stars === k).length);
+    return { ...(({ rating_avg, rating_count }) => ({ avg: rating_avg, count: rating_count }))(bizRating(a.p_business)), dist,
+      items: list.slice(0, 50).map((r) => { const b = db.bookings.find((x) => x.id === r.booking_id);
+        return { id: r.id, name: shortName(r.user_id), stars: r.stars, comment: r.comment, date: (b?.date ?? String(r.created_at).slice(0, 10)), service: b ? svc(b.service_id)?.name : null, mine: r.user_id === me }; }) };
+  },
+  /* Η επιχείρηση βαθμολογεί πελάτη. Ο πελάτης δεν τη βλέπει ποτέ (καμία κλήση του πελάτη δεν την επιστρέφει). */
+  rate_client: (a) => {
+    const b = db.bookings.find((x) => x.id === a.p_booking);
+    if (!b) return { ok: false, error: 'Δεν βρέθηκε η κράτηση' };
+    if (!(b.status === 'attended' || b.status === 'no_show' || (b.status === 'booked' && b.date <= iso(new Date())))) return { ok: false, error: 'Βαθμολογείς μετά το ραντεβού' };
+    const stars = Math.round(Number(a.p_stars)); if (!(stars >= 1 && stars <= 5)) return { ok: false, error: 'Διάλεξε 1 έως 5 αστέρια' };
+    const note = String(a.p_note ?? '').trim().slice(0, 600) || null;
+    const ex = db.client_ratings.find((r) => r.booking_id === b.id);
+    if (ex) Object.assign(ex, { stars, note }); else db.client_ratings.push({ id: uid(), booking_id: b.id, business_id: b.business_id, user_id: b.user_id, stars, note, created_at: new Date().toISOString() });
+    return { ok: true };
+  },
+  owner_client_rating: (a) => {
+    if (!db.bookings.some((b) => b.business_id === a.p_business && b.user_id === a.p_user)) return { avg: null, count: 0, businesses: 0, mine: [] };
+    return { ...clientRating(a.p_user),
+      mine: db.client_ratings.filter((r) => r.business_id === a.p_business && r.user_id === a.p_user).map((r) => { const b = db.bookings.find((x) => x.id === r.booking_id);
+        return { booking_id: r.booking_id, date: b?.date, time: b?.time.slice(0, 5), service: b ? svc(b.service_id)?.name : null, stars: r.stars, note: r.note }; })
+        .sort((x, y) => String(y.date).localeCompare(String(x.date))) };
   },
   owner_notify: (a) => {
     if (!String(a.p_body ?? '').trim()) return { ok: false, error: 'Γράψε μήνυμα' };
@@ -515,7 +632,8 @@ function rest(method: string, u: URL, table: string, body: any, h: Headers) {
   };
   if (method === 'GET' || method === 'HEAD') {
     // Οι δοκιμαστικές επιχειρήσεις ανήκουν σε όποιον είναι συνδεδεμένος, ώστε η λειτουργία επιχείρησης να είναι πάντα γεμάτη.
-    const src = table === 'businesses' && me ? rows.map((r) => (r.owner_id === DEMO_UID ? { ...r, owner_id: me } : r)) : rows;
+    if (table === 'client_ratings' || table === 'reviews') return back([]); // όπως το RLS: μόνο μέσω των RPC
+    const src = table === 'businesses' ? rows.map((r) => ({ ...r, ...bizRating(r.id), owner_id: me && r.owner_id === DEMO_UID ? me : r.owner_id })) : rows;
     let out = order(src.filter(filters(u)), u);
     if (table === 'notifications') out = out.filter((r) => r.user_id === me); // όπως το RLS: βλέπεις μόνο τις δικές σου
     const lim = u.searchParams.get('limit'); if (lim) out = out.slice(0, +lim);

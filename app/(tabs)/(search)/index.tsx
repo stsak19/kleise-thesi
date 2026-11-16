@@ -15,7 +15,8 @@ import { CAT_ART } from '../../../lib/catArt';
 import { setSearchOpen } from '../../../lib/searchOpen';
 import { useWide } from '../../../lib/wide';
 import { useHomeQuery } from '../../../lib/client/desk';
-type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null };
+import { Rating } from '../../../lib/reviews';
+type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null; rating_avg?: number | null; rating_count?: number | null };
 
 
 /* Κάρτα καταστήματος: εξώφυλλο (ή σκούρο πλαίσιο με λάμψη στο χρώμα του), ετικέτα κατηγορίας
@@ -29,7 +30,10 @@ function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
         <Photo uri={b.cover_url} color={brand} />
       </View>
       <View style={{ paddingHorizontal: 14, paddingVertical: 12, gap: 2 }}>
-        <Text style={{ color: C.text, fontWeight: '800', fontSize: 16, letterSpacing: -0.2 }} numberOfLines={1}>{b.name}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={{ color: C.text, fontWeight: '800', fontSize: 16, letterSpacing: -0.2, flex: 1 }} numberOfLines={1}>{b.name}</Text>
+          <Rating avg={b.rating_avg} count={b.rating_count} />
+        </View>
         <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{catEmoji(b.category)} {catLabel(b.category)} · {b.city}</Text>
       </View>
     </Pressable>
@@ -131,7 +135,10 @@ export default function Home() {
             </View>
             <View style={{ flex: 1, gap: 2 }}>
               <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{b.name}</Text>
-              <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{catEmoji(b.category)} {catLabel(b.category)} · {b.city}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Rating avg={b.rating_avg} count={b.rating_count} />
+                <Text style={{ color: C.mute, fontSize: 13, flex: 1 }} numberOfLines={1}>· {catLabel(b.category)} · {b.city}</Text>
+              </View>
             </View>
           </Pressable>
         ))}

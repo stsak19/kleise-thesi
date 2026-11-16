@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text } from '../Txt';
+import { ClientBadge, StarInput, useRateClient } from '../reviews';
 import { say } from '../alert';
 import { rpc } from '../supabase';
 import { styleOf } from '../presets';
@@ -231,6 +232,7 @@ export function HourList({ biz, date, slots, onChange, closed }: { biz: any; dat
   const setStatus = async (b: any, st: string) => {
     const r = await rpc('owner_set_status', { p_booking: b.id, p_status: st }); if (!r?.ok) say(r?.error ?? 'Δεν έγινε'); onChange();
   };
+  const R = useRateClient(biz?.id, onChange);
 
   if (closed && slots.length === 0) return <View style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: C.line, borderRadius: 18, paddingVertical: 34, alignItems: 'center' }}>
     <Text style={{ color: C.mute, fontSize: 14 }}>Κλειστά — καμία ενεργή ώρα αυτή την ημέρα.</Text></View>;
@@ -286,6 +288,7 @@ export function HourList({ biz, date, slots, onChange, closed }: { biz: any; dat
                         {(g.cls ? [b.phone] : [b.service, b.duration_min ? `${b.duration_min}'` : null, b.price_cents ? price(b.price_cents) : null, b.staff ? b.staff.split(' ')[0] : null]).filter(Boolean).join(' · ')}
                       </Text>
                     </Pressable>
+                    <ClientBadge avg={b.client_rating} count={b.client_ratings} />
                     {b.status === 'attended' && <Pill text="Ήρθε" tone="ok" />}
                     {b.status === 'no_show' && <Pill text="Δεν ήρθε" tone="bad" />}
                   </View>
@@ -301,9 +304,14 @@ export function HourList({ biz, date, slots, onChange, closed }: { biz: any; dat
                       </Pressable>
                     </View>
                   ) : (
-                    <Pressable onPress={() => setStatus(b, 'booked')} hitSlop={6} style={{ alignSelf: 'flex-start' }}>
-                      <Text style={{ color: C.mute, fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' }}>Αναίρεση</Text>
-                    </Pressable>
+                    <View style={[s.row, { gap: 10 }]}>
+                      <Text style={{ color: C.mute, fontSize: 12.5, fontWeight: '700' }}>{b.my_stars ? 'Η βαθμολογία σου' : 'Βαθμολόγησε'}</Text>
+                      <StarInput value={b.my_stars ?? 0} onChange={(n) => R.rate({ ...b, date }, n)} size={20} gap={4} />
+                      <View style={{ flex: 1 }} />
+                      <Pressable onPress={() => setStatus(b, 'booked')} hitSlop={6}>
+                        <Text style={{ color: C.mute, fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' }}>Αναίρεση</Text>
+                      </Pressable>
+                    </View>
                   )}
                 </View>
               ))}
@@ -312,6 +320,7 @@ export function HourList({ biz, date, slots, onChange, closed }: { biz: any; dat
         </View>
       );
     })}
+    {R.sheet}
   </>;
 }
 
