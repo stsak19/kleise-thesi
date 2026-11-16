@@ -205,8 +205,12 @@ export default function Home() {
     </View>
   );
 
-  const empty = <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα ή άλλη κατηγορία."
-    action={filtering ? 'Καθαρισμός φίλτρων' : undefined} onAction={() => { setCat(null); setQ(''); }} />;
+  // Χωρίς φίλτρα και χωρίς κανένα κατάστημα: τα πρώτα βήματα της πλατφόρμας, κάλεσμα σε επιχειρήσεις.
+  const empty = filtering
+    ? <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα ή άλλη κατηγορία."
+        action="Καθαρισμός φίλτρων" onAction={() => { setCat(null); setQ(''); }} />
+    : <Empty emoji="🌱" title="Τα πρώτα καταστήματα έρχονται σύντομα" text="Το SpotOn μόλις ξεκίνησε. Έχεις επιχείρηση; Βάλ' την εδώ σε λίγα λεπτά και δέξου κρατήσεις online."
+        action="Πρόσθεσε την επιχείρησή σου" onAction={() => router.push('/new-business')} />;
 
   if (wide) return <DeskHome {...{ chips, sections, list, loaded, filtering, empty, cat, onOpen: (b: Biz) => router.push(`/store/${b.id}`) }} />;
 

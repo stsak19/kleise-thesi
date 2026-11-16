@@ -35,7 +35,7 @@ export const withArticle = (n?: string) => { const f = firstName(n); return /[α
 const nowHM = () => { const n = new Date(); return `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`; };
 async function fetchSlots(sv: Service, date: string, staff: string | null): Promise<TimeSlot[]> {
   const args: any = { p_service: sv.id, p_date: date };
-  if (staff && staff !== ANY) args.p_staff = staff; // μόνο όταν υπάρχει ομάδα (demo)· η πραγματική βάση δεν το ξέρει ακόμα
+  if (staff && staff !== ANY) args.p_staff = staff; // μόνο όταν υπάρχει ομάδα (βάση 005)
   const r = ((await rpc<any[]>('day_availability', args)) ?? []).map((x) => ({ time: x.slot_time.slice(0, 5), free: x.free, staff_free: x.staff_free }));
   return date === iso(new Date()) ? r.filter((x) => x.time > nowHM()) : r;
 }

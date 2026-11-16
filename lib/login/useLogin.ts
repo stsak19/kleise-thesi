@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { sb } from '../supabase';
+import { WEB_URL, sb } from '../supabase';
 import { demoSession, setDemo } from '../demo';
 
 export type Mode = 'in' | 'up';
@@ -26,7 +26,7 @@ export function useLogin(initial: Mode = 'in') {
     setBusy(true); setErr(''); setInfo('');
     const { data, error } = mode === 'in'
       ? await sb.auth.signInWithPassword({ email: e, password: pass })
-      : await sb.auth.signUp({ email: e, password: pass });
+      : await sb.auth.signUp({ email: e, password: pass, options: { emailRedirectTo: WEB_URL, data: name.trim() ? { full_name: name.trim() } : undefined } });
     if (error) {
       setBusy(false);
       const m = error.message.toLowerCase();
@@ -49,7 +49,7 @@ export function useLogin(initial: Mode = 'in') {
     const e = cleanEmail();
     if (!emailOk(e)) return setErr('Γράψε πρώτα το email σου και πάτα ξανά «Ξέχασες τον κωδικό;»');
     setBusy(true); setErr('');
-    const { error } = await sb.auth.resetPasswordForEmail(e);
+    const { error } = await sb.auth.resetPasswordForEmail(e, { redirectTo: WEB_URL });
     setBusy(false);
     if (error) setErr('Κάτι πήγε στραβά, δοκίμασε ξανά');
     else setInfo('Σου στείλαμε email για να ορίσεις νέο κωδικό.');

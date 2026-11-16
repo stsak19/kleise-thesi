@@ -7,7 +7,7 @@
    Η «Συνέχεια χωρίς λογαριασμό» μπαίνει ως «Χριστίνα Αντωνίου» με γεμάτο ιστορικό· ένας νέος λογαριασμός
    (οποιοδήποτε email) ξεκινά καθαρός, χωρίς κρατήσεις/πακέτα/μηνύματα, και κρατά μόνο ό,τι κάνει ο ίδιος (κάθε email
    είναι δικός του λογαριασμός). Όταν το project είναι έτοιμο, γίνεται false και όλα πάνε στη βάση. */
-export const DEMO_EVERYWHERE = true;
+export const DEMO_EVERYWHERE = false;
 
 const DEMO_KEY = 'spoton.demo';
 const ls = (): Storage | null => { try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch { return null; } };
@@ -266,6 +266,7 @@ function restore(txt: string | null | undefined) {
   } catch {}
 }
 restore(ls()?.getItem(SAVE_KEY));
+export const demoReady = () => ready;
 const ready = Promise.all([flagReady, AsyncStorage.getItem(SAVE_KEY).then(restore).catch(() => {})]);
 
 /* Βρίσκει ή φτιάχνει τον λογαριασμό ενός email. Ο νέος ξεκινά μόνο με ένα μήνυμα καλωσορίσματος. */

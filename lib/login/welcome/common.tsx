@@ -10,7 +10,7 @@ import { GUEST_OK } from '../../guest';
 
 /* Κομμάτια του καλωσορίσματος: σκελετός, κείμενα, κουμπιά, λογότυπο γράμμα-γράμμα. */
 
-export type WelcomeProps = { onUp: () => void; onIn: () => void; onGuest: () => void; reduce: boolean };
+export type WelcomeProps = { onUp: () => void; onIn: () => void; onGuest?: () => void; reduce: boolean };
 
 export const TITLE = ['Όλα τα ραντεβού σου,', 'σε ένα μέρος'];
 export const SUB = ['Βρες κατάστημα,', 'διάλεξε ώρα,', 'κλείσε θέση.'];
@@ -42,8 +42,9 @@ export function Actions({ p, styles = [], primaryExtra }: { p: WelcomeProps; sty
         {primaryExtra}
       </Animated.View>
       <Animated.View style={styles[1]}><Btn kind="ghost" title="Έχω ήδη λογαριασμό" onPress={p.onIn} /></Animated.View>
-      <View style={{ height: 6 }} />
-      <Animated.View style={styles[2]}><LinkText title={GUEST_OK ? 'Δες το demo' : 'Συνέχεια χωρίς λογαριασμό'} onPress={p.onGuest} color={C.mute} /></Animated.View>
+      {/* Το demo δεν φαίνεται πια στη σύνδεση· μπαίνει κανείς μόνο με τον κρυφό σύνδεσμο /open/demo ή /open/<id>. */}
+      {!!p.onGuest && <><View style={{ height: 6 }} />
+      <Animated.View style={styles[2]}><LinkText title={GUEST_OK ? 'Δες το demo' : 'Συνέχεια χωρίς λογαριασμό'} onPress={p.onGuest} color={C.mute} /></Animated.View></>}
     </>
   );
 }

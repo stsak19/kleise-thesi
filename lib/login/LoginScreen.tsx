@@ -16,7 +16,7 @@ export default function LoginScreen({ start }: { start?: 'welcome' | 'in' | 'up'
   const reduce = useReduceMotion();
 
   if (step === 'welcome') return (
-    <Reel reduce={reduce} onGuest={L.guest}
+    <Reel reduce={reduce}
       onUp={() => { L.setMode('up'); setStep('form'); }} onIn={() => { L.setMode('in'); setStep('form'); }} />
   );
   return <Form L={L} onBack={() => setStep('welcome')} animate={!reduce} />;

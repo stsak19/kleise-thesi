@@ -62,7 +62,6 @@ export function LoginModal() {
             <Notice L={L} />
             <Btn title={L.busy ? 'Μια στιγμή…' : up ? 'Δημιουργία λογαριασμού' : 'Σύνδεση'} onPress={L.go} disabled={L.busy} />
             {up && <Terms />}
-            <LinkText title="Δες το demo" onPress={L.guest} color={C.mute} />
           </ScrollView>
         </Pressable>
       </Pressable>
