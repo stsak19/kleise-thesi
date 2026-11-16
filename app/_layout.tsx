@@ -1,7 +1,6 @@
 import { Stack, Redirect, usePathname, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../lib/auth';
-import { isDemo } from '../lib/demo';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { C } from '../lib/ui';
@@ -51,13 +50,13 @@ function Gate() {
   if (!ready || introSeen === null || !loaded) return null;
   // Στην ιστοσελίδα ο επισκέπτης βλέπει πρώτα τα καταστήματα: χωρίς ξενάγηση και χωρίς σύνδεση (lib/guest).
   if (!introSeen && !GUEST_OK) return <Intro onDone={setIntroSeen} />;
-  if (!session && seg[0] !== 'login' && !openToGuests(path) && !(isDemo() && path.startsWith('/admin'))) {
+  if (!session && seg[0] !== 'login' && !openToGuests(path)) {
     // Ιστοσελίδα: μένει στην αρχική και ανοίγει το παράθυρο σύνδεσης· μετά τη σύνδεση πάει εκεί που ήθελε.
     if (GUEST_OK) { setTimeout(() => askLogin(path), 0); return <Redirect href="/" />; }
     return <Redirect href="/login" />;
   }
   if (session && seg[0] === 'login' && !back) return <Redirect href={getMode() === 'biz' ? BIZ_HOME : '/'} />;
-  if (session && !booted) { booted = true; if (getMode() === 'biz' && !restore && seg[0] !== '(biz)' && seg[0] !== 'admin' && seg[0] !== 'open') return <Redirect href={BIZ_HOME} />; }
+  if (session && !booted) { booted = true; if (getMode() === 'biz' && !restore && seg[0] !== '(biz)' && seg[0] !== 'admin') return <Redirect href={BIZ_HOME} />; }
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg } }}>
       <Stack.Screen name="(tabs)" />

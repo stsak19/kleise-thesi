@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { WEB_URL, sb } from '../supabase';
 import { passProblem } from '../password';
-import { demoSession, setDemo } from '../demo';
 
 export type Mode = 'in' | 'up';
 
@@ -59,14 +58,7 @@ export function useLogin(initial: Mode = 'in') {
     else setInfo('Σου στείλαμε email για να ορίσεις νέο κωδικό.');
   };
 
-  const guest = async () => {
-    setBusy(true); setDemo(true);
-    const ds = demoSession();
-    const { error } = await sb.auth.setSession({ access_token: ds.access_token, refresh_token: ds.refresh_token });
-    setBusy(false);
-    if (error) { setDemo(false); setErr('Κάτι πήγε στραβά, δοκίμασε ξανά'); }
-  };
 
-  return { mode, setMode, name, setName, email, setEmail, pass, setPass, pass2, setPass2, show, setShow, err, info, busy, go, forgot, guest };
+  return { mode, setMode, name, setName, email, setEmail, pass, setPass, pass2, setPass2, show, setShow, err, info, busy, go, forgot };
 }
 export type LoginState = ReturnType<typeof useLogin>;

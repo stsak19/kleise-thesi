@@ -1,5 +1,4 @@
 import { rpc, sb } from '../supabase';
-import { isDemo } from '../demo';
 import { fetchMyBiz, setActiveBiz } from './active';
 import { DAYS } from '../ui';
 import { presetFor } from '../presets';
@@ -61,7 +60,7 @@ export async function saveBusiness(uid: string, b: any, svcs: Svc[], hours: Hour
   const cents = (p: string) => (p ? Math.round(parseFloat(p.replace(',', '.')) * 100) : null);
   const list = svcs.filter((x) => x.name.trim());
   // Πραγματική βάση: όλα μαζί σε μία κλήση (supabase/migrations/005), ώστε να μη χαθεί το ωράριο αν κοπεί η σύνδεση.
-  if (!isDemo()) {
+  {
     try {
       const r = await rpc<{ ok: boolean; id?: string; error?: string; ids?: Record<string, string> }>('save_business', {
         p_biz: row,
@@ -77,21 +76,4 @@ export async function saveBusiness(uid: string, b: any, svcs: Svc[], hours: Hour
       return { ok: true, id: r.id, warnings: [], ids: { ...known, ...(r.ids ?? {}) } };
     } catch (e: any) { return { ok: false, error: e?.message ?? 'Άγνωστο σφάλμα' }; }
   }
-  // Demo: η ίδια αποθήκευση βήμα βήμα, μέσα στη μνήμη της συσκευής.
-  const { data, error } = await sb.from('businesses').upsert(row).select().single();
-  if (error || !data) return { ok: false, error: error?.message ?? 'Άγνωστο σφάλμα' };
-  for (const rid of removed) await sb.from('services').update({ active: false }).eq('id', rid);
-  const ids: Record<string, string> = {};
-  for (const x of list) {
-    const r = { business_id: data.id, name: x.name.trim(), duration_min: +x.duration_min || 30, capacity: +x.capacity || 1, price_cents: cents(x.price),
-      grp: x.grp?.trim() || null, note: x.note?.trim() || null, price_from: !!x.from };
-    if (x.id) { await sb.from('services').update(r).eq('id', x.id); ids[x.key] = x.id; }
-    else { const { data: n } = await sb.from('services').insert(r).select('id').single(); if (n) ids[x.key] = n.id; }
-  }
-  await sb.from('opening_hours').delete().eq('business_id', data.id);
-  const rows = hours.filter((h) => h.svc === null || ids[h.svc])
-    .map((h) => ({ business_id: data.id, weekday: h.weekday, opens: h.opens, closes: h.closes, ...(h.svc ? { service_id: ids[h.svc] } : {}) }));
-  await sb.from('opening_hours').insert(rows);
-  setActiveBiz(data.id);
-  return { ok: true, id: data.id, warnings: [], ids };
 }

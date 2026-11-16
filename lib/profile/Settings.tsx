@@ -14,7 +14,6 @@ import { Btn, C, Chip, Group, Icon, Input, Row, Section, SwitchRow, alpha, shado
 import { signOut, usePerson } from './data';
 import { useDeletion } from '../account/deletion';
 import { useIsAdmin } from '../admin/data';
-import { isDemo } from '../demo';
 
 /* Μικρογραφία οθόνης στα χρώματα μιας παλέτας (για την επιλογή εμφάνισης). */
 function Mini({ P }: { P: Theme }) {
@@ -142,7 +141,7 @@ function DeleteRow() {
 
 /* Μόνο για τον super admin της πλατφόρμας (platform_admins στη βάση): είσοδος στον πίνακα /admin. */
 export function AdminRow({ line }: { line?: (go: () => void) => React.ReactNode }) {
-  const ok = useIsAdmin(isDemo() ? null : usePerson().uid);
+  const ok = useIsAdmin(usePerson().uid);
   if (!ok) return null;
   const go = () => router.push('/admin' as any);
   return <>{line ? line(go) : <Row icon="lock" title="Super admin" sub="Διαχείριση όλης της πλατφόρμας" onPress={go} />}</>;

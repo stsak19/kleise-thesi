@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { GUEST_OK } from '../guest';
 import { say } from '../alert';
-import { setDemo } from '../demo';
 import { setMode } from '../mode';
 import { rpc, sb } from '../supabase';
 import { useAuth } from '../auth';
@@ -45,5 +44,5 @@ export function useProfileExtras(uid: string) {
 export const signOut = async () => {
   // Ιστοσελίδα: πρώτα στην αρχική (ανοιχτή και χωρίς λογαριασμό), ώστε να μη ζητηθεί αμέσως σύνδεση.
   if (GUEST_OK) router.replace('/');
-  await sb.auth.signOut(); setDemo(false); setMode('client');
+  await sb.auth.signOut(); setMode('client');
 };
