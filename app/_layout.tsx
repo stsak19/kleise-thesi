@@ -1,6 +1,7 @@
 import { Stack, Redirect, usePathname, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../lib/auth';
+import { isDemo } from '../lib/demo';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { C } from '../lib/ui';
@@ -50,7 +51,7 @@ function Gate() {
   if (!ready || introSeen === null || !loaded) return null;
   // Στην ιστοσελίδα ο επισκέπτης βλέπει πρώτα τα καταστήματα: χωρίς ξενάγηση και χωρίς σύνδεση (lib/guest).
   if (!introSeen && !GUEST_OK) return <Intro onDone={setIntroSeen} />;
-  if (!session && seg[0] !== 'login' && !openToGuests(path)) {
+  if (!session && seg[0] !== 'login' && !openToGuests(path) && !(isDemo() && path.startsWith('/admin'))) {
     // Ιστοσελίδα: μένει στην αρχική και ανοίγει το παράθυρο σύνδεσης· μετά τη σύνδεση πάει εκεί που ήθελε.
     if (GUEST_OK) { setTimeout(() => askLogin(path), 0); return <Redirect href="/" />; }
     return <Redirect href="/login" />;

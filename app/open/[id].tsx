@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { demoSession, isDemo, setDemo } from '../../lib/demo';
+import { router, useLocalSearchParams, usePathname } from 'expo-router';
+import { useAuth } from '../../lib/auth';
+import { demoSession, isDemo, isDemoSession, setDemo } from '../../lib/demo';
 import { setMode } from '../../lib/mode';
 import { setActiveBiz } from '../../lib/owner/active';
 import { sb } from '../../lib/supabase';
@@ -13,8 +14,15 @@ import { C } from '../../lib/ui';
    .../open/admin    → ο πίνακας super admin με τα δοκιμαστικά καταστήματα και πελάτες
    Το demo τρέχει μόνο στη συσκευή και δεν αγγίζει τη βάση. Φεύγει με την Αποσύνδεση. */
 export default function OpenBiz() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const params = useLocalSearchParams<{ id: string }>();
+  // Το id από τη διαδρομή· αν δεν έχει έρθει ακόμα στις παραμέτρους, από το ίδιο το URL.
+  const path = usePathname();
+  const id = params.id || (path.match(/^\/open\/([^/?#]+)/)?.[1] ?? '');
+  const { session } = useAuth();
+  const [to, setTo] = useState<string | null>(null);
   useEffect(() => {
+    if (!id) return;
+    let live = true;
     (async () => {
       if (!isDemo()) {
         // Ένας πραγματικός λογαριασμός στη συσκευή αποσυνδέεται πρώτα, για να μη μπερδευτούν τα δεδομένα.
@@ -23,13 +31,17 @@ export default function OpenBiz() {
         const ds = demoSession();
         await sb.auth.setSession({ access_token: ds.access_token, refresh_token: ds.refresh_token });
       }
-      if (!id || id === 'demo') { setMode('client'); router.replace('/'); return; }
+      if (!live) return;
+      if (id === 'demo') { setMode('client'); setTo('/'); return; }
       // Το super admin με δοκιμαστικά δεδομένα (στη βάση ανοίγει μόνο για όσους είναι στο platform_admins).
-      if (id === 'admin') { setMode('client'); router.replace('/admin'); return; }
+      if (id === 'admin') { setMode('client'); setTo('/admin'); return; }
       setActiveBiz(String(id));
       setMode('biz');
-      router.replace('/today');
+      setTo('/today');
     })();
-  }, []);
+    return () => { live = false; };
+  }, [id]);
+  // Πάμε μόνο όταν η δοκιμαστική σύνδεση έχει φτάσει στην εφαρμογή· αλλιώς η σελίδα (π.χ. /admin) θα έβλεπε «χωρίς σύνδεση».
+  useEffect(() => { if (to && session && isDemoSession(session.refresh_token)) router.replace(to as any); }, [to, session]);
   return <View style={{ flex: 1, backgroundColor: C.bg }} />;
 }
