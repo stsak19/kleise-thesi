@@ -1,4 +1,5 @@
-import { sb } from '../supabase';
+import { rpc, sb } from '../supabase';
+import { isDemo } from '../demo';
 import { fetchMyBiz, setActiveBiz } from './active';
 import { DAYS } from '../ui';
 import { presetFor } from '../presets';
@@ -55,34 +56,36 @@ type SaveResult = { ok: true; id: string; warnings: string[] } | { ok: false; er
 export async function saveBusiness(uid: string, b: any, svcs: Svc[], hours: Hours, removed: string[] = []): Promise<SaveResult> {
   const row = { ...b, owner_id: uid, max_days_ahead: +b.max_days_ahead || 14, cancel_before_min: +b.cancel_before_min || 0, package_days: +b.package_days || 30 };
   delete row.created_at;
-  const warnings: string[] = [];
-  let { data, error } = await sb.from('businesses').upsert(row).select().single();
-  // Αν η βάση δεν έχει ακόμα τις νέες στήλες (δες supabase/migrations), αποθήκευσε χωρίς αυτές.
-  let missing = false;
-  for (const col of ['brand_color', 'cover_url', 'layout', 'theme']) {
-    if (error && error.message.includes(col)) {
-      delete row[col]; missing = true;
-      ({ data, error } = await sb.from('businesses').upsert(row).select().single());
-    }
+  const cents = (p: string) => (p ? Math.round(parseFloat(p.replace(',', '.')) * 100) : null);
+  const list = svcs.filter((x) => x.name.trim());
+  // Πραγματική βάση: όλα μαζί σε μία κλήση (supabase/migrations/005), ώστε να μη χαθεί το ωράριο αν κοπεί η σύνδεση.
+  if (!isDemo()) {
+    try {
+      const r = await rpc<{ ok: boolean; id?: string; error?: string }>('save_business', {
+        p_biz: row,
+        p_services: list.map((x) => ({ key: x.key, id: x.id ?? null, name: x.name.trim(), duration_min: +x.duration_min || 30, capacity: +x.capacity || 1, price_cents: cents(x.price) })),
+        p_hours: hours.map((h) => ({ weekday: h.weekday, opens: h.opens, closes: h.closes, svc: h.svc })),
+        p_removed: removed,
+      });
+      if (!r.ok || !r.id) return { ok: false, error: r.error ?? 'Άγνωστο σφάλμα' };
+      setActiveBiz(r.id);
+      return { ok: true, id: r.id, warnings: [] };
+    } catch (e: any) { return { ok: false, error: e?.message ?? 'Άγνωστο σφάλμα' }; }
   }
+  // Demo: η ίδια αποθήκευση βήμα βήμα, μέσα στη μνήμη της συσκευής.
+  const { data, error } = await sb.from('businesses').upsert(row).select().single();
   if (error || !data) return { ok: false, error: error?.message ?? 'Άγνωστο σφάλμα' };
-  if (missing) warnings.push('Κάποια στοιχεία δεν αποθηκεύτηκαν. Χρειάζεται ενημέρωση της βάσης (supabase/migrations).');
   for (const rid of removed) await sb.from('services').update({ active: false }).eq('id', rid);
   const ids: Record<string, string> = {};
-  for (const x of svcs.filter((x) => x.name.trim())) {
-    const r = { business_id: data.id, name: x.name.trim(), duration_min: +x.duration_min || 30, capacity: +x.capacity || 1,
-      price_cents: x.price ? Math.round(parseFloat(x.price.replace(',', '.')) * 100) : null };
+  for (const x of list) {
+    const r = { business_id: data.id, name: x.name.trim(), duration_min: +x.duration_min || 30, capacity: +x.capacity || 1, price_cents: cents(x.price) };
     if (x.id) { await sb.from('services').update(r).eq('id', x.id); ids[x.key] = x.id; }
     else { const { data: n } = await sb.from('services').insert(r).select('id').single(); if (n) ids[x.key] = n.id; }
   }
   await sb.from('opening_hours').delete().eq('business_id', data.id);
   const rows = hours.filter((h) => h.svc === null || ids[h.svc])
     .map((h) => ({ business_id: data.id, weekday: h.weekday, opens: h.opens, closes: h.closes, ...(h.svc ? { service_id: ids[h.svc] } : {}) }));
-  const hr = await sb.from('opening_hours').insert(rows);
-  if (hr.error && hr.error.message.includes('service_id')) {
-    await sb.from('opening_hours').insert(rows.filter((r: any) => !r.service_id));
-    warnings.push('Το ωράριο ανά υπηρεσία δεν αποθηκεύτηκε. Χρειάζεται ενημέρωση της βάσης (supabase/migrations/002).');
-  }
+  await sb.from('opening_hours').insert(rows);
   setActiveBiz(data.id);
-  return { ok: true, id: data.id, warnings };
+  return { ok: true, id: data.id, warnings: [] };
 }
