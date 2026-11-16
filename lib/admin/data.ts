@@ -5,17 +5,30 @@ import { rpc } from '../supabase';
 /* Super admin της πλατφόρμας: όλα περνούν από τις admin_* συναρτήσεις της βάσης (010_super_admin.sql),
    που ελέγχουν πρώτα ότι ο συνδεδεμένος είναι στον πίνακα platform_admins. Η εφαρμογή δεν έχει κανένα κλειδί admin. */
 
-let cached: boolean | null = null;
-/* Είναι ο συνδεδεμένος super admin; (null όσο ρωτάμε τη βάση) */
-export function useIsAdmin(uid?: string | null) {
-  const [ok, setOk] = useState<boolean | null>(uid ? cached : false);
+/* Τι ξέρουμε για τον συνδεδεμένο: 'admin' / 'no' (δεν είναι super admin) /
+   'nodb' (η βάση δεν έχει ακόμα το 010_super_admin.sql) / 'error' (δεν απάντησε η βάση) / null (ρωτάμε ακόμα). */
+export type AdminState = 'admin' | 'no' | 'nodb' | 'error' | null;
+let cached: { uid: string; v: AdminState } | null = null;
+export function useAdminState(uid?: string | null) {
+  const [st, setSt] = useState<AdminState>(uid && cached?.uid === uid ? cached.v : null);
   useEffect(() => {
-    if (!uid) { setOk(false); return; }
+    if (!uid) { setSt(null); return; }
     let live = true;
-    rpc<boolean>('is_super_admin').then((v) => { cached = !!v; if (live) setOk(!!v); }).catch(() => { if (live) setOk(false); });
+    rpc<boolean>('is_super_admin')
+      .then((v) => { const r: AdminState = v ? 'admin' : 'no'; cached = { uid, v: r }; if (live) setSt(r); })
+      .catch((e) => {
+        const m = String(e?.message ?? e);
+        const r: AdminState = /is_super_admin|could not find|does not exist|schema cache/i.test(m) ? 'nodb' : 'error';
+        if (live) setSt(r);
+      });
     return () => { live = false; };
   }, [uid]);
-  return ok;
+  return st;
+}
+/* Είναι ο συνδεδεμένος super admin; (null όσο ρωτάμε τη βάση) */
+export function useIsAdmin(uid?: string | null) {
+  const st = useAdminState(uid);
+  return st === null ? null : st === 'admin';
 }
 
 /* Φόρτωση από μια admin_* συνάρτηση, με ανανέωση μετά από κάθε ενέργεια. */
