@@ -3,7 +3,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../lib/Txt';
-import { C, Card, Empty, s } from '../../lib/ui';
+import { C, Card, Empty, Icon, s } from '../../lib/ui';
 import { useMyBookings } from '../../lib/bookings/data';
 import { Extras, History, Segmented } from '../../lib/bookings/parts';
 import { PackList, packEnded } from '../../lib/bookings/PackList';
@@ -11,60 +11,68 @@ import Upcoming from '../../lib/bookings/Upcoming';
 import { deskCol, useWide } from '../../lib/wide';
 
 type Main = 'b' | 'p';
-type Sub = 'now' | 'past';
-let last: { main: Main; sub: Record<Main, Sub> } = { main: 'b', sub: { b: 'now', p: 'now' } };
+let lastMain: Main = 'b';
 
-/* Μικρός διακόπτης κάτω από τις καρτέλες: «Επερχόμενες / Ιστορικό» ή «Ενεργά / Ιστορικό». */
-function SubTabs({ value, onChange, items }: { value: Sub; onChange: (v: Sub) => void; items: { key: Sub; label: string }[] }) {
+/* Το Ιστορικό, σε πλαίσιο κάτω από τη λίστα: κλειστό στην αρχή, πάτημα → ανοίγει και δείχνει τα στοιχεία. */
+function HistoryBox({ title, sub, children }: { title: string; sub: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
   return (
-    <View style={{ flexDirection: 'row', gap: 8 }}>
-      {items.map((it) => {
-        const on = it.key === value;
-        return (
-          <Pressable key={it.key} onPress={() => onChange(it.key)} accessibilityRole="tab" accessibilityState={{ selected: on }}
-            style={({ pressed }) => ({ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1,
-              borderColor: on ? C.text : C.line, backgroundColor: on ? C.text : pressed ? C.soft : 'transparent' })}>
-            <Text style={{ color: on ? C.bg : C.mute, fontWeight: '800', fontSize: 13.5 }}>{it.label}</Text>
-          </Pressable>
-        );
-      })}
+    <View style={{ borderWidth: 1, borderColor: C.line, borderRadius: 20, overflow: 'hidden', marginTop: 6 }}>
+      <Pressable onPress={() => setOpen(!open)} accessibilityRole="button" accessibilityState={{ expanded: open }}
+        style={({ pressed }) => [s.row, { gap: 12, padding: 16, backgroundColor: pressed ? C.soft : 'transparent' }]}>
+        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="clock" size={19} color={C.text} />
+        </View>
+        <View style={{ flex: 1, gap: 1 }}>
+          <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }}>{title}</Text>
+          <Text style={{ color: C.mute, fontSize: 13 }}>{sub}</Text>
+        </View>
+        <View style={{ transform: [{ rotate: open ? '-90deg' : '90deg' }] }}><Icon name="chevron" size={15} color={C.mute} /></View>
+      </Pressable>
+      {open && <View style={{ gap: 12, padding: 12, paddingTop: 4 }}>{children}</View>}
     </View>
   );
 }
 
 /* Κρατήσεις: δύο καρτέλες, «Κρατήσεις» και «Πακέτα» (τα πακέτα δεν έχουν δικό τους κουμπί στη μπάρα).
-   Η καθεμιά έχει το δικό της Ιστορικό: Επερχόμενες / Ιστορικό, Ενεργά / Ιστορικό (πακέτα που έληξαν ή τελείωσαν). */
+   Κάτω από τη λίστα της καθεμιάς, το δικό της Ιστορικό σε πλαίσιο που ανοίγει (πακέτα: έληξαν, τελείωσαν, ανανεώθηκαν). */
 export default function Bookings() {
   const D = useMyBookings();
-  const [st, setSt] = useState(last);
-  const set = (v: typeof st) => { last = v; setSt(v); };
+  const [main, setMainS] = useState(lastMain);
+  const setMain = (m: Main) => { lastMain = m; setMainS(m); };
   // /bookings?tab=p (π.χ. από το κατάστημα «Πακέτα σε όλα τα καταστήματα») ανοίγει κατευθείαν τα Πακέτα.
   const { tab } = useLocalSearchParams<{ tab?: string }>();
-  useEffect(() => { if (tab === 'p' || tab === 'b') set({ ...last, main: tab }); }, [tab]);
+  useEffect(() => { if (tab === 'p' || tab === 'b') setMain(tab); }, [tab]);
   const n = D.upcoming.length;
-  const activePacks = D.packs.filter((m: any) => !packEnded(m)).length;
+  const ended = D.packs.filter((m: any) => packEnded(m)).length + D.packHistory.length;
+  const activePacks = D.packs.length - D.packs.filter((m: any) => packEnded(m)).length;
   const top = useSafeAreaInsets().top;
   const wide = useWide();
-  const sub = st.sub[st.main];
-  const setSub = (v: Sub) => set({ ...st, sub: { ...st.sub, [st.main]: v } });
+  const cnt = (k: number, one: string, many: string) => (k === 0 ? `Κανένα ${one}` : `${k} ${k === 1 ? one : many}`);
 
   return (
     <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: top + 12 }, wide && { paddingTop: 28, paddingBottom: 60 }, deskCol(wide)]} refreshControl={<RefreshControl refreshing={D.loading} onRefresh={D.load} />}>
-      <Segmented value={st.main} onChange={(main) => set({ ...st, main })} items={[
+      <Segmented value={main} onChange={setMain} items={[
         { key: 'b', label: 'Κρατήσεις', count: n, alert: true },
         { key: 'p', label: 'Πακέτα', count: activePacks },
       ]} />
-      <SubTabs value={sub} onChange={setSub} items={[{ key: 'now', label: st.main === 'b' ? 'Επερχόμενες' : 'Ενεργά' }, { key: 'past', label: 'Ιστορικό' }]} />
 
-      {st.main === 'p' ? <PackList D={D} which={sub === 'now' ? 'active' : 'past'} />
-        : sub === 'now' ? <>
-          {D.ready && n === 0 && (
-            <Card><Empty emoji="📅" title="Καμία επερχόμενη κράτηση" text="Βρες ένα κατάστημα και κλείσε θέση σε λίγα δευτερόλεπτα."
-              action="Βρες κατάστημα" onAction={D.find} /></Card>
-          )}
-          {n > 0 && <Upcoming D={D} />}
-          <Extras D={D} />
-        </> : <History D={D} />}
+      {main === 'p' ? <>
+        <PackList D={D} which="active" />
+        <HistoryBox title="Ιστορικό πακέτων" sub={ended ? cnt(ended, 'παλιό πακέτο', 'παλιά πακέτα') : 'Κανένα παλιό πακέτο ακόμα'}>
+          <PackList D={D} which="past" />
+        </HistoryBox>
+      </> : <>
+        {D.ready && n === 0 && (
+          <Card><Empty emoji="📅" title="Καμία επερχόμενη κράτηση" text="Βρες ένα κατάστημα και κλείσε θέση σε λίγα δευτερόλεπτα."
+            action="Βρες κατάστημα" onAction={D.find} /></Card>
+        )}
+        {n > 0 && <Upcoming D={D} />}
+        <Extras D={D} />
+        <HistoryBox title="Ιστορικό κρατήσεων" sub={D.past.length ? `${D.past.length} ${D.past.length === 1 ? 'παλιά κράτηση' : 'παλιές κρατήσεις'}` : 'Καμία παλιά κράτηση ακόμα'}>
+          <History D={D} />
+        </HistoryBox>
+      </>}
     </ScrollView>
   );
 }
