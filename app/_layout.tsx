@@ -45,11 +45,12 @@ function Gate() {
   // Ο επισκέπτης συνδέθηκε επειδή πήγε να κλείσει θέση (ή να ανοίξει Κρατήσεις κ.λπ.): γυρίζει εκεί που ήταν.
   const back = session && seg[0] === 'login' && getMode() !== 'biz' ? getReturnTo() : null;
   useEffect(() => { if (back) { setReturnTo(null); router.replace(back as any); } }, [back]);
-  const [introSeen, setIntroSeen] = useIntroSeen();
+  const [introSeen, setIntroSeen, introAsked] = useIntroSeen();
   const { loaded } = useMode();
   if (!ready || introSeen === null || !loaded) return null;
   // Στην ιστοσελίδα ο επισκέπτης βλέπει πρώτα τα καταστήματα: χωρίς ξενάγηση και χωρίς σύνδεση (lib/guest).
-  if (!introSeen && !GUEST_OK) return <Intro onDone={setIntroSeen} />;
+  // Αν όμως πατήσει «Δες ξανά την ξενάγηση», ανοίγει κι εκεί.
+  if (!introSeen && (!GUEST_OK || introAsked)) return <Intro onDone={setIntroSeen} />;
   if (!session && seg[0] !== 'login' && !openToGuests(path)) {
     // Ιστοσελίδα: μένει στην αρχική και ανοίγει το παράθυρο σύνδεσης· μετά τη σύνδεση πάει εκεί που ήθελε.
     if (GUEST_OK) { setTimeout(() => askLogin(path, path === '/new-business' ? 'up' : 'in'), 0); return <Redirect href="/" />; }

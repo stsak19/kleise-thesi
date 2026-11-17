@@ -17,16 +17,19 @@ const STEPS = [
 ];
 
 const replay = new Set<() => void>();
-/* Ρυθμίσεις → «Δες ξανά την ξενάγηση». */
+/* Ρυθμίσεις → «Δες ξανά την ξενάγηση». Σημειώνουμε ότι τη ζήτησε ο χρήστης, ώστε να ανοίγει
+   και στην ιστοσελίδα (εκεί δεν εμφανίζεται μόνη της την πρώτη φορά). */
 export const replayIntro = () => { AsyncStorage.removeItem(KEY).catch(() => {}); replay.forEach((f) => f()); };
 
-export function useIntroSeen(): [boolean | null, () => void] {
+/* [έχει δει την ξενάγηση, τέλος ξενάγησης, τη ζήτησε τώρα ο χρήστης] */
+export function useIntroSeen(): [boolean | null, () => void, boolean] {
   const [seen, setSeen] = useState<boolean | null>(null);
+  const [asked, setAsked] = useState(false);
   useEffect(() => {
     AsyncStorage.getItem(KEY).then((v) => setSeen(v === '1')).catch(() => setSeen(true));
-    const f = () => setSeen(false); replay.add(f); return () => { replay.delete(f); };
+    const f = () => { setAsked(true); setSeen(false); }; replay.add(f); return () => { replay.delete(f); };
   }, []);
-  return [seen, () => { setSeen(true); AsyncStorage.setItem(KEY, '1').catch(() => {}); }];
+  return [seen, () => { setSeen(true); setAsked(false); AsyncStorage.setItem(KEY, '1').catch(() => {}); }, asked];
 }
 
 export default function Intro({ onDone }: { onDone: () => void }) {
