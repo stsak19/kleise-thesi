@@ -12,7 +12,6 @@ import { useAuth } from '../../../lib/auth';
 import { styleOf } from '../../../lib/presets';
 import { Photo } from '../../../lib/Photo';
 import { CAT_ART } from '../../../lib/catArt';
-import { setSearchOpen } from '../../../lib/searchOpen';
 import { useWide } from '../../../lib/wide';
 import { useHomeQuery } from '../../../lib/client/desk';
 import { FavRow } from '../../../lib/client/FavRow';
@@ -127,69 +126,7 @@ export default function Home() {
 
   const filtering = !!cat || !!q.trim();
   const [focus, setFocus] = useState(false);
-  const open = focus || !!q;
-  const drop = useRef(new Animated.Value(0)).current, fade = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.parallel([
-      Animated.spring(drop, { toValue: open ? 36 : 0, useNativeDriver: true, friction: 9, tension: 60 }),
-      Animated.timing(fade, { toValue: open ? 1 : 0, duration: 220, useNativeDriver: true }),
-    ]).start();
-    setSearchOpen(open);
-  }, [open]);
-  useEffect(() => () => setSearchOpen(false), []);
-  const close = () => { setQ(''); setFocus(false); Keyboard.dismiss(); };
-  /* Αναζήτηση ανοιχτή: η οθόνη πίσω θολώνει και τα αποτελέσματα εμφανίζονται σε κάρτες (λογότυπο + όνομα) καθώς γράφεις. */
-  const overlay = (
-    <Animated.View pointerEvents={open ? 'auto' : 'none'} style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 20, opacity: fade }}>
-      <BlurView intensity={15} tint={isLight(C.bg) ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
-        style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: alpha(C.bg, 0.3) }} />
-      <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: alpha(C.bg, 0.25) }} />
-      <Pressable onPress={close} style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }} />
-      <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1 }} contentContainerStyle={{ paddingTop: top + 110, paddingHorizontal: 20, paddingBottom: TAB_SPACE, gap: 6 }}>
-        {!!q.trim() && list.map((b) => (
-          <Pressable key={b.id} onPress={() => { close(); router.push(`/business/${b.id}`); }}
-            style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 8, opacity: pressed ? 0.7 : 1 })}>
-            <View style={{ width: 72, height: 54, borderRadius: 12, overflow: 'hidden', backgroundColor: '#0d0d0d' }}>
-              <Photo uri={b.cover_url ?? b.logo_url} color={styleOf(b).color} letter={b.cover_url ? undefined : b.name.slice(0, 1)} />
-            </View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{b.name}</Text>
-              <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{catEmoji(b.category)} {catLabel(b.category)} · {b.city}</Text>
-            </View>
-          </Pressable>
-        ))}
-        {!!q.trim() && loaded && list.length === 0 && <Text style={{ color: C.mute, textAlign: 'center', marginTop: 20 }}>Δεν βρέθηκε κάτι για «{q.trim()}»</Text>}
-      </ScrollView>
-    </Animated.View>
-  );
-  const anim = () => LayoutAnimation.configureNext(LayoutAnimation.create(260, 'easeInEaseOut', 'opacity'));
-  /* Πάνω μέρος σε στιλ Wolt: προφίλ αριστερά, στρογγυλή μπάρα αναζήτησης στο κέντρο. */
-  const fixed = (
-    <Animated.View style={{ position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: 16, paddingTop: top + 10, paddingBottom: 10, zIndex: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
-      transform: [{ translateY: drop }] }}>
-      <BlurView intensity={isLight(C.bg) ? 40 : 30} tint={isLight(C.bg) ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
-        style={{ flexGrow: open ? 1 : 0, height: 46, borderRadius: 23, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16,
-          backgroundColor: isLight(C.bg) ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1,
-          borderColor: focus ? alpha(C.text, 0.25) : isLight(C.bg) ? alpha('#000000', 0.06) : alpha('#ffffff', 0.1),
-          boxShadow: `0px 8px 22px ${alpha(C.shade, isLight(C.bg) ? (focus ? 0.18 : 0.1) : 0.4)}` }}>
-        <Icon name="search" size={18} color={focus ? C.text : C.mute} />
-        <TextInput placeholder="Αναζήτηση" placeholderTextColor={C.mute} value={q} onChangeText={setQ} returnKeyType="search"
-          onFocus={() => { anim(); setFocus(true); }} onBlur={() => { anim(); setFocus(false); }} onSubmitEditing={() => Keyboard.dismiss()}
-          style={[{ flexGrow: open ? 1 : 0, width: open ? 0 : 92, color: C.text, fontSize: 16, fontWeight: '600', height: 46 }, { outlineStyle: 'none' } as any]} />
-      </BlurView>
-      {open && (
-        <Pressable onPress={close} accessibilityLabel="Κλείσιμο αναζήτησης" style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-          <BlurView intensity={isLight(C.bg) ? 40 : 30} tint={isLight(C.bg) ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
-            style={{ width: 46, height: 46, borderRadius: 23, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
-              backgroundColor: isLight(C.bg) ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1,
-              borderColor: focus ? alpha(C.text, 0.25) : isLight(C.bg) ? alpha('#000000', 0.06) : alpha('#ffffff', 0.1),
-              boxShadow: `0px 8px 22px ${alpha(C.shade, isLight(C.bg) ? (focus ? 0.18 : 0.1) : 0.4)}` }}>
-            <Icon name="close" size={16} color={focus ? C.text : C.mute} />
-          </BlurView>
-        </Pressable>
-      )}
-    </Animated.View>
-  );
+  const [all, setAll] = useState(false);
 
   /* Φίλτρα σε στιλ Wolt: τετράγωνα πλακίδια με μεγάλο εικονίδιο και τίτλο από κάτω. */
   const chips = (
@@ -219,15 +156,6 @@ export default function Home() {
     ...CATEGORIES.map((c) => ({ title: `${c.emoji} ${c.label}`, items: list.filter((b) => b.category === c.key) })),
   ].filter((x) => x.items.length > 0);
 
-  const row = (x: { title: string; items: Biz[] }) => (
-    <View key={x.title} style={{ gap: 10 }}>
-      <Text style={[s.h, { paddingHorizontal: 16 }]}>{x.title}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingHorizontal: 16, paddingTop: 2, paddingBottom: 6 }}>
-        {x.items.map((b) => <MiniCard key={b.id} b={b} width={168} onPress={() => router.push(`/store/${b.id}`)} />)}
-      </ScrollView>
-    </View>
-  );
-
   // Χωρίς φίλτρα και χωρίς κανένα κατάστημα: τα πρώτα βήματα της πλατφόρμας, κάλεσμα σε επιχειρήσεις.
   const empty = filtering
     ? <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα ή άλλη κατηγορία."
@@ -237,26 +165,153 @@ export default function Home() {
 
   if (wide) return <DeskHome {...{ chips, sections, list, loaded, filtering, empty, cat, onOpen: (b: Biz) => router.push(`/store/${b.id}`) }} />;
 
+  /* Κινητό: χωρίς αναζήτηση = άδεια αρχική («Τι ψάχνεις;», μπάρα στη μέση, 8 κατηγορίες).
+     Μόλις γράψεις, διαλέξεις κατηγορία ή πατήσεις «Όλα τα καταστήματα», η μπάρα ανεβαίνει πάνω και από κάτω βγαίνουν τα καταστήματα. */
+  const results = filtering || all;
+  const go = (f: () => void) => { LayoutAnimation.configureNext(LayoutAnimation.create(240, 'easeInEaseOut', 'opacity')); f(); };
+  const reset = () => go(() => { setQ(''); setCat(null); setAll(false); Keyboard.dismiss(); });
+  const bar = (
+    <SearchBar q={q} setQ={(v) => { if (!!v.trim() !== !!q.trim()) go(() => setQ(v)); else setQ(v); }} focus={focus} setFocus={setFocus}
+      onBack={results ? reset : undefined} />
+  );
+  /* Η μπάρα μένει στην ίδια θέση του δέντρου και στις δύο καταστάσεις, για να μη χάνεται το πληκτρολόγιο όταν αρχίζεις να γράφεις. */
   return (
-    <View style={s.screen}>
-      {fixed}
-      {overlay}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingTop: top + 70, paddingBottom: TAB_SPACE, gap: 24 }} keyboardShouldPersistTaps="handled">
-        <FavRow />
-        {chips}
-        {!loaded ? null : list.length === 0 ? <View style={{ paddingHorizontal: 16 }}>{empty}</View>
-          : filtering ? (
-            <View style={{ paddingHorizontal: 16, gap: 16 }}>
-              <View style={s.row}>
-                <Text style={[s.h, { flex: 1 }]}>{cat ? catLabel(cat) : 'Αποτελέσματα'}</Text>
-                <Text style={{ color: C.mute, fontWeight: '600', fontSize: 14 }}>{list.length} {list.length === 1 ? 'κατάστημα' : 'καταστήματα'}</Text>
-              </View>
+    <View style={[s.screen, { paddingTop: top + 10 }]}>
+      {!results && <View style={{ flex: 1 }} />}
+      {!results && <Text style={{ color: C.text, fontSize: 30, fontWeight: '800', letterSpacing: -0.8, textAlign: 'center', marginBottom: 22 }}>Τι ψάχνεις;</Text>}
+      <View style={{ paddingHorizontal: results ? 16 : 20, paddingBottom: results ? 12 : 0, zIndex: 2 }}>{bar}</View>
+      {!results ? (
+        <View style={{ flex: 1.4, paddingHorizontal: 20, paddingTop: 22, paddingBottom: TAB_SPACE, gap: 22 }}>
+          <FavRow pad={0} />
+          <CatGrid onPick={(k) => go(() => setCat(k))} />
+          {loaded && list.length > 0 && (
+            <Pressable onPress={() => go(() => setAll(true))} hitSlop={8} style={({ pressed }) => ({ alignSelf: 'center', opacity: pressed ? 0.6 : 1 })}>
+              <Text style={{ color: C.mute, fontWeight: '700', fontSize: 14 }}>Δες όλα τα καταστήματα ›</Text>
+            </Pressable>
+          )}
+          {loaded && list.length === 0 && empty}
+        </View>
+      ) : (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingTop: 4, paddingBottom: TAB_SPACE, gap: 16 }} keyboardShouldPersistTaps="handled">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }} keyboardShouldPersistTaps="handled">
+            {cats.map((c) => {
+              const on = cat === c.key || (c.key === null && !cat);
+              return (
+                <Pressable key={c.key ?? 'all'} onPress={() => go(() => setCat(c.key === cat ? null : c.key))}
+                  style={({ pressed }) => ({ paddingHorizontal: 14, height: 36, borderRadius: 18, justifyContent: 'center', opacity: pressed ? 0.75 : 1,
+                    backgroundColor: on ? C.text : C.soft })}>
+                  <Text style={{ color: on ? C.bg : C.text, fontWeight: '700', fontSize: 14 }}>{c.label}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+          {!loaded ? null : list.length === 0 ? <View style={{ paddingHorizontal: 16 }}>{empty}</View> : (
+            <View style={{ paddingHorizontal: 16, gap: 14 }}>
+              <Text style={{ color: C.mute, fontWeight: '700', fontSize: 14 }}>
+                {list.length} {list.length === 1 ? 'κατάστημα' : 'καταστήματα'}{q.trim() ? ` για «${q.trim()}»` : cat ? ` · ${catLabel(cat)}` : ''}
+              </Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 12, rowGap: 18 }}>
                 {list.map((b) => <MiniCard key={b.id} b={b} width="47.5%" onPress={() => router.push(`/store/${b.id}`)} />)}
               </View>
             </View>
-          ) : sections.map(row)}
-      </ScrollView>
+          )}
+        </ScrollView>
+      )}
+    </View>
+  );
+}
+
+/* Λέξεις που γράφονται και σβήνονται μέσα στην άδεια μπάρα αναζήτησης. */
+const HINTS = ['κομμωτήριο', 'γυμναστήριο', 'κουρείο', 'νύχια', 'pilates', 'μασάζ', 'φυσικοθεραπεία', 'tattoo'];
+function useTypewriter(on: boolean) {
+  const [txt, setTxt] = useState('');
+  useEffect(() => {
+    if (!on) return;
+    let w = 0, n = 0, dir = 1, t: ReturnType<typeof setTimeout>;
+    const step = () => {
+      const word = HINTS[w];
+      n += dir; setTxt(word.slice(0, n));
+      if (dir === 1 && n === word.length) { dir = -1; t = setTimeout(step, 1300); return; }
+      if (dir === -1 && n === 0) { dir = 1; w = (w + 1) % HINTS.length; t = setTimeout(step, 300); return; }
+      t = setTimeout(step, dir === 1 ? 90 : 45);
+    };
+    t = setTimeout(step, 400);
+    return () => clearTimeout(t);
+  }, [on]);
+  return txt;
+}
+
+/* Κέρσορας που αναβοσβήνει δίπλα στις λέξεις της άδειας μπάρας. */
+function Caret() {
+  const o = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const a = Animated.loop(Animated.sequence([Animated.timing(o, { toValue: 0, duration: 1, delay: 500, useNativeDriver: true }),
+      Animated.timing(o, { toValue: 1, duration: 1, delay: 500, useNativeDriver: true })]));
+    a.start(); return () => a.stop();
+  }, []);
+  return <Animated.View style={{ width: 2, height: 20, marginLeft: 2, borderRadius: 1, backgroundColor: C.text, opacity: o }} />;
+}
+
+/* Μπάρα αναζήτησης με το ύφος της κάτω μπάρας (lib/FloatBar): γυάλινο χάπι, και δεξιά «φυσαλίδα» σαν την ενεργή καρτέλα.
+   Με onBack εμφανίζεται αριστερά βελάκι επιστροφής στην άδεια αρχική. */
+function SearchBar({ q, setQ, focus, setFocus, onBack }:
+  { q: string; setQ: (v: string) => void; focus: boolean; setFocus: (v: boolean) => void; onBack?: () => void }) {
+  const light = isLight(C.bg);
+  const hint = useTypewriter(!q && !focus && !onBack);
+  const bubble = { width: 42, height: 42, borderRadius: 21, alignItems: 'center' as const, justifyContent: 'center' as const,
+    backgroundColor: light ? alpha('#d8d8de', 0.55) : alpha('#ffffff', 0.14), borderWidth: 1, borderColor: light ? alpha('#000000', 0.06) : alpha('#ffffff', 0.12) };
+  return (
+    <BlurView intensity={light ? 40 : 30} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
+      style={{ height: 56, borderRadius: 28, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: onBack ? 6 : 20, paddingRight: 6,
+        backgroundColor: light ? alpha('#ffffff', 0.72) : alpha('#30302e', 0.65), borderWidth: 1, borderColor: light ? alpha('#ffffff', 0.9) : alpha('#ffffff', 0.1),
+        boxShadow: `0px 10px 30px ${alpha(C.shade, light ? 0.12 : 0.4)}, inset 0px 1px 0px ${alpha('#ffffff', light ? 0.9 : 0.08)}` }}>
+      {!!onBack && (
+        <Pressable onPress={onBack} accessibilityLabel="Πίσω" style={({ pressed }) => ({ width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
+          <Icon name="back" size={18} color={C.text} />
+        </Pressable>
+      )}
+      <View style={{ flex: 1, justifyContent: 'center' }}>
+        <TextInput value={q} onChangeText={setQ} returnKeyType="search" placeholder={focus ? 'Γράψε τι ψάχνεις' : ''} placeholderTextColor={C.mute}
+          onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} onSubmitEditing={() => Keyboard.dismiss()}
+          style={[{ color: C.text, fontSize: 17, fontWeight: '700', height: 54 }, { outlineStyle: 'none' } as any]} />
+        {!q && !focus && (
+          <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, flexDirection: 'row', alignItems: 'center' }}>
+            {onBack ? <Text style={{ color: C.mute, fontSize: 17, fontWeight: '700' }}>Αναζήτηση</Text> : <>
+              <Text style={{ color: C.mute, fontSize: 17, fontWeight: '700' }} numberOfLines={1}>{hint}</Text>
+              <Caret />
+            </>}
+          </View>
+        )}
+      </View>
+      {q ? (
+        <Pressable onPress={() => setQ('')} accessibilityLabel="Καθαρισμός" style={({ pressed }) => [bubble, { opacity: pressed ? 0.7 : 1 }]}>
+          <Icon name="close" size={15} color={C.text} />
+        </Pressable>
+      ) : (
+        <View style={bubble}><Icon name="search" size={18} color={C.text} /></View>
+      )}
+    </BlurView>
+  );
+}
+
+/* Οι 8 κατηγορίες της άδειας αρχικής, σε πλέγμα 4×2 με τα 3D εικονίδια. */
+const GRID_CATS = ['hair', 'gym', 'barber', 'nails', 'pilates_yoga', 'massage_spa', 'physio', 'beauty'];
+const SHORT: Record<string, string> = { pilates_yoga: 'Pilates', massage_spa: 'Μασάζ', physio: 'Φυσικοθ.' };
+function CatGrid({ onPick }: { onPick: (k: string) => void }) {
+  const light = isLight(C.bg);
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 14 }}>
+      {GRID_CATS.map((k) => {
+        const art = CAT_ART[k] ?? CAT_ART.other;
+        return (
+          <Pressable key={k} onPress={() => onPick(k)} style={({ pressed }) => ({ width: '25%', alignItems: 'center', gap: 6, opacity: pressed ? 0.7 : 1 })}>
+            <View style={{ width: 68, height: 68, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: light ? art.bg : art.bgDark }}>
+              <Image source={art.img} style={{ width: 46, height: 46 }} resizeMode="contain" />
+            </View>
+            <Text style={{ color: C.text, fontSize: 12, fontWeight: '700' }} numberOfLines={1}>{SHORT[k] ?? catLabel(k)}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
