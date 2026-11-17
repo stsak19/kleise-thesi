@@ -1,4 +1,4 @@
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 import { Text } from '../Txt';
 import { C, Icon, catEmoji, price, shadow } from '../ui';
 import { Photo, Scrim } from '../Photo';
@@ -23,7 +23,6 @@ export function DeskPreview({ biz, svcs, hours }: { biz: any; svcs: Svc[]; hours
   const where = [biz.city, biz.address].filter(Boolean).join(' · ');
   const all = svcs.filter((x) => x.name.trim());
   const list = all.slice(0, 6);
-  const photos: string[] = Array.isArray(biz.photos) ? biz.photos.slice(0, 4) : [];
   const open = WEEK.filter((d) => hours.some((h) => h.svc === null && h.weekday === d));
 
   return (
@@ -58,7 +57,7 @@ export function DeskPreview({ biz, svcs, hours }: { biz: any; svcs: Svc[]; hours
           </View>
         </View>
 
-        {/* σώμα: υπηρεσίες αριστερά, φωτογραφίες + κράτηση + ωράριο δεξιά */}
+        {/* σώμα: υπηρεσίες αριστερά, κράτηση + ωράριο δεξιά */}
         <View style={{ flexDirection: 'row', gap: 20, padding: 22 }}>
           <View style={{ flex: 1, minWidth: 0, gap: 9 }}>
             {!!biz.description?.trim() && <Text style={{ color: C.mute, fontSize: 13, lineHeight: 19, marginBottom: 4 }} numberOfLines={3}>{biz.description.trim()}</Text>}
@@ -79,15 +78,6 @@ export function DeskPreview({ biz, svcs, hours }: { biz: any; svcs: Svc[]; hours
             {all.length > list.length && <Text style={{ color: C.mute, fontSize: 12, fontWeight: '600' }}>και {all.length - list.length} ακόμα</Text>}
           </View>
           <View style={{ width: '36%', gap: 10 }}>
-            {photos.length > 0 && (
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                {photos.map((u) => (
-                  <View key={u} style={{ width: '48%', height: 68, borderRadius: 10, overflow: 'hidden', backgroundColor: C.card }}>
-                    <Image source={{ uri: u }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                  </View>
-                ))}
-              </View>
-            )}
             <View style={{ height: 42, borderRadius: 21, backgroundColor: C.text, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ color: C.bg, fontWeight: '800', fontSize: 14 }}>{k.mode === 'class' ? 'Δες το πρόγραμμα' : scr.cta}</Text>
             </View>

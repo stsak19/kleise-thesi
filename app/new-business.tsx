@@ -178,7 +178,7 @@ export default function NewBusiness() {
     type: { title: 'Τι επιχείρηση έχεις;', sub: 'Με βάση αυτό σου ετοιμάζουμε υπηρεσίες, ωράριο και εμφάνιση. Όλα αλλάζουν μετά.' },
     name: { title: 'Πώς λέγεται;', sub: 'Έτσι θα σε βρίσκουν οι πελάτες στην αναζήτηση.' },
     place: { title: 'Πού σε βρίσκουμε;', sub: 'Η πόλη χρειάζεται για την αναζήτηση. Τα υπόλοιπα βοηθούν τον πελάτη να έρθει.' },
-    look: { title: 'Δώσε της πρόσωπο', sub: 'Ανέβασε εξώφυλλο, λογότυπο και φωτογραφίες του χώρου. Μπορείς να τα βάλεις και αργότερα.' },
+    look: { title: 'Δώσε της πρόσωπο', sub: 'Ανέβασε εξώφυλλο και φωτογραφία προφίλ. Μπορείς να τα βάλεις και αργότερα.' },
     services: { title: `${scr.services}`, sub: `${svcKind(cat).badge}. Σου βάλαμε μερικές για αρχή. Πάτα μία για να την αλλάξεις ή να τη σβήσεις, ή πρόσθεσε καινούργια.` },
     hours: { title: 'Πότε είσαι ανοιχτά;', sub: 'Άνοιξε ή κλείσε κάθε μέρα. Για μεσημεριανό κενό πάτα «+ Διάλειμμα».' },
     rules: { title: 'Πώς κλείνουν θέση;', sub: 'Λίγοι κανόνες για τις κρατήσεις σου. Οι προτάσεις ταιριάζουν στο είδος σου.' },
@@ -284,7 +284,7 @@ export default function NewBusiness() {
       <Text style={{ color: C.mute, fontSize: wide ? 15.5 : 16, lineHeight: 23 }}>{sub}</Text>
     </View>
   );
-  const skip = optional && !b.cover_url && !b.logo_url && !b.photos?.length && (
+  const skip = optional && !b.cover_url && !b.logo_url && (
     <Pressable onPress={() => go(i + 1)} hitSlop={8} style={({ pressed }) => ({ alignSelf: 'center', opacity: pressed ? 0.6 : 1, paddingHorizontal: wide ? 14 : 0 })}>
       <Text style={{ color: C.mute, fontWeight: '700', fontSize: 15 }}>Θα τις βάλω αργότερα</Text>
     </Pressable>

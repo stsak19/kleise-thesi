@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { Text } from '../Txt';
 import { say } from '../alert';
 import { pickAndUpload } from '../upload';
-import { PhotosEditor } from './Photos';
 import { sb } from '../supabase';
 import { useAuth } from '../auth';
 import { LAYOUTS, styleOf } from '../presets';
@@ -139,7 +138,6 @@ function Details({ st }: { st: St }) {
           </View>
         </View>
       </Card>
-      <Card><PhotosEditor uid={uid} b={b} setB={setB} galleryOnly /></Card>
     </View>
   );
 }

@@ -2,8 +2,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { sb } from './supabase';
 
 /* Διαλέγεις φωτογραφία από τη συσκευή και ανεβαίνει στο Supabase Storage (bucket business-media).
-   logo = τετράγωνο, cover = οριζόντιο εξώφυλλο, photo = φωτογραφία του χώρου (χωρίς περικοπή). */
-export type PhotoKind = 'logo' | 'cover' | 'photo';
+   logo = τετράγωνη φωτογραφία προφίλ, cover = οριζόντιο εξώφυλλο. */
+export type PhotoKind = 'logo' | 'cover';
 
 async function put(uid: string, kind: PhotoKind, a: ImagePicker.ImagePickerAsset) {
   const type = a.mimeType || 'image/jpeg';
@@ -18,18 +18,8 @@ async function put(uid: string, kind: PhotoKind, a: ImagePicker.ImagePickerAsset
 /* Μία φωτογραφία. Επιστρέφει το δημόσιο URL ή null αν ακυρώθηκε. */
 export async function pickAndUpload(uid: string, kind: PhotoKind): Promise<string | null> {
   const r = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ['images'], allowsEditing: kind !== 'photo', aspect: kind === 'logo' ? [1, 1] : [16, 9], quality: 0.7,
+    mediaTypes: ['images'], allowsEditing: true, aspect: kind === 'logo' ? [1, 1] : [16, 9], quality: 0.7,
   });
   if (r.canceled || !r.assets?.length) return null;
   return put(uid, kind, r.assets[0]);
-}
-
-/* Πολλές φωτογραφίες του χώρου μαζί (έως max). Επιστρέφει τα URL όσων ανέβηκαν. */
-export async function pickAndUploadMany(uid: string, max: number): Promise<string[]> {
-  if (max <= 0) return [];
-  const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: true, selectionLimit: max, quality: 0.7 });
-  if (r.canceled || !r.assets?.length) return [];
-  const out: string[] = [];
-  for (const a of r.assets.slice(0, max)) out.push(await put(uid, 'photo', a));
-  return out;
 }

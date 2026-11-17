@@ -12,7 +12,6 @@ import { StorePacks } from '../../../../lib/store/Packs';
 import { ScheduleSheet } from '../../../../lib/store/Schedule';
 import { screenFor } from '../../../../lib/bizscreen';
 import { useWide } from '../../../../lib/wide';
-import { PhotoViewer, StorePhotos } from '../../../../lib/owner/Photos';
 
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
 const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
@@ -32,7 +31,6 @@ export default function StoreHome() {
   const wide = useWide();
   const top = useSafeAreaInsets().top;
   const [sched, setSched] = useState(false);
-  const [shown, setShown] = useState<number | null>(null); // ανοιχτή φωτογραφία του χώρου
   const biz = S.biz ?? {};
   const color = S.st?.color ?? C.accent;
   const scr = screenFor(biz.category);
@@ -83,7 +81,6 @@ export default function StoreHome() {
       {!!biz.address && <Chip text="📍 Οδηγίες" onPress={directions} />}
     </View>
   );
-  const gallery = <StorePhotos photos={biz.photos} wide={wide} onOpen={setShown} />;
   const about = !!biz.description && <Text style={{ color: C.mute, fontSize: 15, lineHeight: 22 }}>{biz.description}</Text>;
 
   const services = S.services.length > 0 && (
@@ -162,7 +159,7 @@ export default function StoreHome() {
     </View>
   );
 
-  const sheets = <><ScheduleSheet open={sched} onClose={() => setSched(false)} /><BookSheet /><PhotoViewer photos={biz.photos ?? []} index={shown} onClose={() => setShown(null)} /></>;
+  const sheets = <><ScheduleSheet open={sched} onClose={() => setSched(false)} /><BookSheet /></>;
 
   /* ---------- υπολογιστής ---------- */
   if (wide) return (
@@ -178,7 +175,6 @@ export default function StoreHome() {
             {chips}
             <Notice />
             {about}
-            {gallery}
             {services}
             <StorePacks />
             {team}
@@ -217,7 +213,6 @@ export default function StoreHome() {
           <Notice />
           {!classes && <UsualCard />}
           {about}
-          {gallery}
           {services}
           <StorePacks />
           {rules}
