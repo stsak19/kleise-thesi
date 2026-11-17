@@ -18,11 +18,9 @@ export default function Profile() {
   const top = useSafeAreaInsets().top;
   const person = usePerson();
   const wide = useWide();
-  const { hasBiz, upcoming } = useProfileExtras(person.uid);
+  const { hasBiz } = useProfileExtras(person.uid);
   const me = () => router.push('/me');
   const switchTo = useSwitchTo();
-  const upSub = upcoming == null ? undefined : upcoming === 0 ? 'Κανένα επερχόμενο ραντεβού'
-    : `${upcoming} ${upcoming === 1 ? 'επερχόμενο ραντεβού' : 'επερχόμενα ραντεβού'}`;
 
   // Υπολογιστής: σελίδα λογαριασμού με ενότητες αριστερά και φόρμα δεξιά (lib/profile/Desk).
   if (wide) return <DeskProfile />;
@@ -40,7 +38,6 @@ export default function Profile() {
       <Section title="Λογαριασμός" />
       <Group>
         <Row icon="user" title="Τα στοιχεία μου" sub={person.p.phone ? `Κινητό ${person.p.phone}` : 'Πρόσθεσε το κινητό σου'} onPress={me} />
-        <Row icon="calendar" title="Οι κρατήσεις μου" sub={upSub} onPress={() => router.navigate('/bookings')} />
         <Row icon="pack" title="Τα πακέτα μου" sub="Επισκέψεις που σου έμειναν σε κάθε κατάστημα" onPress={() => router.navigate('/packs')} last />
       </Group>
 
