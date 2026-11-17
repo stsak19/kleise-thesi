@@ -6,20 +6,10 @@ import { type Biz, type Booking, type BookingsData, countdown } from './data';
 import { BookingRow } from './cards';
 import { BizLogo, CancelBtn } from './parts';
 
-/* Τα επερχόμενα ραντεβού: το επόμενο μεγάλο, με τη φωτογραφία του καταστήματος και αντίστροφη μέτρηση,
-   τα υπόλοιπα σε κάρτες κράτησης (οι ίδιες με το κατάστημα, lib/bookings/cards). */
+/* Τα επερχόμενα ραντεβού: όλα σε απλές κάρτες κράτησης, η πιο κοντινή πρώτη (ζήτημα χρήστη 2026-11-17: πιο απλό, χωρίς τη μεγάλη κάρτα).
+   Οι κάρτες είναι ίδιες με του καταστήματος (lib/bookings/cards). Το Hero μένει για τη σελίδα του καταστήματος. */
 export default function Upcoming({ D }: { D: BookingsData }) {
-  const [next, ...rest] = D.upcoming;
-  return <>
-    <Hero b={next} biz={D.biz[next.business_id]} color={D.color(next)} onOpen={() => D.open(next)} onCancel={() => D.cancel(next)} />
-    {rest.length > 0 && <>
-      <View style={[s.row, { marginTop: 10 }]}>
-        <Text style={[s.h, { flex: 1 }]}>Προγραμματισμένα</Text>
-        <Text style={{ color: C.mute, fontWeight: '600' }}>{rest.length}</Text>
-      </View>
-      {rest.map((b) => <BookingRow key={b.id} b={b} color={D.color(b)} store={b.business} onOpen={() => D.open(b)} onCancel={() => D.cancel(b)} />)}
-    </>}
-  </>;
+  return <>{D.upcoming.map((b) => <BookingRow key={b.id} b={b} color={D.color(b)} store={b.business} onOpen={() => D.open(b)} onCancel={() => D.cancel(b)} />)}</>;
 }
 
 /* Η επόμενη κράτηση σε μεγάλη κάρτα. Μέσα στο κατάστημα δεν ανοίγει πουθενά (onOpen κενό). */
