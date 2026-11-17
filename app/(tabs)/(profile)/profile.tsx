@@ -6,7 +6,7 @@ import { signOut, usePerson, useProfileExtras } from '../../../lib/profile/data'
 import { Initials } from '../../../lib/profile/parts';
 import { AppVersion, modeLabel } from '../../../lib/profile/Settings';
 import { useSwitchTo } from '../../../lib/SwitchMode';
-import { Btn, C, Group, Row, Section, T, s } from '../../../lib/ui';
+import { C, Group, Row, Section, T, s } from '../../../lib/ui';
 import { useWide } from '../../../lib/wide';
 import { DeskProfile } from '../../../lib/profile/Desk';
 
@@ -32,7 +32,6 @@ export default function Profile() {
         <Initials text={person.initials} size={92} />
         <Text style={{ color: C.text, fontWeight: '900', fontSize: 24, letterSpacing: -0.5, marginTop: 8 }} numberOfLines={1}>{person.name || 'Χωρίς όνομα'}</Text>
         <T mute style={{ fontSize: 14 }}>{person.email}</T>
-        <Btn kind="tint" size="sm" title="Επεξεργασία" onPress={me} style={{ marginTop: 8 }} />
       </View>
 
       <Section title="Λογαριασμός" />
