@@ -40,7 +40,8 @@ export default function Profile() {
       <Section title="Λογαριασμός" />
       <Group>
         <Row icon="user" title="Τα στοιχεία μου" sub={person.p.phone ? `Κινητό ${person.p.phone}` : 'Πρόσθεσε το κινητό σου'} onPress={me} />
-        <Row icon="calendar" title="Οι κρατήσεις μου" sub={upSub} onPress={() => router.navigate('/bookings')} last />
+        <Row icon="calendar" title="Οι κρατήσεις μου" sub={upSub} onPress={() => router.navigate('/bookings')} />
+        <Row icon="pack" title="Τα πακέτα μου" sub="Επισκέψεις που σου έμειναν σε κάθε κατάστημα" onPress={() => router.navigate('/packs')} last />
       </Group>
 
       <Section title="Για επιχειρήσεις" />

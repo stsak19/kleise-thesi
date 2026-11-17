@@ -5,21 +5,21 @@ import { useWide } from '../../lib/wide';
 import { TopBar } from '../../lib/client/desk';
 import { BizChooser, useOpenMyBiz } from '../../lib/MyBiz';
 
-/* Η κάτω μπάρα του πελάτη: Πακέτα · Αρχική (στη μέση) · Κρατήσεις. Η εφαρμογή ανοίγει στην Αρχική. Πάντα ορατή, και μέσα σε ένα κατάστημα.
+/* Η κάτω μπάρα του πελάτη: Αρχική · Κρατήσεις · Προφίλ (τα Πακέτα ανοίγουν από το Προφίλ). Η εφαρμογή ανοίγει στην Αρχική. Πάντα ορατή, και μέσα σε ένα κατάστημα.
    Υπολογιστής (φαρδιά οθόνη): πάνω μπάρα όπως σε site, με αναζήτηση στη μέση, Αρχική · Κρατήσεις · Πακέτα και Σύνδεση/προφίλ δεξιά (lib/client/desk).
    Όποιος έχει επιχείρηση βλέπει στο τέλος της κάτω μπάρας το κουμπί «Επιχείρηση» (με 2+ πρώτα διαλέγει)· στον υπολογιστή «Η επιχείρησή μου» πάνω δεξιά.
    Η λειτουργία επιχείρησης έχει τη δική της μπάρα στο app/(biz)/(hub)/_layout.tsx. */
 // Ανοίγει πάντα στην Αρχική, παρότι δεν είναι πρώτη στη μπάρα.
 export const unstable_settings = { initialRouteName: '(search)' };
 
+// Κινητό: χωρίς «Πακέτα» στη μπάρα (ζήτημα χρήστη 2026-11-17)· ανοίγουν από Προφίλ → «Τα πακέτα μου» (/packs).
 const ICONS: TabItems = {
   '(search)': { icon: 'home', label: 'Αρχική' },
   bookings: { icon: 'calendar', label: 'Κρατήσεις' },
-  packs: { icon: 'pack', label: 'Πακέτα' },
   '(profile)': { icon: 'user', label: 'Προφίλ' },
 };
 // Στην πάνω μπάρα το προφίλ είναι ο κύκλος με τα αρχικά, δεξιά.
-const TOP: TabItems = { '(search)': ICONS['(search)'], bookings: ICONS.bookings, packs: ICONS.packs };
+const TOP: TabItems = { '(search)': ICONS['(search)'], bookings: ICONS.bookings, packs: { icon: 'pack', label: 'Πακέτα' } };
 
 export default function TabsLayout() {
   const wide = useWide();
