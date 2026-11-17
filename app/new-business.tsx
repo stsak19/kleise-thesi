@@ -69,7 +69,7 @@ export default function NewBusiness() {
   // Αν ο χρήστης έχει ήδη κατάστημα, ο οδηγός ξεκινά με τα στοιχεία του (και δεν φτιάχνει δεύτερο).
   useEffect(() => { loadBusiness(uid).then((r) => {
     if (!r) return;
-    setB(r.b); setSvcs(r.svcs); setHours(r.hours);
+    setB(r.b); setSvcs(r.svcs); setHours(r.hours); setFar(STEPS.length - 1); // υπάρχον κατάστημα: όλα συμπληρωμένα
   }); }, [uid]);
 
   // Ήπια μετάβαση ανάμεσα στα βήματα
@@ -122,6 +122,15 @@ export default function NewBusiness() {
     else if (cancel && svcEdit.before) setSvcs((list) => list.map((x) => (x.key === svcEdit.key ? svcEdit.before! : x)));
     else if (!cancel && editing && !editing.name.trim()) dropSvc(svcEdit.key);
     dir.current = -1; setSvcEdit(null);
+  };
+
+  /* Η προεπισκόπηση δείχνει μόνο ό,τι έχει ήδη συμπληρώσει: τα επόμενα βήματα (π.χ. οι έτοιμες υπηρεσίες του είδους) μένουν κρυφά ως να τα φτάσει. */
+  const seen = (k: Step) => far > STEPS.indexOf(k) || i === STEPS.indexOf(k) || far === STEPS.length - 1;
+  const pv = {
+    biz: { ...b, ...(!seen('place') && { city: '', address: '', phone: '' }), ...(!seen('look') && { cover_url: null, logo_url: null }) },
+    svcs: seen('services') ? svcs : [],
+    hours: seen('hours') ? hours : [],
+    rules: seen('rules'),
   };
 
   const pickType = (k: string) => {
@@ -365,7 +374,7 @@ export default function NewBusiness() {
         {side && (
           <View style={{ flex: 1, minWidth: 0, backgroundColor: C.soft }}>
             <ScrollView contentContainerStyle={{ padding: 44, paddingTop: 40, flexGrow: 1 }}>
-              <DeskPreview biz={b} svcs={svcs} hours={hours} />
+              <DeskPreview biz={pv.biz} svcs={pv.svcs} hours={pv.hours} rules={pv.rules} />
             </ScrollView>
           </View>
         )}
@@ -407,7 +416,7 @@ export default function NewBusiness() {
         {skip}
       </View>
 
-      {peek && <PreviewSheet biz={b} svcs={svcs} hours={hours} onClose={() => setPeek(false)} />}
+      {peek && <PreviewSheet biz={pv.biz} svcs={pv.svcs} hours={pv.hours} rules={pv.rules} onClose={() => setPeek(false)} />}
     </KeyboardAvoidingView>
   );
 }

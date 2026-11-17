@@ -17,7 +17,7 @@ const dur = (m: number) => (m >= 60 && m % 60 === 0 ? `${m / 60} ${m === 60 ? '�
 const cents = (p: string) => (p ? Math.round(parseFloat(p.replace(',', '.')) * 100) : null);
 const DAY = ['Κυρ', 'Δευ', 'Τρί', 'Τετ', 'Πέμ', 'Παρ', 'Σάβ'];
 
-export function DeskPreview({ biz, svcs, hours }: { biz: any; svcs: Svc[]; hours: Hours }) {
+export function DeskPreview({ biz, svcs, hours }: { biz: any; svcs: Svc[]; hours: Hours; rules?: boolean }) {
   const cat = biz.category ?? 'other';
   const scr = screenFor(cat);
   const k = svcKind(cat);
@@ -63,8 +63,7 @@ export function DeskPreview({ biz, svcs, hours }: { biz: any; svcs: Svc[]; hours
         <View style={{ flexDirection: 'row', gap: 20, padding: 22 }}>
           <View style={{ flex: 1, minWidth: 0, gap: 9 }}>
             {!!biz.description?.trim() && <Text style={{ color: C.mute, fontSize: 13, lineHeight: 19, marginBottom: 4 }} numberOfLines={3}>{biz.description.trim()}</Text>}
-            <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{k.mode === 'class' ? 'Μαθήματα' : scr.services}</Text>
-            {list.length === 0 && <Text style={{ color: C.mute, fontSize: 13 }}>Εδώ θα φαίνονται οι {k.many} σου.</Text>}
+            {list.length > 0 && <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{k.mode === 'class' ? 'Μαθήματα' : scr.services}</Text>}
             {list.map((x) => {
               const c = cents(x.price);
               return (
@@ -117,7 +116,7 @@ export function PreviewPill({ onPress }: { onPress: () => void }) {
 
 /* Πατημένο: ανεβαίνει από κάτω η σελίδα όπως τη βλέπει ο πελάτης στο κινητό (app/store/[id]/(tabs)/index.tsx):
    εξώφυλλο, όνομα, κουμπάκια, υπηρεσίες. Το ⓘ πάνω δεξιά δείχνει τις πληροφορίες, όπως και στην πραγματική σελίδα. */
-export function PreviewSheet({ biz, svcs, hours, onClose }: { biz: any; svcs: Svc[]; hours: Hours; onClose: () => void }) {
+export function PreviewSheet({ biz, svcs, hours, rules, onClose }: { biz: any; svcs: Svc[]; hours: Hours; rules: boolean; onClose: () => void }) {
   const [info, setInfo] = useState(false);
   const cat = biz.category ?? 'other';
   const scr = screenFor(cat);
@@ -168,8 +167,7 @@ export function PreviewSheet({ biz, svcs, hours, onClose }: { biz: any; svcs: Sv
               {!!phone && chip('📞 Κλήση')}
               {!!biz.address?.trim() && chip('📍 Οδηγίες')}
             </View>
-            {head(k.mode === 'class' ? 'Μαθήματα' : 'Υπηρεσίες και τιμές')}
-            {all.length === 0 && <Text style={{ color: C.mute, fontSize: 14 }}>Εδώ θα φαίνονται οι {k.many} σου.</Text>}
+            {all.length > 0 && head(k.mode === 'class' ? 'Μαθήματα' : 'Υπηρεσίες και τιμές')}
             {all.map((x) => {
               const c = cents(x.price);
               return (
@@ -197,11 +195,16 @@ export function PreviewSheet({ biz, svcs, hours, onClose }: { biz: any; svcs: Sv
             <Text style={{ color: C.mute, fontWeight: '700', fontSize: 14 }}>Πληροφορίες · πίσω στη σελίδα</Text>
           </Pressable>
           {!!biz.description?.trim() && <Text style={{ color: C.mute, fontSize: 15, lineHeight: 22 }}>{biz.description.trim()}</Text>}
-          <View style={{ borderRadius: 18, backgroundColor: C.card, overflow: 'hidden' }}>
-            {!!biz.address?.trim() && row('pin', biz.address.trim(), biz.city?.trim() ? `${biz.city.trim()} · Οδηγίες` : 'Οδηγίες')}
-            {!!phone && row('phone', phone, 'Κλήση')}
-            {row('clock', 'Κανόνες κρατήσεων', [cancel ? `Δωρεάν ακύρωση έως ${hrsTxt(cancel)} πριν.` : '', `Κρατήσεις έως ${biz.max_days_ahead ?? 14} μέρες μπροστά.`].filter(Boolean).join(' '), true)}
-          </View>
+          {(!!biz.address?.trim() || !!phone || rules) && (
+            <View style={{ borderRadius: 18, backgroundColor: C.card, overflow: 'hidden' }}>
+              {!!biz.address?.trim() && row('pin', biz.address.trim(), biz.city?.trim() ? `${biz.city.trim()} · Οδηγίες` : 'Οδηγίες', !phone && !rules)}
+              {!!phone && row('phone', phone, 'Κλήση', !rules)}
+              {rules && row('clock', 'Κανόνες κρατήσεων', [cancel ? `Δωρεάν ακύρωση έως ${hrsTxt(cancel)} πριν.` : '', `Κρατήσεις έως ${biz.max_days_ahead ?? 14} μέρες μπροστά.`].filter(Boolean).join(' '), true)}
+            </View>
+          )}
+          {!biz.description?.trim() && !biz.address?.trim() && !phone && !rules && !general.length && (
+            <Text style={{ color: C.mute, fontSize: 14, lineHeight: 21 }}>Εδώ θα φαίνονται διεύθυνση, τηλέφωνο, κανόνες και ωράριο, όταν τα συμπληρώσεις.</Text>
+          )}
           {general.length > 0 && head('Ωράριο')}
           {general.length > 0 && (
             <View style={{ borderRadius: 18, backgroundColor: C.card, overflow: 'hidden' }}>
