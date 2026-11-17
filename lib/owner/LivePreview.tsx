@@ -163,6 +163,7 @@ export function PreviewSheet({ biz, svcs, hours, rules, onClose }: { biz: any; s
                 {[scr.kicker, [biz.address, biz.city].filter((v: string) => v?.trim()).join(', ')].filter(Boolean).join(' · ')}
               </Text>
             </View>
+            {!!biz.description?.trim() && <Text style={{ color: C.mute, fontSize: 15, lineHeight: 22 }}>{biz.description.trim()}</Text>}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {!!phone && chip('📞 Κλήση')}
               {!!biz.address?.trim() && chip('📍 Οδηγίες')}
@@ -194,7 +195,6 @@ export function PreviewSheet({ biz, svcs, hours, rules, onClose }: { biz: any; s
             <Icon name="back" size={16} color={C.mute} />
             <Text style={{ color: C.mute, fontWeight: '700', fontSize: 14 }}>Πληροφορίες · πίσω στη σελίδα</Text>
           </Pressable>
-          {!!biz.description?.trim() && <Text style={{ color: C.mute, fontSize: 15, lineHeight: 22 }}>{biz.description.trim()}</Text>}
           {(!!biz.address?.trim() || !!phone || rules) && (
             <View style={{ borderRadius: 18, backgroundColor: C.card, overflow: 'hidden' }}>
               {!!biz.address?.trim() && row('pin', biz.address.trim(), biz.city?.trim() ? `${biz.city.trim()} · Οδηγίες` : 'Οδηγίες', !phone && !rules)}
@@ -202,7 +202,7 @@ export function PreviewSheet({ biz, svcs, hours, rules, onClose }: { biz: any; s
               {rules && row('clock', 'Κανόνες κρατήσεων', [cancel ? `Δωρεάν ακύρωση έως ${hrsTxt(cancel)} πριν.` : '', `Κρατήσεις έως ${biz.max_days_ahead ?? 14} μέρες μπροστά.`].filter(Boolean).join(' '), true)}
             </View>
           )}
-          {!biz.description?.trim() && !biz.address?.trim() && !phone && !rules && !general.length && (
+          {!biz.address?.trim() && !phone && !rules && !general.length && (
             <Text style={{ color: C.mute, fontSize: 14, lineHeight: 21 }}>Εδώ θα φαίνονται διεύθυνση, τηλέφωνο, κανόνες και ωράριο, όταν τα συμπληρώσεις.</Text>
           )}
           {general.length > 0 && head('Ωράριο')}

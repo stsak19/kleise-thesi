@@ -20,7 +20,7 @@ const Head = ({ t }: { t: string }) => <Text style={{ color: C.text, fontWeight:
 const hm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
 /* Η αρχική του καταστήματος: μπαίνεις και βλέπεις πρώτα τα στοιχεία του (φωτογραφία, όνομα, αν είναι ανοιχτά, κλήση,
-   οδηγίες, υπηρεσίες με τιμές, πακέτα). Στο κινητό περιγραφή, επικοινωνία, κανόνες, ωράριο, ομάδα και ανακοινώσεις
+   οδηγίες, υπηρεσίες με τιμές, πακέτα). Στο κινητό η περιγραφή μένει κάτω από το όνομα· επικοινωνία, κανόνες, ωράριο, ομάδα και ανακοινώσεις
    είναι στο ⓘ πάνω δεξιά (φύλλο «Πληροφορίες»)· στον υπολογιστή στη σελίδα, όπως πριν.
    Ένα κουμπί ανά είδος ανοίγει το παράθυρο της κράτησης:
    - ραντεβού με ομάδα/πολλές υπηρεσίες (κομμωτήριο κ.λπ.): «Διάλεξε υπηρεσία» → βήματα (lib/store/BookUI · BookSheet)
@@ -217,6 +217,7 @@ export default function StoreHome() {
         {/* Η σελίδα κρατά μόνο ό,τι χρειάζεται για να κλείσεις· τα υπόλοιπα είναι στο ⓘ */}
         <View style={{ paddingHorizontal: 20, paddingTop: 18, gap: 12 }}>
           {title}
+          {about}
           {chips}
           <Notice />
           {!classes && <UsualCard />}
@@ -233,7 +234,6 @@ export default function StoreHome() {
       {info && (
         <DragSheet title="Πληροφορίες" sub={biz.name ?? ''} onClose={() => setInfo(false)}>
           <View style={{ paddingHorizontal: 20, gap: 12 }}>
-            {about}
             {rules}
             {hours}
             {team}
