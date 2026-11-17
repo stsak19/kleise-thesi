@@ -24,7 +24,7 @@ export function useMyBookings() {
     const [m, n] = await Promise.all([rpc('my_bookings'), sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(20)]);
     setD(m); setNotes(n.data ?? []); setLoading(false);
     sb.from('notifications').update({ read: true }).eq('read', false).then(() => {});
-    const ids = [...new Set([...((m?.bookings ?? []) as any[]), ...((m?.memberships ?? []) as any[])].map((b) => b.business_id).filter(Boolean))];
+    const ids = [...new Set([...((m?.bookings ?? []) as any[]), ...((m?.memberships ?? []) as any[]), ...((m?.pack_history ?? []) as any[])].map((b) => b.business_id).filter(Boolean))];
     if (ids.length) {
       const { data } = await sb.from('businesses').select('*').in('id', ids);
       setBiz(Object.fromEntries((data ?? []).map((x: any) => [x.id, { ...x, color: styleOf(x).color }])));
@@ -38,6 +38,8 @@ export function useMyBookings() {
   const past = all.filter((b) => !(b.status === 'booked' && b.date >= today)).reverse();
   const waitlist: any[] = d?.waitlist ?? [];
   const packs: any[] = (d?.memberships ?? []).filter((m: any) => m.expires || m.status === 'pending' || m.pending_package);
+  // Παλιά πακέτα που αντικαταστάθηκαν από νέο (013_pack_history.sql· κενό αν δεν έχει τρέξει ακόμα).
+  const packHistory: any[] = d?.pack_history ?? [];
 
   const color = (b: { business_id?: string }) => (b.business_id && biz[b.business_id]?.color) || C.tint;
   const open = (b: { business_id?: string }) => { if (b.business_id) router.push(`/store/${b.business_id}`); };
@@ -49,7 +51,7 @@ export function useMyBookings() {
   const leave = (w: { service_id: string; date: string; time: string }) => rpc('leave_waitlist', { p_service: w.service_id, p_date: w.date, p_time: String(w.time).slice(0, 5) + ':00' })
     .then((r: any) => { if (r && r.ok === false) say(r.error); load(); });
 
-  return { ready: !!d, leave, loading, load, notes, biz, upcoming, past, waitlist, packs, color, open, cancel, find: () => router.navigate('/') };
+  return { ready: !!d, leave, loading, load, notes, biz, upcoming, past, waitlist, packs, packHistory, color, open, cancel, find: () => router.navigate('/') };
 }
 export type BookingsData = ReturnType<typeof useMyBookings>;
 
