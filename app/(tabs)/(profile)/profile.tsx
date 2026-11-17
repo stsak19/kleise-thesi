@@ -5,14 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { signOut, usePerson, useProfileExtras } from '../../../lib/profile/data';
 import { Initials } from '../../../lib/profile/parts';
 import { modeLabel } from '../../../lib/profile/Settings';
-import { SwitchPill, useSwitchTo } from '../../../lib/SwitchMode';
-import { Btn, C, Group, Row, Section, T, TAB_SPACE, s } from '../../../lib/ui';
+import { useSwitchTo } from '../../../lib/SwitchMode';
+import { Btn, C, Group, Row, Section, T, s } from '../../../lib/ui';
 import { useWide } from '../../../lib/wide';
 import { DeskProfile } from '../../../lib/profile/Desk';
 
 /* Προφίλ: ταυτότητα στο κέντρο και καθαρές ομάδες, όπως οι ρυθμίσεις του κινητού.
    Τα στοιχεία αλλάζουν στο /me, οι ρυθμίσεις της εφαρμογής (εμφάνιση κ.λπ.) στο /settings.
-   Όποιος έχει επιχείρηση βλέπει το πλωτό «Μετάβαση στην επιχείρηση» (όπως στο Airbnb). */
+   Όποιος έχει επιχείρηση μπαίνει σε αυτή από το κουμπί «Επιχείρηση» της κάτω μπάρας (lib/MyBiz). */
 export default function Profile() {
   const router = useRouter();
   const top = useSafeAreaInsets().top;
@@ -29,7 +29,7 @@ export default function Profile() {
 
   return (
     <View style={s.screen}>
-    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: top + 24 }, hasBiz && { paddingBottom: TAB_SPACE + 60 }]}>
+    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: top + 24 }]}>
       <View style={{ alignItems: 'center', gap: 6, marginBottom: 8 }}>
         <Initials text={person.initials} size={92} />
         <Text style={{ color: C.text, fontWeight: '900', fontSize: 24, letterSpacing: -0.5, marginTop: 8 }} numberOfLines={1}>{person.name || 'Χωρίς όνομα'}</Text>
@@ -57,7 +57,6 @@ export default function Profile() {
         <Group><Row title="Αποσύνδεση" danger last onPress={signOut} right={<View />} /></Group>
       </View>
     </ScrollView>
-    {hasBiz && <SwitchPill to="biz" />}
     </View>
   );
 }

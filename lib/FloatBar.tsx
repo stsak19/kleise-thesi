@@ -16,7 +16,10 @@ export type TabItems = Record<string, { icon: IconName; label: string }>;
 /* labels: η ενεργή καρτέλα δείχνει και τη λέξη της (π.χ. μέσα σε κατάστημα). Τότε η μπάρα έχει δυναμικό πλάτος:
    η ενεργή καρτέλα «ανοίγει» με ελατήριο, οι άλλες κλείνουν, και η σταγόνα ακολουθεί σε θέση και μέγεθος. */
 const ICON = 40, PAD = 6;
-export function FloatBar({ items, state, navigateToTab, labels }: { items: TabItems; state: { index: number; routes: { key: string; name: string }[] }; navigateToTab: (key: string) => void; labels?: boolean }) {
+/* extra: ένα κουμπί-ενέργεια στο τέλος της μπάρας, μετά από λεπτή γραμμή (π.χ. «Επιχείρηση» / «Πελάτης»).
+   Δεν είναι καρτέλα: δεν παίρνει τη σταγόνα, απλώς κάνει κάτι όταν πατηθεί. */
+export type BarExtra = { icon: IconName; label: string; onPress: () => void };
+export function FloatBar({ items, state, navigateToTab, labels, extra }: { items: TabItems; state: { index: number; routes: { key: string; name: string }[] }; navigateToTab: (key: string) => void; labels?: boolean; extra?: BarExtra | null }) {
   const bottom = useSafeAreaInsets().bottom;
   const blurred = useSearchOpen();
   const light = isLight(C.bg);
@@ -94,6 +97,14 @@ export function FloatBar({ items, state, navigateToTab, labels }: { items: TabIt
             </Pressable>
           );
         })}
+        {extra && <>
+          <View style={{ width: 1, height: 24, marginHorizontal: labels ? 0 : -6, backgroundColor: light ? alpha('#0a0a0a', 0.12) : alpha('#f0eee6', 0.16) }} />
+          <Pressable onPress={extra.onPress} accessibilityRole="button" accessibilityLabel={extra.label} hitSlop={4}
+            style={({ pressed }) => ({ width: ICON, height: ICON, borderRadius: ICON / 2, alignItems: 'center', justifyContent: 'center',
+              backgroundColor: pressed ? (light ? alpha('#d8d8de', 0.55) : alpha('#ffffff', 0.14)) : 'transparent' })}>
+            <Icon name={extra.icon} size={19} color={fg(false)} />
+          </Pressable>
+        </>}
       </BlurView>
       </View>
       {blurred && <BlurView pointerEvents="none" intensity={12} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"

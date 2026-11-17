@@ -8,6 +8,7 @@ import { C, Icon, alpha, s } from '../ui';
 import { Initials } from '../profile/parts';
 import type { IconName } from '../Icon';
 import { askLogin } from '../guest';
+import { MyBizTopButton } from '../MyBiz';
 
 /* Ο πελάτης σε υπολογιστή: πάνω μπάρα όπως σε κάθε site πελατών (λογότυπο, αναζήτηση στη μέση, Αρχική · Κρατήσεις · Πακέτα,
    «Σύνδεση» ή το προφίλ δεξιά). Στο κινητό δεν χρησιμοποιείται τίποτα από εδώ. */
@@ -80,6 +81,7 @@ export function TopBar({ items, state, navigateToTab }: Nav) {
           );
         })}
       </View>
+      {!person.guest && <MyBizTopButton />}
       {person.guest ? (
         <Pressable onPress={() => askLogin()} accessibilityRole="button"
           style={({ pressed, hovered }: any) => ({ paddingVertical: 11, paddingHorizontal: 18, borderRadius: 12, backgroundColor: C.text, opacity: pressed || hovered ? 0.85 : 1 })}>

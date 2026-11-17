@@ -3,7 +3,7 @@ import { C } from './theme';
 
 /* Μικρά εικονίδια γραμμής, φτιαγμένα μόνο με View (χωρίς βιβλιοθήκη εικονιδίων).
    Παίρνουν το χρώμα τους από το θέμα, οπότε αλλάζουν μαζί με το 🎨. */
-export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack' | 'home' | 'chat' | 'team';
+export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack' | 'home' | 'chat' | 'team' | 'swap';
 
 export function Icon({ name, size = 22, color = C.text, style }: { name: IconName; size?: number; color?: string; style?: ViewStyle }) {
   const s = size, w = Math.max(1.6, Math.round(s * 0.09 * 10) / 10);
@@ -62,6 +62,16 @@ export function Icon({ name, size = 22, color = C.text, style }: { name: IconNam
       body = <>
         <View style={abs(s * 0.26, s * 0.08, { width: s * 0.48, height: s * 0.84, borderRadius: s * 0.13, borderWidth: w, borderColor: color })} />
         <View style={abs(s * 0.42, s * 0.74, { width: s * 0.16, height: w, borderRadius: w, backgroundColor: color })} />
+      </>; break;
+    case 'swap':
+      // Δύο αντίθετα βέλη: αλλαγή λειτουργίας (πελάτης ↔ επιχείρηση).
+      body = <>
+        {bar(s * 0.5, s * 0.3, s * 0.68, 0)}
+        {bar(s * 0.76, s * 0.21, s * 0.24, 40)}
+        {bar(s * 0.76, s * 0.39, s * 0.24, -40)}
+        {bar(s * 0.5, s * 0.7, s * 0.68, 0)}
+        {bar(s * 0.24, s * 0.61, s * 0.24, -40)}
+        {bar(s * 0.24, s * 0.79, s * 0.24, 40)}
       </>; break;
     case 'chevron':
       body = <View style={abs(s * 0.24, s * 0.32, { width: s * 0.36, height: s * 0.36, borderTopWidth: w, borderRightWidth: w, borderColor: color, borderTopRightRadius: 2, transform: [{ rotate: '45deg' }] })} />;

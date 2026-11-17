@@ -18,22 +18,6 @@ export function useSwitchTo() {
   return (m: Mode) => switchMode(m, () => goHome(router, m));
 }
 
-/* Πλωτό κουμπί λίγο πάνω από την κάτω μπάρα (στο Προφίλ και στο Μενού της επιχείρησης). */
-export function SwitchPill({ to }: { to: Mode }) {
-  const go = useSwitchTo();
-  const label = to === 'biz' ? 'Μετάβαση στην επιχείρηση' : 'Μετάβαση σε πελάτη';
-  return (
-    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: TAB_SPACE - 18, alignItems: 'center' }}>
-      <Pressable onPress={() => go(to)} accessibilityRole="button" accessibilityLabel={label}
-        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 8, height: 46, paddingHorizontal: 20, borderRadius: 23,
-          backgroundColor: C.btn, opacity: pressed ? 0.85 : 1, boxShadow: `0px 8px 24px ${alpha(C.shade, 0.25)}` })}>
-        <Icon name={to === 'biz' ? 'store' : 'search'} size={17} color={C.btnText} />
-        <Text style={{ color: C.btnText, fontWeight: '800', fontSize: 15 }}>{label}</Text>
-      </Pressable>
-    </View>
-  );
-}
-
 /* Η σύντομη οθόνη που καλύπτει την εφαρμογή όσο αλλάζει η λειτουργία. */
 export function SwitchOverlay() {
   const { switching } = useMode();
