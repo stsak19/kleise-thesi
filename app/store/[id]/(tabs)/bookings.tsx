@@ -69,7 +69,7 @@ export default function StoreBookings() {
 
         <View style={{ marginTop: 14, gap: 8 }}>
           <AllLink text="Κρατήσεις σε όλα τα καταστήματα" onPress={() => router.navigate('/bookings')} />
-          {!!S.packInfo && <AllLink icon="pack" text="Πακέτα σε όλα τα καταστήματα" onPress={() => router.navigate('/packs')} />}
+          {!!S.packInfo && <AllLink icon="pack" text="Πακέτα σε όλα τα καταστήματα" onPress={() => router.navigate({ pathname: '/bookings', params: { tab: 'p' } } as any)} />}
         </View>
       </ScrollView>
     </View>

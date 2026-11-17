@@ -64,10 +64,11 @@ export function packInfo(m: any, biz: any, bookings: { business_id?: string; sta
 }
 
 /* Κάρτα πακέτου: χρώμα και λογότυπο του καταστήματος, κρατήσεις που απομένουν, μπάρα προόδου, λήξη. */
-export function PackCard({ name, biz, color, p, onPress }: { name: string; biz?: Biz | any; color: string; p: PackInfo; onPress?: () => void }) {
+/* ended: πακέτο που έληξε ή τελείωσε (Ιστορικό πακέτων): πιο αχνό, με «Έληξε»/«Τελείωσε» αντί για «Ισχύει έως». */
+export function PackCard({ name, biz, color, p, onPress, ended }: { name: string; biz?: Biz | any; color: string; p: PackInfo; onPress?: () => void; ended?: boolean }) {
   return (
     <Pressable onPress={onPress} disabled={!onPress} style={({ pressed }) => [s.card, shadow(1),
-      { padding: 0, gap: 0, overflow: 'hidden', transform: [{ scale: pressed ? 0.985 : 1 }] }]}>
+      { padding: 0, gap: 0, overflow: 'hidden', opacity: ended ? 0.65 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] }]}>
       <View style={{ height: 6, backgroundColor: color }} />
       <View style={[s.row, { gap: 12, padding: 14, paddingBottom: 10 }]}>
         <BizLogo biz={biz} name={name} color={color} />
@@ -94,7 +95,7 @@ export function PackCard({ name, biz, color, p, onPress }: { name: string; biz?:
       )}
       <View style={[s.row, { gap: 6, paddingHorizontal: 14, paddingBottom: 14 }]}>
         <Icon name="clock" size={15} color={C.mute} />
-        <Text style={{ color: C.mute, fontSize: 14, flex: 1 }}>{p.pending ? 'Περιμένει έγκριση από το κατάστημα' : p.asked ? `Ζήτησες «${p.asked}» · ενεργοποιείται όταν το πληρώσεις` : p.expires ? `Ισχύει έως ${fmtDay(p.expires)}` : 'Χωρίς λήξη'}</Text>
+        <Text style={{ color: C.mute, fontSize: 14, flex: 1 }}>{ended ? (p.expires && p.left > 0 ? `Έληξε ${fmtDay(p.expires)}` : p.expires ? `Τελείωσε · έληγε ${fmtDay(p.expires)}` : 'Τελείωσε') : p.pending ? 'Περιμένει έγκριση από το κατάστημα' : p.asked ? `Ζήτησες «${p.asked}» · ενεργοποιείται όταν το πληρώσεις` : p.expires ? `Ισχύει έως ${fmtDay(p.expires)}` : 'Χωρίς λήξη'}</Text>
         {!!onPress && <Icon name="chevron" size={14} color={C.mute} />}
       </View>
     </Pressable>
