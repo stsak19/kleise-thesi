@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { switchMode } from '../lib/mode';
 import { goHome } from '../lib/SwitchMode';
-import { Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import { Animated, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { Text } from '../lib/Txt';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../lib/auth';
 import { say } from '../lib/alert';
 import { PhotosEditor } from '../lib/owner/Photos';
-import { DeskPreview } from '../lib/owner/LivePreview';
+import { DeskPreview, PreviewPill, PreviewSheet } from '../lib/owner/LivePreview';
 import { WIDE } from '../lib/wide';
 import { PagePreview, upper } from '../lib/owner/PagePreview';
 import { screenFor } from '../lib/bizscreen';
@@ -57,6 +57,13 @@ export default function NewBusiness() {
   const [removed, setRemoved] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<string | null>(null); // id καταστήματος όταν αποθηκευτεί
+  const [peek, setPeek] = useState(false); // κινητό: όλη η σελίδα σε φύλλο
+  const [kb, setKb] = useState(false); // ανοιχτό πληκτρολόγιο: κρύβεται το κουμπί προεπισκόπησης
+  useEffect(() => {
+    const a = Keyboard.addListener('keyboardDidShow', () => setKb(true));
+    const z = Keyboard.addListener('keyboardDidHide', () => setKb(false));
+    return () => { a.remove(); z.remove(); };
+  }, []);
   const [svcEdit, setSvcEdit] = useState<{ key: string; fresh: boolean; before?: Svc } | null>(null); // μία υπηρεσία ανοιχτή
 
   // Αν ο χρήστης έχει ήδη κατάστημα, ο οδηγός ξεκινά με τα στοιχεία του (και δεν φτιάχνει δεύτερο).
@@ -366,6 +373,7 @@ export default function NewBusiness() {
     );
   }
 
+  const pill = i > 0 && !svcEdit && !kb;
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={s.screen}>
       {/* Πάνω: πίσω + πρόοδος */}
@@ -383,7 +391,7 @@ export default function NewBusiness() {
         </View>
       </View>
 
-      <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 22, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 22, paddingBottom: pill ? 84 : 24 }} keyboardShouldPersistTaps="handled">
         <Animated.View style={[{ gap: 22 }, fade]}>
           {heading}
           {body()}
@@ -393,9 +401,13 @@ export default function NewBusiness() {
       {/* Κάτω: συνέχεια */}
       <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: bottom + 16, gap: 10, backgroundColor: C.bg,
         borderTopWidth: 1, borderTopColor: alpha(C.text, 0.06) }}>
+        {/* Προεπισκόπηση: από το 2ο βήμα και μετά, όχι όσο είναι ανοιχτή μια υπηρεσία ή το πληκτρολόγιο */}
+        {pill && <PreviewPill onPress={() => { Keyboard.dismiss(); setPeek(true); }} />}
         <Btn title={mainTitle} onPress={next} disabled={!!why || busy} color={ready ? C.text : undefined} />
         {skip}
       </View>
+
+      {peek && <PreviewSheet biz={b} svcs={svcs} hours={hours} onClose={() => setPeek(false)} />}
     </KeyboardAvoidingView>
   );
 }

@@ -1,12 +1,13 @@
-import { View } from 'react-native';
+import { Modal, Pressable, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../Txt';
-import { C, Icon, price, shadow } from '../ui';
+import { Btn, C, Icon, alpha, price, shadow } from '../ui';
 import { Photo, Scrim } from '../Photo';
 import { screenFor } from '../bizscreen';
 import { styleOf } from '../presets';
 import { svcKind } from './svcKind';
-import { upper } from './PagePreview';
-import { WEEK, type Hours, type Svc } from './save';
+import { PagePreview, upper } from './PagePreview';
+import { DAYNAME, WEEK, type Hours, type Svc } from './save';
 
 /* Ο οδηγός «Νέα επιχείρηση» στον υπολογιστή: δεξιά η σελίδα του καταστήματος όπως θα τη δει ο πελάτης στον υπολογιστή,
    μέσα σε ένα παράθυρο browser. Γεμίζει από ό,τι έχει γράψει μέχρι τώρα ο ιδιοκτήτης. Δεν πατιέται τίποτα. */
@@ -97,5 +98,96 @@ export function DeskPreview({ biz, svcs, hours }: { biz: any; svcs: Svc[]; hours
       </View>
       {!biz.is_published && <Text style={{ color: C.mute, fontSize: 12, textAlign: 'center' }}>Η σελίδα δεν θα φαίνεται στην αναζήτηση μέχρι να τη δημοσιεύσεις.</Text>}
     </View>
+  );
+}
+
+/* Ο οδηγός στο κινητό: πλωτό κουμπί «Προεπισκόπηση» πάνω από το «Συνέχεια». */
+export function PreviewPill({ onPress }: { onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} accessibilityLabel="Προεπισκόπηση της σελίδας σου" hitSlop={6}
+      style={({ pressed }) => [{ position: 'absolute', right: 20, bottom: '100%', marginBottom: 14, height: 44, borderRadius: 22, paddingHorizontal: 16,
+        flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.bg, opacity: pressed ? 0.8 : 1 }, shadow(3)]}>
+      <Icon name="eye" size={16} color={C.text} />
+      <Text style={{ color: C.text, fontWeight: '800', fontSize: 14.5 }}>Προεπισκόπηση</Text>
+    </Pressable>
+  );
+}
+
+/* Πατημένο: ανεβαίνει από κάτω όλη η σελίδα, όπως τη βλέπει ο πελάτης στο κινητό. Δεν πατιέται τίποτα μέσα. */
+export function PreviewSheet({ biz, svcs, hours, onClose }: { biz: any; svcs: Svc[]; hours: Hours; onClose: () => void }) {
+  const { top, bottom } = useSafeAreaInsets();
+  const cat = biz.category ?? 'other';
+  const scr = screenFor(cat);
+  const k = svcKind(cat);
+  const all = svcs.filter((x) => x.name.trim());
+  const days = WEEK.map((d) => {
+    const sl = hours.filter((h) => h.svc === null && h.weekday === d).sort((a, z) => a.opens.localeCompare(z.opens));
+    return { d, txt: sl.length ? sl.map((h) => `${h.opens.slice(0, 5)} – ${h.closes.slice(0, 5)}`).join(', ') : 'Κλειστά' };
+  });
+  const phone = biz.phone?.trim() && biz.show_phone !== false ? biz.phone.trim() : '';
+  const title = (x: string) => <Text style={{ color: C.text, fontWeight: '800', fontSize: 21, letterSpacing: -0.3, marginTop: 22, marginBottom: 4 }}>{x}</Text>;
+
+  return (
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: alpha('#000000', 0.35), paddingTop: top + 10 }}>
+        <View style={{ flex: 1, backgroundColor: C.bg, borderTopLeftRadius: 26, borderTopRightRadius: 26, overflow: 'hidden' }}>
+          <View style={{ alignSelf: 'center', width: 40, height: 5, borderRadius: 3, backgroundColor: C.line, marginTop: 8 }} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingTop: 8, paddingBottom: 12, gap: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }}>Η σελίδα σου</Text>
+              <Text style={{ color: C.mute, fontSize: 13 }}>Έτσι τη βλέπουν οι πελάτες</Text>
+            </View>
+            <Pressable onPress={onClose} accessibilityLabel="Κλείσιμο" hitSlop={8}
+              style={({ pressed }) => ({ width: 38, height: 38, borderRadius: 19, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
+              <Icon name="close" size={14} color={C.text} />
+            </Pressable>
+          </View>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 30 }}>
+            <PagePreview biz={biz} bare />
+            <View style={{ paddingHorizontal: 20 }}>
+              {!!biz.description?.trim() && <Text style={{ color: C.mute, fontSize: 15, lineHeight: 22, marginTop: 18 }}>{biz.description.trim()}</Text>}
+              {title(k.mode === 'class' ? 'Μαθήματα' : scr.services)}
+              {all.length === 0 && <Text style={{ color: C.mute, fontSize: 14, paddingVertical: 10 }}>Εδώ θα φαίνονται οι {k.many} σου.</Text>}
+              {all.map((x, n) => {
+                const c = cents(x.price);
+                return (
+                  <View key={x.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, borderBottomWidth: n < all.length - 1 ? 1 : 0, borderBottomColor: C.line }}>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text style={{ color: C.text, fontWeight: '700', fontSize: 16 }} numberOfLines={1}>{x.name.trim()}</Text>
+                      <Text style={{ color: C.mute, fontSize: 13 }}>{dur(+x.duration_min || 30)}{+x.capacity > 1 ? ` · έως ${x.capacity} άτομα` : ''}</Text>
+                    </View>
+                    <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{c != null ? `${x.from ? 'από ' : ''}${price(c)}` : k.mode === 'visit' ? 'Κατόπιν εκτίμησης' : ''}</Text>
+                  </View>
+                );
+              })}
+              {(!!biz.city?.trim() || !!phone) && title('Επικοινωνία')}
+              {!!(biz.address?.trim() || biz.city?.trim()) && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 }}>
+                  <Icon name="pin" size={16} color={C.mute} />
+                  <Text style={{ color: C.text, fontSize: 15, flex: 1 }}>{[biz.address, biz.city].filter((v: string) => v?.trim()).join(', ')}</Text>
+                </View>
+              )}
+              {!!phone && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 }}>
+                  <Icon name="phone" size={16} color={C.mute} />
+                  <Text style={{ color: C.text, fontSize: 15 }}>{phone}</Text>
+                </View>
+              )}
+              {hours.some((h) => h.svc === null) && title('Ωράριο')}
+              {hours.some((h) => h.svc === null) && days.map(({ d, txt }) => (
+                <View key={d} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 9 }}>
+                  <Text style={{ color: C.text, fontSize: 15 }}>{DAYNAME[d]}</Text>
+                  <Text style={{ color: txt === 'Κλειστά' ? C.mute : C.text, fontSize: 15 }}>{txt}</Text>
+                </View>
+              ))}
+              {!biz.is_published && <Text style={{ color: C.mute, fontSize: 12.5, textAlign: 'center', marginTop: 18 }}>Η σελίδα δεν θα φαίνεται στην αναζήτηση μέχρι να τη δημοσιεύσεις.</Text>}
+            </View>
+          </ScrollView>
+          <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: bottom + 16, borderTopWidth: 1, borderTopColor: C.line }}>
+            <Btn kind="ghost" title="Πίσω στην επεξεργασία" onPress={onClose} />
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
