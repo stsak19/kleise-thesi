@@ -30,7 +30,7 @@ export function BizHeader({ biz, header, color, radius, full = true }:
     <View style={{ gap: 12 }}>
       <View style={{ backgroundColor: color, borderRadius: radius + 6, padding: 18, paddingTop: 90, flexDirection: 'row', alignItems: 'center', gap: 14, overflow: 'hidden' }}>
         <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}><Photo uri={biz.cover_url} color={color} /></View>
-        <Scrim strength={0.7} />
+        <Scrim strength={0.7} photo={biz.cover_url} />
         {logo(60, true)}
         <View style={{ flex: 1 }}>{name('#ffffff', 22)}</View>
       </View>
@@ -51,7 +51,7 @@ export function BizHeader({ biz, header, color, radius, full = true }:
     <View style={{ gap: 12 }}>
       <View style={{ height: full ? 210 : 130, backgroundColor: color, borderRadius: radius + 10, overflow: 'hidden' }}>
         <Photo uri={biz.cover_url} color={color} />
-        <Scrim strength={0.25} />
+        <Scrim strength={0.25} photo={biz.cover_url} />
       </View>
       <View style={{ marginTop: full ? -56 : -48, marginLeft: 6 }}>{logo(full ? 84 : 68)}</View>
       {name()}

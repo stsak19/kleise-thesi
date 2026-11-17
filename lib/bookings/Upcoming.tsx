@@ -29,7 +29,7 @@ export function Hero({ b, biz, color: c, onOpen, onCancel }: { b: Booking; biz?:
       <View style={{ borderRadius: 26, overflow: 'hidden', backgroundColor: c, boxShadow: `0px 14px 30px ${alpha(c, 0.35)}` }}>
         <View style={{ height: 88 }}>
           <Photo uri={biz?.cover_url} color={c} />
-          <Scrim strength={0.75} />
+          <Scrim strength={0.75} photo={biz?.cover_url} />
           <View style={{ position: 'absolute', top: 8, right: 10, backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: 999, paddingVertical: 4, paddingHorizontal: 10 }}>
             <Text style={{ color: '#000000', fontWeight: '800', fontSize: 13 }}>⏱ {countdown(b)}</Text>
           </View>

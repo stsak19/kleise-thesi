@@ -28,7 +28,7 @@ export function PagePreview({ biz, bare }: { biz: any; bare?: boolean }) {
 
   if (scr.hero === 'profile') return (
     <View style={frame}>
-      <View style={{ height: 96, backgroundColor: brand }}><Photo uri={biz.cover_url} color={brand} /><Scrim strength={0.5} /></View>
+      <View style={{ height: 96, backgroundColor: brand }}><Photo uri={biz.cover_url} color={brand} /><Scrim strength={0.5} photo={biz.cover_url} /></View>
       <View style={{ alignItems: 'center', marginTop: -44, gap: 4, padding: 16, paddingTop: 0 }}>
         <View style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: C.bg, padding: 4 }}>
           <Photo uri={biz.logo_url} color={brand} letter={letter} style={{ borderRadius: 40 }} />
@@ -58,7 +58,7 @@ export function PagePreview({ biz, bare }: { biz: any; bare?: boolean }) {
     <View style={frame}>
       <View style={{ height: 210, backgroundColor: bg }}>
         <Photo uri={biz.cover_url} color={bg} />
-        <Scrim strength={night ? 0.95 : 0.7} />
+        <Scrim strength={night ? 0.95 : 0.7} photo={biz.cover_url} />
         <View style={{ position: 'absolute', left: 16, right: 16, bottom: 16, gap: 8 }}>
           <View style={[s.row, { gap: 10 }]}>
             {logo(44, night)}

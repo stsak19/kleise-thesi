@@ -119,9 +119,8 @@ function Details({ st }: { st: St }) {
         <Input label="Περιγραφή" placeholder="Τι κάνετε, τι να περιμένει ο πελάτης…" multiline value={b.description ?? ''} onChangeText={(v) => setB({ ...b, description: v })} />
       </Card>
       <Card style={{ padding: 0, gap: 0, overflow: 'hidden' }}>
-        <Pressable onPress={() => photo('cover')} style={{ height: 150, backgroundColor: brand, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-          {b.cover_url ? <Image source={{ uri: b.cover_url }} style={{ position: 'absolute', width: '100%', height: '100%' }} resizeMode="cover" />
-            : <Text style={{ position: 'absolute', right: 24, top: 26, fontSize: 56 }}>{catEmoji(b.category)}</Text>}
+        <Pressable onPress={() => photo('cover')} style={{ height: 150, backgroundColor: C.banner, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          {!!b.cover_url && <Image source={{ uri: b.cover_url }} style={{ position: 'absolute', width: '100%', height: '100%' }} resizeMode="cover" />}
           <View style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 999, paddingVertical: 8, paddingHorizontal: 14 }}>
             <Text style={{ color: '#fff', fontWeight: '700' }}>{up === 'cover' ? 'Ανέβασμα…' : b.cover_url ? '📷 Αλλαγή εξωφύλλου' : '📷 Εξώφυλλο 16:9'}</Text>
           </View>

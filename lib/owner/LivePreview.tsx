@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { Text } from '../Txt';
-import { C, Icon, catEmoji, price, shadow } from '../ui';
+import { C, Icon, price, shadow } from '../ui';
 import { Photo, Scrim } from '../Photo';
 import { screenFor } from '../bizscreen';
 import { styleOf } from '../presets';
@@ -41,10 +41,9 @@ export function DeskPreview({ biz, svcs, hours }: { biz: any; svcs: Svc[]; hours
         </View>
 
         {/* κορυφή: εξώφυλλο, λογότυπο, όνομα */}
-        <View style={{ height: 210, backgroundColor: brand }}>
-          {biz.cover_url ? <Photo uri={biz.cover_url} color={brand} />
-            : <Text style={{ position: 'absolute', right: 28, top: 30, fontSize: 64, opacity: 0.9 }}>{catEmoji(cat)}</Text>}
-          <Scrim strength={0.7} />
+        <View style={{ height: 210, backgroundColor: C.banner }}>
+          <Photo uri={biz.cover_url} color={brand} />
+          <Scrim strength={0.7} photo={biz.cover_url} />
           <View style={{ position: 'absolute', left: 24, right: 24, bottom: 18, flexDirection: 'row', alignItems: 'flex-end', gap: 14 }}>
             <View style={{ width: 66, height: 66, borderRadius: 16, backgroundColor: '#ffffff', padding: 3 }}>
               <Photo uri={biz.logo_url} color={brand} letter={name.slice(0, 1)} style={{ borderRadius: 13 }} />
