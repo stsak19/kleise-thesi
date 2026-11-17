@@ -14,16 +14,16 @@ import { AdminRow, AppearancePicker, NotifyPrefs, PasswordForm } from './Setting
 
 /* Το προφίλ σε υπολογιστή (εκδοχή Α): όνομα πάνω, ενότητες αριστερά και η φόρμα της επιλεγμένης δεξιά,
    όπως στις ρυθμίσεις λογαριασμού μιας ιστοσελίδας. Όλα αλλάζουν επιτόπου, χωρίς να ανοίγει άλλη οθόνη. */
-type Key = 'me' | 'look' | 'notify' | 'safe' | 'biz' | 'help';
+type Key = 'me' | 'look' | 'notify' | 'biz' | 'help';
 const SECTIONS: { key: Key; icon: IconName; label: string; sub: string }[] = [
-  { key: 'me', icon: 'user', label: 'Τα στοιχεία μου', sub: 'Όνομα, επώνυμο και κινητό.' },
+  { key: 'me', icon: 'user', label: 'Τα στοιχεία μου', sub: 'Όνομα, κινητό, κωδικός και διαγραφή λογαριασμού.' },
   { key: 'look', icon: 'eye', label: 'Εμφάνιση', sub: 'Η «Αυτόματα» ακολουθεί τη ρύθμιση του υπολογιστή.' },
   { key: 'notify', icon: 'bell', label: 'Ειδοποιήσεις', sub: 'Έρχονται στο κινητό, ακόμα κι όταν η εφαρμογή είναι κλειστή.' },
-  { key: 'safe', icon: 'lock', label: 'Λογαριασμός', sub: 'Κωδικός, απόρρητο και διαγραφή λογαριασμού.' },
   { key: 'biz', icon: 'store', label: 'Για επιχειρήσεις', sub: 'Πρόγραμμα, κρατήσεις, μηνύματα και σελίδα του καταστήματός σου.' },
-  { key: 'help', icon: 'gear', label: 'Βοήθεια', sub: 'Ξενάγηση και έκδοση της εφαρμογής.' },
+  { key: 'help', icon: 'gear', label: 'Βοήθεια', sub: 'Δες ξανά πώς δουλεύει η εφαρμογή.' },
 ];
 let last: Key = 'me';
+// Όπως στο κινητό: ο Λογαριασμός (κωδικός, διαγραφή) είναι μέσα στα «Τα στοιχεία μου»· απόρρητο και έκδοση = απλό κείμενο κάτω από την Αποσύνδεση.
 
 const Label = ({ t }: { t: string }) => <Text style={{ color: C.text, fontWeight: '700', fontSize: 13 }}>{t}</Text>;
 const Line = ({ title, sub, right }: { title: string; sub?: string; right: React.ReactNode }) => (
@@ -55,20 +55,17 @@ export function DeskProfile() {
         </View>
       </View>
       <MeForm person={person} card={false} />
+      <View style={{ height: 18 }} />
+      <Text style={{ color: C.text, fontWeight: '800', fontSize: 18 }}>Λογαριασμός</Text>
+      <AdminRow line={(go) => <Line title="Super admin" sub="Διαχείριση όλης της πλατφόρμας" right={<Btn size="sm" title="Άνοιγμα" onPress={go} />} />} />
+      <Label t="Αλλαγή κωδικού" /><PasswordForm />
+      <Line title="Διαγραφή λογαριασμού" sub="Με αίτηση: σβήνεται σε 7 μέρες και ως τότε ακυρώνεται" right={<Btn size="sm" kind="danger" title="Αίτηση" onPress={() => router.push('/delete-account')} />} />
     </View>
   ) : sel === 'look' ? (
     <View style={{ gap: 8 }}>
       <AppearancePicker />
       <View style={{ height: 14 }} />
       <Line title="Λιγότερη κίνηση" sub="Σταματά τα κινούμενα εφέ στις οθόνες" right={<Toggle value={prefs.reduceMotion} onChange={(v) => setPref('reduceMotion', v)} />} />
-    </View>
-  ) : sel === 'safe' ? (
-    <View style={{ gap: 6 }}>
-      <AdminRow line={(go) => <Line title="Super admin" sub="Διαχείριση όλης της πλατφόρμας" right={<Btn size="sm" title="Άνοιγμα" onPress={go} />} />} />
-      <Label t="Αλλαγή κωδικού" /><PasswordForm />
-      <View style={{ height: 18 }} />
-      <Line title="Πολιτική απορρήτου" sub="Τι κρατάμε και ποιος τα βλέπει" right={<Btn size="sm" kind="ghost" title="Άνοιγμα" onPress={() => router.push('/privacy')} />} />
-      <Line title="Διαγραφή λογαριασμού" sub="Με αίτηση: σβήνεται σε 7 μέρες και ως τότε ακυρώνεται" right={<Btn size="sm" kind="danger" title="Αίτηση" onPress={() => router.push('/delete-account')} />} />
     </View>
   ) : sel === 'notify' ? (
     <NotifyPrefs bare />
@@ -79,7 +76,6 @@ export function DeskProfile() {
   ) : (
     <View>
       <Line title="Δες ξανά την ξενάγηση" sub="Τα 4 βήματα της πρώτης φοράς" right={<Btn size="sm" kind="ghost" title="Ξενάγηση" onPress={replayIntro} />} />
-      <Line title="Έκδοση εφαρμογής" right={<Text style={{ color: C.mute, fontSize: 14 }}>{Constants.expoConfig?.version ?? '—'}</Text>} />
     </View>
   );
 
@@ -108,6 +104,12 @@ export function DeskProfile() {
             <Pressable onPress={signOut} style={({ hovered }: any) => ({ marginTop: 14, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10, backgroundColor: hovered ? C.soft : 'transparent' })}>
               <Text style={{ color: C.bad, fontWeight: '700', fontSize: 14 }}>Αποσύνδεση</Text>
             </Pressable>
+            <View style={{ paddingHorizontal: 12, marginTop: 10, gap: 6 }}>
+              <Pressable onPress={() => router.push('/privacy')} accessibilityRole="link" style={{ alignSelf: 'flex-start' }}>
+                <Text style={{ color: C.mute, fontSize: 13, fontWeight: '700', textDecorationLine: 'underline' }}>Πολιτική απορρήτου</Text>
+              </Pressable>
+              <Text style={{ color: C.mute, fontSize: 13 }}>Έκδοση {Constants.expoConfig?.version ?? '—'}</Text>
+            </View>
           </View>
           <View style={{ flex: 1, maxWidth: 620, gap: 18 }}>
             <View style={{ gap: 4 }}>
