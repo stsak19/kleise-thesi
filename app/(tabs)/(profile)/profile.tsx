@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { signOut, usePerson, useProfileExtras } from '../../../lib/profile/data';
 import { Initials } from '../../../lib/profile/parts';
-import { modeLabel } from '../../../lib/profile/Settings';
+import { AppVersion, modeLabel } from '../../../lib/profile/Settings';
 import { useSwitchTo } from '../../../lib/SwitchMode';
 import { Btn, C, Group, Row, Section, T, s } from '../../../lib/ui';
 import { useWide } from '../../../lib/wide';
@@ -37,7 +37,7 @@ export default function Profile() {
 
       <Section title="Λογαριασμός" />
       <Group>
-        <Row icon="user" title="Τα στοιχεία μου" sub={person.p.phone ? `Κινητό ${person.p.phone}` : 'Πρόσθεσε το κινητό σου'} onPress={me} last />
+        <Row icon="user" title="Τα στοιχεία μου" sub={person.p.phone ? `Κινητό ${person.p.phone} · κωδικός` : 'Πρόσθεσε το κινητό σου · κωδικός'} onPress={me} last />
       </Group>
 
       <Section title="Για επιχειρήσεις" />
@@ -48,10 +48,11 @@ export default function Profile() {
       </Group>
 
       <Section title="Εφαρμογή" />
-      <Group><Row icon="gear" title="Ρυθμίσεις" sub={`Εμφάνιση: ${modeLabel()} · κίνηση · κωδικός`} onPress={() => router.push('/settings')} last /></Group>
+      <Group><Row icon="gear" title="Ρυθμίσεις" sub={`Εμφάνιση: ${modeLabel()} · κίνηση · ειδοποιήσεις`} onPress={() => router.push('/settings')} last /></Group>
 
       <View style={{ marginTop: 10 }}>
         <Group><Row title="Αποσύνδεση" danger last onPress={signOut} right={<View />} /></Group>
+        <AppVersion />
       </View>
     </ScrollView>
     </View>

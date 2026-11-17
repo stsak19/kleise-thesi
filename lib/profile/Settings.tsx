@@ -88,7 +88,7 @@ export function PasswordForm({ onDone }: { onDone?: () => void }) {
 }
 
 /* Αλλαγή κωδικού: ανοίγει μέσα στη λίστα. */
-function Password({ last }: { last?: boolean }) {
+export function Password({ last }: { last?: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -142,7 +142,7 @@ export function NotifyPrefs({ bare }: { bare?: boolean } = {}) {
 }
 
 /* «Διαγραφή λογαριασμού»: αν υπάρχει αίτηση, δείχνει πότε σβήνεται. */
-function DeleteRow() {
+export function DeleteRow() {
   const { deleteOn } = useDeletion(usePerson().uid);
   return <Row icon="close" title="Διαγραφή λογαριασμού" sub={deleteOn ? `Αίτηση σε εξέλιξη · διαγράφεται ${deleteOn}` : 'Με αίτηση, και ακύρωση ως 7 μέρες'} danger onPress={() => router.push('/delete-account')} last />;
 }
@@ -153,6 +153,28 @@ export function AdminRow({ line }: { line?: (go: () => void) => React.ReactNode 
   if (!ok) return null;
   const go = () => router.push('/admin' as any);
   return <>{line ? line(go) : <Row icon="lock" title="Super admin" sub="Διαχείριση όλης της πλατφόρμας" onPress={go} />}</>;
+}
+
+/* Κάτω από την Αποσύνδεση, απλό κείμενο χωρίς πλαίσιο: Πολιτική απορρήτου (σύνδεσμος) και έκδοση της εφαρμογής. */
+export const AppVersion = () => (
+  <View style={{ alignItems: 'center', gap: 6, marginTop: 14 }}>
+    <Pressable onPress={() => router.push('/privacy')} accessibilityRole="link" hitSlop={8}>
+      <Text style={{ color: C.mute, fontSize: 13, fontWeight: '700', textDecorationLine: 'underline' }}>Πολιτική απορρήτου</Text>
+    </Pressable>
+    <Text style={{ color: C.mute, fontSize: 13 }}>Έκδοση {Constants.expoConfig?.version ?? '—'}</Text>
+  </View>
+);
+
+/* Ο λογαριασμός (κωδικός, διαγραφή, super admin): μόνο μέσα στα «Τα στοιχεία μου», όχι στις Ρυθμίσεις. */
+export function AccountRows() {
+  return <>
+    <Section title="Λογαριασμός" />
+    <Group>
+      <AdminRow />
+      <Password />
+      <DeleteRow />
+    </Group>
+  </>;
 }
 
 /* Όλες οι ρυθμίσεις της εφαρμογής. Η εμφάνιση εφαρμόζεται αμέσως σε όλη την εφαρμογή. */
@@ -170,23 +192,14 @@ export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
 
       <NotifyPrefs />
 
-      <Section title="Λογαριασμός" />
-      <Group>
-        {onEdit && <Row icon="user" title="Τα στοιχεία μου" sub="Όνομα, επώνυμο, κινητό" onPress={onEdit} />}
-        <AdminRow />
-        <Password />
-        <Row icon="eye" title="Πολιτική απορρήτου" onPress={() => router.push('/privacy')} />
-        <DeleteRow />
-      </Group>
-
       <Section title="Βοήθεια" />
       <Group>
-        <Row icon="eye" title="Δες ξανά την ξενάγηση" sub="Τα 4 βήματα της πρώτης φοράς" onPress={replayIntro} />
-        <Row icon="gear" title="Έκδοση εφαρμογής" right={<Text style={{ color: C.mute, fontSize: 14 }}>{Constants.expoConfig?.version ?? '—'}</Text>} last />
+        <Row icon="eye" title="Δες ξανά την ξενάγηση" sub="Τα 4 βήματα της πρώτης φοράς" onPress={replayIntro} last />
       </Group>
 
       <View style={{ marginTop: 10 }}>
         <Group><Row title="Αποσύνδεση" danger last onPress={signOut} right={<View />} /></Group>
+        <AppVersion />
       </View>
     </>
   );
