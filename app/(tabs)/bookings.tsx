@@ -5,7 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../lib/Txt';
 import { C, Card, Empty, Icon, s } from '../../lib/ui';
 import { useMyBookings } from '../../lib/bookings/data';
-import { Extras, History, Segmented } from '../../lib/bookings/parts';
+import { Extras, Segmented } from '../../lib/bookings/parts';
+import { BookingLines, PackLines } from '../../lib/bookings/HistoryLines';
 import { PackList, packEnded } from '../../lib/bookings/PackList';
 import Upcoming from '../../lib/bookings/Upcoming';
 import { deskCol, useWide } from '../../lib/wide';
@@ -29,7 +30,7 @@ function HistoryBox({ title, sub, children }: { title: string; sub: string; chil
         </View>
         <View style={{ transform: [{ rotate: open ? '-90deg' : '90deg' }] }}><Icon name="chevron" size={15} color={C.mute} /></View>
       </Pressable>
-      {open && <View style={{ gap: 12, padding: 12, paddingTop: 4 }}>{children}</View>}
+      {open && <View style={{ paddingHorizontal: 16, paddingBottom: 8, borderTopWidth: 1, borderTopColor: C.line }}>{children}</View>}
     </View>
   );
 }
@@ -60,7 +61,7 @@ export default function Bookings() {
       {main === 'p' ? <>
         <PackList D={D} which="active" />
         <HistoryBox title="Ιστορικό πακέτων" sub={ended ? cnt(ended, 'παλιό πακέτο', 'παλιά πακέτα') : 'Κανένα παλιό πακέτο ακόμα'}>
-          <PackList D={D} which="past" />
+          <PackLines D={D} />
         </HistoryBox>
       </> : <>
         {D.ready && n === 0 && (
@@ -70,7 +71,7 @@ export default function Bookings() {
         {n > 0 && <Upcoming D={D} />}
         <Extras D={D} />
         <HistoryBox title="Ιστορικό κρατήσεων" sub={D.past.length ? `${D.past.length} ${D.past.length === 1 ? 'παλιά κράτηση' : 'παλιές κρατήσεις'}` : 'Καμία παλιά κράτηση ακόμα'}>
-          <History D={D} />
+          <BookingLines D={D} />
         </HistoryBox>
       </>}
     </ScrollView>
