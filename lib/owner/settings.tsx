@@ -9,6 +9,7 @@ import { useAuth } from '../auth';
 import { LAYOUTS, styleOf } from '../presets';
 import { DAYNAME, EMPTY_BIZ, HEX, Hours, Slot, Svc, WEEK, badHours, loadBusiness, newKey, presetData, saveBusiness } from './save';
 import { Btn, C, CATEGORIES, catLabel, Card, Chip, Group, Icon, Input, Section, SwitchRow, T, TextBtn, Toggle, alpha, catEmoji, s, shadow } from '../ui';
+import { AmountPick, DAY_UNITS, TimeBtn } from '../TimePick';
 import { ServiceBoard, ServiceModal, draftFor, withSched, type Person, type SvcDraft } from './services';
 import { groupOf, svcKind } from './svcKind';
 import { useActiveBizId } from './active';
@@ -222,9 +223,9 @@ function HoursSec({ st }: { st: St }) {
               </View>
               {rows.sort((a, z) => a.h.opens.localeCompare(z.h.opens)).map(({ h, i }) => (
                 <View key={i} style={[s.row, { gap: 8, maxWidth: 420 }]}>
-                  <View style={{ flex: 1 }}><Input style={{ width: 10, textAlign: 'center' }} value={h.opens} placeholder="09:00" onChangeText={(v) => setRow(i, { opens: v })} /></View>
+                  <View style={{ flex: 1 }}><TimeBtn value={h.opens} title={`${DAYNAME[d]} · ανοίγει`} onChange={(v) => setRow(i, { opens: v })} /></View>
                   <Text style={{ color: C.mute }}>–</Text>
-                  <View style={{ flex: 1 }}><Input style={{ width: 10, textAlign: 'center' }} value={h.closes} placeholder="17:00" onChangeText={(v) => setRow(i, { closes: v })} /></View>
+                  <View style={{ flex: 1 }}><TimeBtn value={h.closes} title={`${DAYNAME[d]} · κλείνει`} onChange={(v) => setRow(i, { closes: v })} /></View>
                   {rows.length > 1 && <Pressable onPress={() => setHours(hours.filter((_, j) => j !== i))} hitSlop={6}
                     style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: alpha(C.bad, 0.1), alignItems: 'center', justifyContent: 'center' }}>
                     <Icon name="close" size={14} color={C.bad} /></Pressable>}
@@ -243,12 +244,13 @@ function Rules({ st }: { st: St }) {
   const { b, setB } = st;
   return (
     <View style={{ gap: 14 }}>
-      <Card style={{ gap: 14 }}>
-        <View style={[s.row, { gap: 10 }]}>
-          <View style={{ flex: 1 }}><Input label="Κρατήσεις (μέρες μπροστά)" keyboardType="number-pad" value={String(b.max_days_ahead)} onChangeText={(v) => setB({ ...b, max_days_ahead: v })} /></View>
-          <View style={{ flex: 1 }}><Input label="Ακύρωση (λεπτά πριν)" keyboardType="number-pad" value={String(b.cancel_before_min)} onChangeText={(v) => setB({ ...b, cancel_before_min: v })} /></View>
-        </View>
-        {b.uses_credits && <Input label="Διάρκεια πακέτου (μέρες)" keyboardType="number-pad" value={String(b.package_days)} onChangeText={(v) => setB({ ...b, package_days: v })} />}
+      <Card style={{ gap: 22 }}>
+        <AmountPick label="Πόσο νωρίτερα κλείνουν;" sub="Μέχρι πόσες μέρες μπροστά βλέπουν ελεύθερες ώρες." units={DAY_UNITS} max={365}
+          options={[7, 14, 30, 60]} value={+b.max_days_ahead} onPick={(v) => setB({ ...b, max_days_ahead: v })} />
+        <AmountPick label="Μέχρι πότε ακυρώνουν;" sub="Πόση ώρα πριν από το ραντεβού μπορούν να το ακυρώσουν." max={60 * 1440}
+          options={[60, 120, 240, 1440]} value={+b.cancel_before_min} onPick={(v) => setB({ ...b, cancel_before_min: v })} />
+        {b.uses_credits && <AmountPick label="Διάρκεια πακέτου" sub="Πόσες μέρες ισχύει ένα πακέτο από την ενεργοποίηση." units={DAY_UNITS} max={730}
+          options={[30, 60, 90]} value={+b.package_days} onPick={(v) => setB({ ...b, package_days: v })} />}
       </Card>
       <Group>
         <SwitchRow label="Έγκριση νέων πελατών" sub="Ο νέος πελάτης κλείνει μόνο αφού τον εγκρίνεις" value={!!b.requires_approval} onChange={(v) => setB({ ...b, requires_approval: v })} />

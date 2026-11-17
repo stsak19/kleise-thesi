@@ -10,10 +10,11 @@ import { replayIntro } from '../Intro';
 import { setPref, usePrefs } from '../prefs';
 import { sb } from '../supabase';
 import { DARK, LIGHT, type Mode, type Theme, getMode, setMode } from '../theme';
-import { Btn, C, Chip, Group, Icon, Input, Row, Section, SwitchRow, alpha, shadow } from '../ui';
+import { Btn, C, Group, Icon, Input, Row, Section, SwitchRow, alpha, shadow } from '../ui';
 import { signOut, usePerson } from './data';
 import { useDeletion } from '../account/deletion';
 import { useIsAdmin } from '../admin/data';
+import { AmountPick, TimeBtn } from '../TimePick';
 
 /* Μικρογραφία οθόνης στα χρώματα μιας παλέτας (για την επιλογή εμφάνισης). */
 function Mini({ P }: { P: Theme }) {
@@ -102,7 +103,7 @@ function Password({ last }: { last?: boolean }) {
   );
 }
 
-const REMIND = [{ m: 60, label: '1 ώρα πριν' }, { m: 180, label: '3 ώρες πριν' }, { m: 1440, label: 'Μία μέρα πριν' }];
+const REMIND = [60, 180, 1440];
 
 /* Ειδοποιήσεις στο κινητό: ποιες θέλει ο πελάτης (και η επιχείρηση, όταν είναι σε λειτουργία επιχείρησης). */
 export function NotifyPrefs({ bare }: { bare?: boolean } = {}) {
@@ -114,14 +115,21 @@ export function NotifyPrefs({ bare }: { bare?: boolean } = {}) {
       {biz && (
         <Group>
           <SwitchRow label="Νέες κρατήσεις και ακυρώσεις" sub="Και αιτήματα πακέτων, νέοι πελάτες για έγκριση" value={p.nBizBookings} onChange={(v) => setPref('nBizBookings', v)} />
-          <SwitchRow label="Η μέρα σου, κάθε πρωί" sub="Στις 8:00: πόσα ραντεβού έχεις και ποιο είναι το πρώτο" value={p.nBizDaily} onChange={(v) => setPref('nBizDaily', v)} last />
+          <SwitchRow label="Η μέρα σου, κάθε πρωί" sub={`Στις ${p.nBizDailyAt}: πόσα ραντεβού έχεις και ποιο είναι το πρώτο`} value={p.nBizDaily} onChange={(v) => setPref('nBizDaily', v)} last={!p.nBizDaily} />
+          {p.nBizDaily && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingBottom: 14 }}>
+              <Text style={{ flex: 1, color: C.mute, fontWeight: '600', fontSize: 13 }}>Ώρα ειδοποίησης</Text>
+              <TimeBtn small value={p.nBizDailyAt} title="Η μέρα σου" sub="Τι ώρα να σου έρχεται η σύνοψη" onChange={(v) => setPref('nBizDailyAt', v)} />
+            </View>
+          )}
         </Group>
       )}
       <Group>
         <SwitchRow label="Υπενθύμιση ραντεβού" sub="Πριν από κάθε κράτηση" value={p.nRemind} onChange={(v) => setPref('nRemind', v)} last={!p.nRemind} />
         {p.nRemind && (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: C.line }}>
-            {REMIND.map((o) => <Chip key={o.m} label={o.label} on={p.nRemindMin === o.m} onPress={() => setPref('nRemindMin', o.m)} />)}
+            <AmountPick bare options={REMIND} value={p.nRemindMin} onPick={(v) => setPref('nRemindMin', v)} max={7 * 1440}
+              sheetTitle="Υπενθύμιση" sheetSub="Πόση ώρα πριν από το ραντεβού;" />
           </View>
         )}
         <SwitchRow label="Θέση από αναμονή" sub="Όταν σου κλείνεται θέση αυτόματα" value={p.nWaitlist} onChange={(v) => setPref('nWaitlist', v)} />

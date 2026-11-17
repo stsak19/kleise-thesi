@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { Text } from '../Txt';
 import { Btn, C, Icon, Input, alpha, s } from '../ui';
+import { TimeBtn } from '../TimePick';
 import { Choice } from './steps';
 import { type Hours, type Svc } from './save';
 import { type SvcKind, blankFor, durText, groupOf, grouped, svcKind } from './svcKind';
@@ -238,8 +239,8 @@ export function ServiceFields({ svc, onChange, category, groups = [], staff = []
             <View key={i} style={{ backgroundColor: C.soft, borderRadius: 14, padding: 10, gap: 8 }}>
               <View style={[s.row, { gap: 8 }]}>
                 <View style={{ width: 92 }}>
-                  <Input value={row.time} placeholder="19:00" onChangeText={(v) => onSched(sched!.map((r, j) => (j === i ? { ...r, time: v } : r)))}
-                    style={{ width: 10, textAlign: 'center', fontWeight: '800' }} box={{ backgroundColor: C.bg, borderColor: C.bg }} />
+                  <TimeBtn value={row.time} title="Ώρα μαθήματος" onChange={(v) => onSched(sched!.map((r, j) => (j === i ? { ...r, time: v } : r)))}
+                    style={{ backgroundColor: C.bg, borderColor: C.bg }} />
                 </View>
                 <Text style={{ flex: 1, color: C.mute, fontWeight: '700', fontSize: 13 }} numberOfLines={1}>{row.days.length ? daysText(row.days) : 'Διάλεξε μέρες'}</Text>
                 <Pressable onPress={() => onSched(sched!.filter((_, j) => j !== i))} hitSlop={8} accessibilityLabel="Αφαίρεση ώρας">

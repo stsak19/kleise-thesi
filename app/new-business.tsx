@@ -15,7 +15,8 @@ import { screenFor } from '../lib/bizscreen';
 import { THEMES, styleOf } from '../lib/presets';
 import { Btn, C, DAYS, TextBtn, Icon, Input, alpha, catEmoji, catLabel, price, s, shadow } from '../lib/ui';
 import { EMPTY_BIZ, Hours, Svc, WEEK, newKey, badHours, loadBusiness, presetData, saveBusiness } from '../lib/owner/save';
-import { Choice, HoursEditor, Swatches, ToggleCard, TypeGrid } from '../lib/owner/steps';
+import { AmountPick, DAY_UNITS, amountLabel } from '../lib/TimePick';
+import { HoursEditor, Swatches, ToggleCard, TypeGrid } from '../lib/owner/steps';
 import { ServiceBoard, ServiceFields, schedOf, withSched } from '../lib/owner/services';
 import { blankFor, groupOf, svcKind } from '../lib/owner/svcKind';
 
@@ -37,7 +38,7 @@ const RAIL: Record<Step, (svc: string) => string> = {
   services: (x) => x, hours: () => 'Ωράριο', rules: () => 'Κανόνες', review: () => 'Έλεγχος',
 };
 const COLORS = Array.from(new Set(THEMES.map((t) => t.color)));
-const hrs = (m: number) => (m < 60 ? `${m} λεπτά` : m % 1440 === 0 ? `${m / 1440} ${m === 1440 ? 'μέρα' : 'μέρες'}` : `${m / 60} ${m === 60 ? 'ώρα' : 'ώρες'}`);
+const hrs = (m: number) => amountLabel(m);
 
 export default function NewBusiness() {
   const router = useRouter();
@@ -227,10 +228,10 @@ export default function NewBusiness() {
       case 'hours': return <HoursEditor hours={hours} setHours={setHours} />;
       case 'rules': return (
         <View style={{ gap: 22 }}>
-          <Choice label="Πόσο νωρίτερα κλείνουν;" sub="Μέχρι πόσες μέρες μπροστά βλέπουν ελεύθερες ώρες."
-            options={[7, 14, 30, 60].map((v) => ({ v, label: `${v} μέρες` }))} value={+b.max_days_ahead} onPick={(v) => setB({ ...b, max_days_ahead: v })} />
-          <Choice label="Μέχρι πότε ακυρώνουν;" sub="Πόση ώρα πριν από το ραντεβού μπορούν να το ακυρώσουν."
-            options={[60, 120, 240, 720, 1440, 2880].map((v) => ({ v, label: hrs(v) }))} value={+b.cancel_before_min} onPick={(v) => setB({ ...b, cancel_before_min: v })} />
+          <AmountPick label="Πόσο νωρίτερα κλείνουν;" sub="Μέχρι πόσες μέρες μπροστά βλέπουν ελεύθερες ώρες." units={DAY_UNITS} max={365}
+            options={[7, 14, 30, 60]} value={+b.max_days_ahead} onPick={(v) => setB({ ...b, max_days_ahead: v })} />
+          <AmountPick label="Μέχρι πότε ακυρώνουν;" sub="Πόση ώρα πριν από το ραντεβού μπορούν να το ακυρώσουν." max={60 * 1440}
+            options={[60, 120, 240, 720, 1440, 2880]} value={+b.cancel_before_min} onPick={(v) => setB({ ...b, cancel_before_min: v })} />
           <View style={{ gap: 10 }}>
             <ToggleCard title="Έγκριση νέων πελατών" sub="Ο νέος πελάτης κλείνει μόνο αφού τον εγκρίνεις." value={!!b.requires_approval} onChange={(v) => setB({ ...b, requires_approval: v })} />
             <ToggleCard title="Πακέτα κρατήσεων (καρνέ)" sub="Κάθε κράτηση χρεώνεται από το πακέτο του πελάτη." value={!!b.uses_credits} onChange={(v) => setB({ ...b, uses_credits: v })} />

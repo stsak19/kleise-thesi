@@ -2,6 +2,7 @@ import { Pressable, View } from 'react-native';
 import { Text } from '../Txt';
 import { C, CATEGORIES, Card, Icon, Input, Toggle, alpha, onColor, s, shadow } from '../ui';
 import { screenFor } from '../bizscreen';
+import { TimeBtn } from '../TimePick';
 import { DAYNAME, Hours, Svc, WEEK, newKey } from './save';
 
 /* Τα κομμάτια του οδηγού «Νέα επιχείρηση»: ένα για κάθε βήμα. */
@@ -164,9 +165,9 @@ export function HoursEditor({ hours, setHours }: { hours: Hours; setHours: (h: H
             </View>
             {rows.map(({ h, i }) => (
               <View key={i} style={[s.row, { gap: 8 }]}>
-                <View style={{ flex: 1 }}><Input style={{ width: 10, textAlign: 'center' }} value={h.opens} placeholder="09:00" onChangeText={(v) => setRow(i, { opens: v })} box={{ backgroundColor: C.bg, borderColor: C.bg }} /></View>
+                <View style={{ flex: 1 }}><TimeBtn value={h.opens} title={`${DAYNAME[d]} · ανοίγει`} onChange={(v) => setRow(i, { opens: v })} style={{ backgroundColor: C.bg, borderColor: C.bg }} /></View>
                 <Text style={{ color: C.mute }}>–</Text>
-                <View style={{ flex: 1 }}><Input style={{ width: 10, textAlign: 'center' }} value={h.closes} placeholder="17:00" onChangeText={(v) => setRow(i, { closes: v })} box={{ backgroundColor: C.bg, borderColor: C.bg }} /></View>
+                <View style={{ flex: 1 }}><TimeBtn value={h.closes} title={`${DAYNAME[d]} · κλείνει`} onChange={(v) => setRow(i, { closes: v })} style={{ backgroundColor: C.bg, borderColor: C.bg }} /></View>
                 {rows.length > 1 && <Pressable onPress={() => setHours(hours.filter((_, j) => j !== i))} hitSlop={6} accessibilityLabel="Αφαίρεση διαστήματος"
                   style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: alpha(C.bad, 0.1), alignItems: 'center', justifyContent: 'center' }}>
                   <Icon name="close" size={14} color={C.bad} /></Pressable>}
