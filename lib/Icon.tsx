@@ -137,3 +137,21 @@ export function Icon({ name, size = 22, color = C.text, style }: { name: IconNam
   }
   return <View style={[{ width: s, height: s }, style]} pointerEvents="none">{body}</View>;
 }
+
+/* Καρδιά (αγαπημένα): γεμάτη ή περίγραμμα. Φτιαγμένη από ένα στραμμένο τετράγωνο και δύο κύκλους.
+   Το περίγραμμα είναι μια μικρότερη καρδιά στο χρώμα του φόντου (bg) πάνω στη γεμάτη. */
+export function Heart({ size = 22, color = C.text, filled = false, bg = C.bg }: { size?: number; color?: string; filled?: boolean; bg?: string }) {
+  const s = size, a = s * 0.54, cx = s * 0.5, cy = s * 0.54, d = a / (2 * Math.SQRT2);
+  const shape = (c: string) => <>
+    <View style={{ position: 'absolute', left: cx - a / 2, top: cy - a / 2, width: a, height: a, backgroundColor: c, transform: [{ rotate: '45deg' }] }} />
+    <View style={{ position: 'absolute', left: cx - d - a / 2, top: cy - d - a / 2, width: a, height: a, borderRadius: a, backgroundColor: c }} />
+    <View style={{ position: 'absolute', left: cx + d - a / 2, top: cy - d - a / 2, width: a, height: a, borderRadius: a, backgroundColor: c }} />
+  </>;
+  const k = 1 - (2 * Math.max(1.6, s * 0.09)) / (s * 0.8);
+  return (
+    <View style={{ width: s, height: s }} pointerEvents="none">
+      {shape(color)}
+      {!filled && <View style={{ position: 'absolute', left: 0, top: 0, width: s, height: s, transform: [{ translateY: s * 0.02 }, { scale: k }] }}>{shape(bg)}</View>}
+    </View>
+  );
+}

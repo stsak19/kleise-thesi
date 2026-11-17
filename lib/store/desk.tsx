@@ -5,7 +5,7 @@ import { Initials } from '../profile/parts';
 import { C, Icon, s } from '../ui';
 import type { IconName } from '../Icon';
 import { useStore } from './data';
-import { ExitPill, StoreLogo } from './parts';
+import { ExitPill, FavButton, StoreLogo } from './parts';
 import { askLogin } from '../guest';
 import { useRouter } from 'expo-router';
 
@@ -41,6 +41,7 @@ export function StoreTopBar({ items, state, navigateToTab }: { items: Record<str
           );
         })}
       </View>
+      <FavButton size={38} />
       {P.guest ? (
         <Pressable onPress={() => askLogin()} accessibilityRole="button"
           style={({ pressed, hovered }: any) => ({ paddingVertical: 11, paddingHorizontal: 18, borderRadius: 12, backgroundColor: C.text, opacity: pressed || hovered ? 0.85 : 1 })}>

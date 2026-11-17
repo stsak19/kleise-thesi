@@ -7,7 +7,7 @@ import { Photo } from '../../../../lib/Photo';
 import { useStore } from '../../../../lib/store/data';
 import { useBook, firstName } from '../../../../lib/store/book';
 import { BookSheet, Face, UsualCard, dur } from '../../../../lib/store/BookUI';
-import { AccountButton, Credits, ExitPill, MessageList, Notice, StoreLogo } from '../../../../lib/store/parts';
+import { AccountButton, Credits, ExitPill, FavButton, MessageList, Notice, StoreLogo } from '../../../../lib/store/parts';
 import { StorePacks } from '../../../../lib/store/Packs';
 import { ScheduleSheet } from '../../../../lib/store/Schedule';
 import { screenFor } from '../../../../lib/bizscreen';
@@ -204,7 +204,10 @@ export default function StoreHome() {
           <Photo uri={biz.cover_url} color={color} />
           <View style={{ position: 'absolute', top: top + 8, left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <ExitPill />
-            <AccountButton />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <FavButton />
+              <AccountButton />
+            </View>
           </View>
         </View>
         <View style={{ paddingHorizontal: 20, gap: 12 }}>

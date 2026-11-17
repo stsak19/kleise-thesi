@@ -15,6 +15,7 @@ import { CAT_ART } from '../../../lib/catArt';
 import { setSearchOpen } from '../../../lib/searchOpen';
 import { useWide } from '../../../lib/wide';
 import { useHomeQuery } from '../../../lib/client/desk';
+import { FavRow } from '../../../lib/client/FavRow';
 type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null };
 
 
@@ -241,6 +242,7 @@ export default function Home() {
       {fixed}
       {overlay}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingTop: top + 70, paddingBottom: TAB_SPACE, gap: 24 }} keyboardShouldPersistTaps="handled">
+        <FavRow />
         {chips}
         {!loaded ? null : list.length === 0 ? <View style={{ paddingHorizontal: 16 }}>{empty}</View>
           : filtering ? (
@@ -282,6 +284,7 @@ function DeskHome({ chips, sections, list, loaded, filtering, empty, cat, onOpen
     <ScrollView style={s.screen} contentContainerStyle={{ paddingVertical: 26, paddingHorizontal: 40, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
       <View style={{ width: '100%', maxWidth: 1320, alignSelf: 'center' }}>
         <View style={{ gap: 26 }} onLayout={(e) => setW(Math.floor(e.nativeEvent.layout.width))}>
+          <FavRow pad={0} />
           {chips}
           {!loaded ? null : list.length === 0 ? empty
             : filtering ? (

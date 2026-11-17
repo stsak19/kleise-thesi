@@ -11,6 +11,8 @@ import { DeskTitle } from './desk';
 import { usePerson } from '../profile/data';
 import { Initials } from '../profile/parts';
 import { askLogin } from '../guest';
+import { Heart } from '../Icon';
+import { isFavorite, toggleFavorite, useFavorites } from '../favorites';
 
 /* Η κάτω μπάρα του καταστήματος: η ίδια γυάλινη μπάρα του SpotOn (lib/FloatBar), με τη λέξη της ενεργής καρτέλας
    και πλάτος που αλλάζει με κίνηση. */
@@ -53,7 +55,10 @@ export function StoreTop({ title, right }: { title: string; right?: React.ReactN
     <View style={{ paddingTop: top + 8, paddingHorizontal: 20, paddingBottom: 14, gap: 14, borderBottomWidth: 1, borderBottomColor: C.line, backgroundColor: C.bg }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <ExitPill />
-        <AccountButton />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <FavButton />
+          <AccountButton />
+        </View>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <StoreLogo size={44} />
@@ -64,6 +69,26 @@ export function StoreTop({ title, right }: { title: string; right?: React.ReactN
         {right}
       </View>
     </View>
+  );
+}
+
+/* Καρδιά «Αγαπημένο»: αποθηκεύει το κατάστημα για να φαίνεται πάνω πάνω στην αρχική.
+   Αποθηκευμένο = χάπι με γεμάτη καρδιά και λέξη· όχι = κύκλος με περίγραμμα καρδιάς (φαίνεται και πάνω σε σκούρο εξώφυλλο). Επισκέπτης: ζητά σύνδεση. */
+export function FavButton({ size = 34 }: { size?: number }) {
+  const S = useStore();
+  const P = usePerson();
+  const favs = useFavorites();
+  if (!S.biz) return null;
+  const on = isFavorite(favs, S.biz.id);
+  const press = () => (P.guest ? askLogin(`/store/${S.id}`) : toggleFavorite(S.biz));
+  return (
+    <Pressable onPress={press} accessibilityRole="button" accessibilityState={{ selected: on }} hitSlop={6}
+      accessibilityLabel={on ? 'Αφαίρεση από τα αγαπημένα' : 'Προσθήκη στα αγαπημένα'}
+      style={({ pressed, hovered }: any) => ({ height: size, minWidth: size, borderRadius: size / 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        gap: 6, paddingHorizontal: on ? 12 : 0, backgroundColor: C.card, opacity: pressed || hovered ? 0.8 : 1 })}>
+      <Heart size={15} filled={on} color={C.text} bg={C.card} />
+      {on && <Text style={{ color: C.text, fontWeight: '800', fontSize: 13 }}>Αγαπημένο</Text>}
+    </Pressable>
   );
 }
 
