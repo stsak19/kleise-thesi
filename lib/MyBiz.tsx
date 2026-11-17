@@ -98,9 +98,9 @@ export function MyBizTopButton() {
   return <>
     <Pressable onPress={open} accessibilityRole="button" accessibilityLabel="Η επιχείρησή μου"
       style={({ pressed, hovered }: any) => [s.row, { gap: 8, height: 42, paddingHorizontal: 14, borderRadius: 12,
-        backgroundColor: pressed || hovered || choosing ? C.accent : C.soft }]}>
-      <Icon name="store" size={17} color={C.text} />
-      <Text style={{ color: C.text, fontWeight: '800', fontSize: 14 }}>{list.length > 1 ? 'Οι επιχειρήσεις μου' : 'Η επιχείρησή μου'}</Text>
+        backgroundColor: C.text, opacity: pressed || hovered || choosing ? 0.85 : 1 }]}>
+      <Icon name="store" size={17} color={C.bg} />
+      <Text style={{ color: C.bg, fontWeight: '800', fontSize: 14 }}>{list.length > 1 ? 'Οι επιχειρήσεις μου' : 'Η επιχείρησή μου'}</Text>
     </Pressable>
     <BizChooser desk list={list} visible={choosing} onClose={close} onPick={enter} />
   </>;
@@ -111,9 +111,9 @@ export function ToClientTopButton() {
   const switchTo = useSwitchTo();
   return (
     <Pressable onPress={() => switchTo('client')} accessibilityRole="button" accessibilityLabel="Μετάβαση σε πελάτη"
-      style={({ pressed, hovered }: any) => [s.row, { gap: 8, height: 42, paddingHorizontal: 14, borderRadius: 12, backgroundColor: pressed || hovered ? C.accent : C.soft }]}>
-      <Icon name="swap" size={17} color={C.text} />
-      <Text style={{ color: C.text, fontWeight: '800', fontSize: 14 }}>Μετάβαση σε πελάτη</Text>
+      style={({ pressed, hovered }: any) => [s.row, { gap: 8, height: 42, paddingHorizontal: 14, borderRadius: 12, backgroundColor: C.text, opacity: pressed || hovered ? 0.85 : 1 }]}>
+      <Icon name="swap" size={17} color={C.bg} />
+      <Text style={{ color: C.bg, fontWeight: '800', fontSize: 14 }}>Μετάβαση σε πελάτη</Text>
     </Pressable>
   );
 }
