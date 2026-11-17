@@ -87,13 +87,13 @@ export function PasswordForm({ onDone }: { onDone?: () => void }) {
   );
 }
 
-/* Αλλαγή κωδικού: ανοίγει μέσα στη λίστα. */
+/* Αλλαγή κωδικού: κουμπί που ανοίγει τη φόρμα μέσα στη λίστα. */
 export function Password({ last }: { last?: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Row icon="lock" title="Αλλαγή κωδικού" onPress={() => setOpen(!open)} last={last && !open}
-        right={<Icon name="chevron" size={16} color={C.mute} style={{ transform: [{ rotate: open ? '90deg' : '0deg' }] }} />} />
+      <Row icon="lock" title="Κωδικός" sub="Άλλαξε τον κωδικό σύνδεσης" onPress={() => setOpen(!open)} last={last && !open}
+        right={<Btn size="sm" kind={open ? 'ghost' : undefined} title={open ? 'Άκυρο' : 'Αλλαγή κωδικού'} onPress={() => setOpen(!open)} />} />
       {open && (
         <View style={[{ padding: 14, paddingTop: 4 }, !last && { borderBottomWidth: 1, borderBottomColor: C.line }]}>
           <PasswordForm onDone={() => setOpen(false)} />

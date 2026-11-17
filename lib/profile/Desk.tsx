@@ -43,6 +43,7 @@ export function DeskProfile() {
   const switchTo = useSwitchTo();
   const prefs = usePrefs();
   const [sel, setSelS] = useState<Key>(last);
+  const [pass, setPass] = useState(false);
   const setSel = (k: Key) => { last = k; setSelS(k); };
   const cur = SECTIONS.find((x) => x.key === sel)!;
 
@@ -58,7 +59,8 @@ export function DeskProfile() {
       <View style={{ height: 18 }} />
       <Text style={{ color: C.text, fontWeight: '800', fontSize: 18 }}>Λογαριασμός</Text>
       <AdminRow line={(go) => <Line title="Super admin" sub="Διαχείριση όλης της πλατφόρμας" right={<Btn size="sm" title="Άνοιγμα" onPress={go} />} />} />
-      <Label t="Αλλαγή κωδικού" /><PasswordForm />
+      <Line title="Κωδικός" sub="Άλλαξε τον κωδικό σύνδεσης" right={<Btn size="sm" kind={pass ? 'ghost' : undefined} title={pass ? 'Άκυρο' : 'Αλλαγή κωδικού'} onPress={() => setPass(!pass)} />} />
+      {pass && <PasswordForm onDone={() => setPass(false)} />}
       <Line title="Διαγραφή λογαριασμού" sub="Με αίτηση: σβήνεται σε 7 μέρες και ως τότε ακυρώνεται" right={<Btn size="sm" kind="danger" title="Αίτηση" onPress={() => router.push('/delete-account')} />} />
     </View>
   ) : sel === 'look' ? (
