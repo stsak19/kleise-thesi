@@ -13,30 +13,18 @@ export default function Upcoming({ D }: { D: BookingsData }) {
   ))}</>;
 }
 
-/* Κάρτα κράτησης με μπάνερ: πάνω το εξώφυλλο του καταστήματος με λογότυπο και όνομα, κάτω μέρα · ώρα · υπηρεσία και Ακύρωση. */
+/* Κάρτα κράτησης, μίνιμαλ πλαίσιο: αριστερά το λογότυπο του καταστήματος, δεξιά όνομα, μέρα · ώρα, υπηρεσία, και Ακύρωση. */
 export function BannerCard({ b, biz, color: c, onOpen, onCancel }: { b: Booking; biz?: Biz | any; color: string; onOpen?: () => void; onCancel: () => void }) {
   return (
-    <Pressable onPress={onOpen} disabled={!onOpen} style={({ pressed }) => ({ transform: [{ scale: pressed ? 0.985 : 1 }] })}>
-      <View style={{ borderRadius: 20, overflow: 'hidden', backgroundColor: C.card, borderWidth: 1, borderColor: C.line }}>
-        <View style={{ height: 64 }}>
-          <Photo uri={biz?.cover_url} color={c} />
-          <Scrim strength={0.75} photo={biz?.cover_url} />
-          <View style={{ position: 'absolute', left: 12, right: 12, top: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <BizLogo biz={biz} name={b.business} color={c} size={34} />
-            <Text style={{ flex: 1, color: '#ffffff', fontWeight: '800', fontSize: 16, letterSpacing: -0.3 }} numberOfLines={1}>{b.business}</Text>
-            <View style={{ backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: 999, paddingVertical: 4, paddingHorizontal: 10 }}>
-              <Text style={{ color: '#000000', fontWeight: '800', fontSize: 12.5 }}>{countdown(b)}</Text>
-            </View>
-          </View>
-        </View>
-        <View style={[s.row, { gap: 12, paddingHorizontal: 14, paddingVertical: 12 }]}>
-          <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
-            <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{fmtLong(b.date)} · {b.time}</Text>
-            <Text style={{ color: C.mute, fontSize: 14 }} numberOfLines={1}>{b.service}</Text>
-          </View>
-          <CancelBtn onPress={onCancel} />
-        </View>
+    <Pressable onPress={onOpen} disabled={!onOpen}
+      style={({ pressed }) => [s.row, { gap: 14, padding: 14, borderRadius: 20, borderWidth: 1, borderColor: C.line, backgroundColor: pressed ? C.soft : C.bg }]}>
+      <BizLogo biz={biz} name={b.business} color={c} size={56} />
+      <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
+        <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{b.business}</Text>
+        <Text style={{ color: C.text, fontSize: 14.5 }} numberOfLines={1}>{fmtLong(b.date)} · {b.time}</Text>
+        <Text style={{ color: C.mute, fontSize: 13.5 }} numberOfLines={1}>{b.service} · {countdown(b)}</Text>
       </View>
+      <View style={{ alignSelf: 'center' }}><CancelBtn onPress={onCancel} /></View>
     </Pressable>
   );
 }
