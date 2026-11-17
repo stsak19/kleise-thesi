@@ -18,7 +18,8 @@ export type TabItems = Record<string, { icon: IconName; label: string }>;
 const ICON = 40, PAD = 6;
 /* extra: ένα κουμπί-ενέργεια στο τέλος της μπάρας, μετά από λεπτή γραμμή (π.χ. «Επιχείρηση» / «Πελάτης»).
    Δεν είναι καρτέλα: δεν παίρνει τη σταγόνα, απλώς κάνει κάτι όταν πατηθεί. */
-export type BarExtra = { icon: IconName; label: string; onPress: () => void };
+export type BarExtra = { icon: IconName; label: string; onPress: () => void; apart?: boolean };
+/* apart: το κουμπί βγαίνει έξω από τη μπάρα, ως ξεχωριστός μαύρος κύκλος δίπλα της (κουμπί επιχείρησης του πελάτη). */
 export function FloatBar({ items, state, navigateToTab, labels, extra }: { items: TabItems; state: { index: number; routes: { key: string; name: string }[] }; navigateToTab: (key: string) => void; labels?: boolean; extra?: BarExtra | null }) {
   const bottom = useSafeAreaInsets().bottom;
   const blurred = useSearchOpen();
@@ -73,6 +74,7 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
           ))}
         </View>
       )}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
       <View ref={bar} {...pan.panHandlers} onLayout={() => bar.current?.measureInWindow((bx: number) => { barX.current = bx; })}>
       <BlurView intensity={light ? 40 : 30} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
         style={{ height: 52, borderRadius: 26, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap, paddingHorizontal: PAD,
@@ -97,7 +99,7 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
             </Pressable>
           );
         })}
-        {extra && <>
+        {extra && !extra.apart && <>
           <View style={{ width: 1, height: 24, marginHorizontal: labels ? 0 : -6, backgroundColor: light ? alpha('#0a0a0a', 0.12) : alpha('#f0eee6', 0.16) }} />
           <Pressable onPress={extra.onPress} accessibilityRole="button" accessibilityLabel={extra.label} hitSlop={4}
             style={({ pressed }) => ({ width: ICON, height: ICON, borderRadius: ICON / 2, alignItems: 'center', justifyContent: 'center',
@@ -106,6 +108,14 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
           </Pressable>
         </>}
       </BlurView>
+      </View>
+      {extra?.apart && (
+        <Pressable onPress={extra.onPress} accessibilityRole="button" accessibilityLabel={extra.label} hitSlop={4}
+          style={({ pressed }) => ({ width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', backgroundColor: C.text,
+            transform: [{ scale: pressed ? 0.94 : 1 }], boxShadow: `0px 10px 26px ${alpha(C.shade, light ? 0.25 : 0.5)}` })}>
+          <Icon name={extra.icon} size={20} color={C.bg} />
+        </Pressable>
+      )}
       </View>
       {blurred && <BlurView pointerEvents="none" intensity={12} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
         style={{ position: 'absolute', left: 0, right: 0, top: -10, bottom: 0 }} />}

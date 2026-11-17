@@ -25,7 +25,7 @@ const TOP: TabItems = { '(search)': ICONS['(search)'], bookings: ICONS.bookings,
 export default function TabsLayout() {
   const wide = useWide();
   const my = useOpenMyBiz();
-  const extra = my.list.length ? { icon: 'store' as const, label: 'Η επιχείρησή μου', onPress: my.open } : null;
+  const extra = my.list.length ? { icon: 'store' as const, label: 'Η επιχείρησή μου', onPress: my.open, apart: true } : null;
   return (<>
     <Tabs tabBar={(p) => (wide ? <TopBar items={TOP} {...p} /> : <FloatBar items={ICONS} {...p} labels extra={extra} />)}
       screenOptions={{ headerShown: false, animation: wide ? 'none' : 'shift', tabBarPosition: wide ? 'top' : 'bottom', sceneStyle: { backgroundColor: C.bg } }}>
