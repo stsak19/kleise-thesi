@@ -275,6 +275,8 @@ export default function NewBusiness() {
     }
   };
 
+  // Μαύρο όταν μπορείς να προχωρήσεις, γκρι όσο λείπει κάτι από τη φόρμα.
+  const ready = !why && !busy;
   const mainTitle = busy ? 'Μια στιγμή…' : svcEdit ? why || (svcEdit.fresh ? 'Προσθήκη' : 'Έτοιμο') : step === 'review' ? 'Δημιουργία σελίδας' : why || 'Συνέχεια';
   const heading = (
     <View style={{ gap: 6 }}>
@@ -345,7 +347,7 @@ export default function NewBusiness() {
             ) : null}
             <View style={{ flex: 1 }} />
             {skip}
-            <Btn title={mainTitle} onPress={next} disabled={!!why || busy} style={{ minWidth: 200, paddingHorizontal: 30 }} />
+            <Btn title={mainTitle} onPress={next} disabled={!!why || busy} color={ready ? C.text : undefined} style={{ minWidth: 200, paddingHorizontal: 30 }} />
           </View>
         </View>
 
@@ -388,7 +390,7 @@ export default function NewBusiness() {
       {/* Κάτω: συνέχεια */}
       <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: bottom + 16, gap: 10, backgroundColor: C.bg,
         borderTopWidth: 1, borderTopColor: alpha(C.text, 0.06) }}>
-        <Btn title={mainTitle} onPress={next} disabled={!!why || busy} />
+        <Btn title={mainTitle} onPress={next} disabled={!!why || busy} color={ready ? C.text : undefined} />
         {skip}
       </View>
     </KeyboardAvoidingView>
