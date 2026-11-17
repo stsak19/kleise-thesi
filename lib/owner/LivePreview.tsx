@@ -1,4 +1,5 @@
-import { Modal, Pressable, ScrollView, View } from 'react-native';
+import { useRef } from 'react';
+import { Animated, Modal, PanResponder, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../Txt';
 import { Btn, C, Icon, alpha, price, shadow } from '../ui';
@@ -113,9 +114,24 @@ export function PreviewPill({ onPress }: { onPress: () => void }) {
   );
 }
 
-/* Πατημένο: ανεβαίνει από κάτω όλη η σελίδα, όπως τη βλέπει ο πελάτης στο κινητό. Δεν πατιέται τίποτα μέσα. */
+/* Πατημένο: ανεβαίνει από κάτω όλη η σελίδα, όπως τη βλέπει ο πελάτης στο κινητό. Δεν πατιέται τίποτα μέσα.
+   Κλείνει με το ✕, με το «Πίσω στην επεξεργασία» ή σέρνοντάς το προς τα κάτω (από πάνω, ή από τη σελίδα όταν είναι στην αρχή της). */
 export function PreviewSheet({ biz, svcs, hours, onClose }: { biz: any; svcs: Svc[]; hours: Hours; onClose: () => void }) {
   const { top, bottom } = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const y = useRef(new Animated.Value(0)).current;
+  const atTop = useRef(true);
+  const close = useRef(onClose); close.current = onClose;
+  const pan = useRef(PanResponder.create({
+    onMoveShouldSetPanResponderCapture: (_, g) => atTop.current && g.dy > 8 && g.dy > Math.abs(g.dx) * 1.5,
+    onPanResponderMove: (_, g) => y.setValue(Math.max(0, g.dy)),
+    onPanResponderRelease: (_, g) => {
+      if (g.dy > 120 || g.vy > 1) Animated.timing(y, { toValue: height, duration: 200, useNativeDriver: false }).start(() => close.current());
+      else Animated.spring(y, { toValue: 0, useNativeDriver: false, bounciness: 4 }).start();
+    },
+    onPanResponderTerminate: () => Animated.spring(y, { toValue: 0, useNativeDriver: false }).start(),
+  })).current;
+  const dim = y.interpolate({ inputRange: [0, 400], outputRange: [1, 0], extrapolate: 'clamp' });
   const cat = biz.category ?? 'other';
   const scr = screenFor(cat);
   const k = svcKind(cat);
@@ -129,8 +145,9 @@ export function PreviewSheet({ biz, svcs, hours, onClose }: { biz: any; svcs: Sv
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: alpha('#000000', 0.35), paddingTop: top + 10 }}>
-        <View style={{ flex: 1, backgroundColor: C.bg, borderTopLeftRadius: 26, borderTopRightRadius: 26, overflow: 'hidden' }}>
+      <View style={{ flex: 1, paddingTop: top + 10 }}>
+        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: alpha('#000000', 0.35), opacity: dim }} />
+        <Animated.View {...pan.panHandlers} style={{ flex: 1, backgroundColor: C.bg, borderTopLeftRadius: 26, borderTopRightRadius: 26, overflow: 'hidden', transform: [{ translateY: y }] }}>
           <View style={{ alignSelf: 'center', width: 40, height: 5, borderRadius: 3, backgroundColor: C.line, marginTop: 8 }} />
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingTop: 8, paddingBottom: 12, gap: 12 }}>
             <View style={{ flex: 1 }}>
@@ -142,7 +159,8 @@ export function PreviewSheet({ biz, svcs, hours, onClose }: { biz: any; svcs: Sv
               <Icon name="close" size={14} color={C.text} />
             </Pressable>
           </View>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 30 }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 30 }} scrollEventThrottle={16}
+            onScroll={(e) => { atTop.current = e.nativeEvent.contentOffset.y <= 0; }}>
             <PagePreview biz={biz} bare />
             <View style={{ paddingHorizontal: 20 }}>
               {!!biz.description?.trim() && <Text style={{ color: C.mute, fontSize: 15, lineHeight: 22, marginTop: 18 }}>{biz.description.trim()}</Text>}
@@ -186,7 +204,7 @@ export function PreviewSheet({ biz, svcs, hours, onClose }: { biz: any; svcs: Sv
           <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: bottom + 16, borderTopWidth: 1, borderTopColor: C.line }}>
             <Btn kind="ghost" title="Πίσω στην επεξεργασία" onPress={onClose} />
           </View>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
