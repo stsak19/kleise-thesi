@@ -52,7 +52,8 @@ export default function StoreHome() {
     const q = encodeURIComponent([biz.address, biz.city].filter(Boolean).join(', '));
     Linking.openURL(Platform.OS === 'ios' ? `http://maps.apple.com/?q=${q}` : `https://www.google.com/maps/search/?api=1&query=${q}`);
   };
-  const phone = biz.phone ? String(biz.phone).replace(/\s/g, '') : null;
+  // Το τηλέφωνο φαίνεται μόνο αν το θέλει ο ιδιοκτήτης (businesses.show_phone, migration 011).
+  const phone = biz.phone && biz.show_phone !== false ? String(biz.phone).replace(/\s/g, '') : null;
   const call = () => phone && Linking.openURL(`tel:${phone}`);
 
   const Chip = ({ text, on, onPress }: { text: string; on?: boolean; onPress?: () => void }) => (

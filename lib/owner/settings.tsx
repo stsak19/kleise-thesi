@@ -115,6 +115,10 @@ function Details({ st }: { st: St }) {
           <View style={{ flex: 1 }}><Input label="Πόλη" placeholder="Αθήνα" value={b.city} onChangeText={(v) => setB({ ...b, city: v })} /></View>
           <View style={{ flex: 1 }}><Input label="Τηλέφωνο" placeholder="210…" keyboardType="phone-pad" value={b.phone ?? ''} onChangeText={(v) => setB({ ...b, phone: v })} /></View>
         </View>
+        <View style={[s.row, { gap: 12 }]}>
+          <View style={{ flex: 1 }}><T style={{ fontWeight: '700' }}>Να φαίνεται το τηλέφωνο</T><T mute style={{ fontSize: 13 }}>Οι πελάτες το βλέπουν στη σελίδα σου.</T></View>
+          <Toggle value={b.show_phone !== false} onChange={(v) => setB({ ...b, show_phone: v })} />
+        </View>
         <Input label="Διεύθυνση" icon="pin" placeholder="Οδός και αριθμός" value={b.address ?? ''} onChangeText={(v) => setB({ ...b, address: v })} />
         <Input label="Περιγραφή" placeholder="Τι κάνετε, τι να περιμένει ο πελάτης…" multiline value={b.description ?? ''} onChangeText={(v) => setB({ ...b, description: v })} />
       </Card>

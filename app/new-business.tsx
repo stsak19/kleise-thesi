@@ -206,6 +206,8 @@ export default function NewBusiness() {
           <Input label="Πόλη" icon="pin" placeholder="π.χ. Θεσσαλονίκη" value={b.city} onChangeText={(v) => setB({ ...b, city: v })} />
           <Input label="Διεύθυνση" placeholder="Οδός και αριθμός" value={b.address ?? ''} onChangeText={(v) => setB({ ...b, address: v })} />
           <Input label="Τηλέφωνο" icon="phone" placeholder="210…" keyboardType="phone-pad" value={b.phone ?? ''} onChangeText={(v) => setB({ ...b, phone: v })} />
+          <ToggleCard title="Να φαίνεται το τηλέφωνο" sub="Οι πελάτες το βλέπουν στη σελίδα σου και μπορούν να σε καλέσουν. Αλλιώς το βλέπεις μόνο εσύ."
+            value={b.show_phone !== false} onChange={(v) => setB({ ...b, show_phone: v })} />
         </View>
       );
       case 'look': return (
@@ -243,7 +245,7 @@ export default function NewBusiness() {
         const rows: { label: string; value: string; to: Step }[] = [
           { label: 'Είδος', value: `${catEmoji(cat)} ${catLabel(cat)}`, to: 'type' },
           { label: 'Πού', value: [b.address, b.city].filter(Boolean).join(', ') || '—', to: 'place' },
-          { label: 'Τηλέφωνο', value: b.phone?.trim() || 'Δεν έχεις βάλει', to: 'place' },
+          { label: 'Τηλέφωνο', value: b.phone?.trim() ? `${b.phone.trim()} · ${b.show_phone !== false ? 'φαίνεται στους πελάτες' : 'κρυφό'}` : 'Δεν έχεις βάλει', to: 'place' },
           { label: scr.services, value: named.map((x) => `${x.name.trim()}${x.price ? ` ${price(Math.round(parseFloat(x.price.replace(',', '.')) * 100))}` : ''}`).join(' · '), to: 'services' },
           { label: 'Ανοιχτά', value: openDays.length ? openDays.map((d) => DAYS[d]).join(' ') : 'Καμία μέρα', to: 'hours' },
           { label: 'Κρατήσεις', value: `έως ${b.max_days_ahead} μέρες μπροστά · ακύρωση ${hrs(+b.cancel_before_min)} πριν`, to: 'rules' },
