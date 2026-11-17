@@ -37,6 +37,28 @@ function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
 }
 
 
+/* Μικρή κάρτα για το κινητό: χαμηλό εξώφυλλο (ή ενιαίο χρώμα θέματος), λογότυπο πάνω του,
+   και από κάτω όνομα και κατηγορία. Χωρίς σκιά. */
+function MiniCard({ b, onPress, width }: { b: Biz; onPress: () => void; width?: number | `${number}%` }) {
+  const brand = styleOf(b).color;
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => ({ width, opacity: pressed ? 0.8 : 1 })}>
+      <View style={{ height: 96, borderRadius: 16, overflow: 'hidden', backgroundColor: C.banner }}>
+        <Photo uri={b.cover_url} color={brand} />
+      </View>
+      <View style={{ marginTop: -22, marginLeft: 10, width: 44, height: 44, borderRadius: 14, padding: 3, backgroundColor: C.bg }}>
+        <View style={{ flex: 1, borderRadius: 11, overflow: 'hidden' }}>
+          <Photo uri={b.logo_url} color={brand} letter={b.name.slice(0, 1)} />
+        </View>
+      </View>
+      <View style={{ paddingTop: 6, paddingHorizontal: 2, gap: 1 }}>
+        <Text style={{ color: C.text, fontWeight: '800', fontSize: 15, letterSpacing: -0.2 }} numberOfLines={1}>{b.name}</Text>
+        <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{catLabel(b.category)}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
 type Next = { date: string; time: string; service: string; business: string };
 /* Η επόμενη κράτηση του χρήστη για ΣΗΜΕΡΑ (ή τίποτα). */
 function useTodayBooking() {
@@ -199,8 +221,8 @@ export default function Home() {
   const row = (x: { title: string; items: Biz[] }) => (
     <View key={x.title} style={{ gap: 10 }}>
       <Text style={[s.h, { paddingHorizontal: 16 }]}>{x.title}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 }}>
-        {x.items.map((b) => <View key={b.id} style={{ width: 270 }}><BizCard b={b} onPress={() => router.push(`/store/${b.id}`)} /></View>)}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingHorizontal: 16, paddingTop: 2, paddingBottom: 6 }}>
+        {x.items.map((b) => <MiniCard key={b.id} b={b} width={168} onPress={() => router.push(`/store/${b.id}`)} />)}
       </ScrollView>
     </View>
   );
@@ -227,7 +249,9 @@ export default function Home() {
                 <Text style={[s.h, { flex: 1 }]}>{cat ? catLabel(cat) : 'Αποτελέσματα'}</Text>
                 <Text style={{ color: C.mute, fontWeight: '600', fontSize: 14 }}>{list.length} {list.length === 1 ? 'κατάστημα' : 'καταστήματα'}</Text>
               </View>
-              {list.map((b) => <BizCard key={b.id} b={b} onPress={() => router.push(`/store/${b.id}`)} />)}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 12, rowGap: 18 }}>
+                {list.map((b) => <MiniCard key={b.id} b={b} width="47.5%" onPress={() => router.push(`/store/${b.id}`)} />)}
+              </View>
             </View>
           ) : sections.map(row)}
       </ScrollView>
