@@ -12,6 +12,7 @@ import { StorePacks } from '../../../../lib/store/Packs';
 import { ScheduleSheet } from '../../../../lib/store/Schedule';
 import { screenFor } from '../../../../lib/bizscreen';
 import { useWide } from '../../../../lib/wide';
+import { DragSheet, InfoButton } from '../../../../lib/DragSheet';
 
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
 const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
@@ -19,7 +20,8 @@ const Head = ({ t }: { t: string }) => <Text style={{ color: C.text, fontWeight:
 const hm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
 /* Η αρχική του καταστήματος: μπαίνεις και βλέπεις πρώτα τα στοιχεία του (φωτογραφία, όνομα, αν είναι ανοιχτά, κλήση,
-   οδηγίες, περιγραφή, υπηρεσίες με τιμές, πακέτα, ωράριο, ομάδα, ανακοινώσεις).
+   οδηγίες, υπηρεσίες με τιμές, πακέτα). Στο κινητό περιγραφή, επικοινωνία, κανόνες, ωράριο, ομάδα και ανακοινώσεις
+   είναι στο ⓘ πάνω δεξιά (φύλλο «Πληροφορίες»)· στον υπολογιστή στη σελίδα, όπως πριν.
    Ένα κουμπί ανά είδος ανοίγει το παράθυρο της κράτησης:
    - ραντεβού με ομάδα/πολλές υπηρεσίες (κομμωτήριο κ.λπ.): «Διάλεξε υπηρεσία» → βήματα (lib/store/BookUI · BookSheet)
    - ένα άτομο ή ιατρείο (personal, φυσιο, γιατρός): το κουμπί του είδους, π.χ. «Κλείσε προπόνηση» → ίδια βήματα
@@ -31,6 +33,7 @@ export default function StoreHome() {
   const wide = useWide();
   const top = useSafeAreaInsets().top;
   const [sched, setSched] = useState(false);
+  const [info, setInfo] = useState(false); // κινητό: φύλλο «Πληροφορίες» από το ⓘ
   const biz = S.biz ?? {};
   const color = S.st?.color ?? C.accent;
   const scr = screenFor(biz.category);
@@ -205,24 +208,20 @@ export default function StoreHome() {
           <View style={{ position: 'absolute', top: top + 8, left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <ExitPill />
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <InfoButton onPress={() => setInfo(true)} />
               <FavButton />
               <AccountButton />
             </View>
           </View>
         </View>
-        <View style={{ paddingHorizontal: 20, gap: 12 }}>
-          <View style={{ marginTop: -34 }}><View style={[{ alignSelf: 'flex-start', borderRadius: 20, borderWidth: 3, borderColor: C.bg }, shadow(2)]}><StoreLogo size={64} /></View></View>
+        {/* Η σελίδα κρατά μόνο ό,τι χρειάζεται για να κλείσεις· τα υπόλοιπα είναι στο ⓘ */}
+        <View style={{ paddingHorizontal: 20, paddingTop: 18, gap: 12 }}>
           {title}
           {chips}
           <Notice />
           {!classes && <UsualCard />}
-          {about}
           {services}
           <StorePacks />
-          {rules}
-          {hours}
-          {team}
-          {news}
         </View>
       </ScrollView>
       {S.services.length > 0 && (
@@ -231,6 +230,17 @@ export default function StoreHome() {
         </View>
       )}
       {sheets}
+      {info && (
+        <DragSheet title="Πληροφορίες" sub={biz.name ?? ''} onClose={() => setInfo(false)}>
+          <View style={{ paddingHorizontal: 20, gap: 12 }}>
+            {about}
+            {rules}
+            {hours}
+            {team}
+            {news}
+          </View>
+        </DragSheet>
+      )}
     </View>
   );
 }

@@ -1,13 +1,14 @@
-import { useRef } from 'react';
-import { Animated, Modal, PanResponder, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
+import { DragSheet, InfoButton } from '../DragSheet';
 import { Text } from '../Txt';
-import { Btn, C, Icon, alpha, price, shadow } from '../ui';
+import { Btn, C, Icon, price, shadow } from '../ui';
+import { amountLabel as hrsTxt } from '../TimePick';
 import { Photo, Scrim } from '../Photo';
 import { screenFor } from '../bizscreen';
 import { styleOf } from '../presets';
 import { svcKind } from './svcKind';
-import { PagePreview, upper } from './PagePreview';
+import { upper } from './PagePreview';
 import { DAYNAME, WEEK, type Hours, type Svc } from './save';
 
 /* Ο οδηγός «Νέα επιχείρηση» στον υπολογιστή: δεξιά η σελίδα του καταστήματος όπως θα τη δει ο πελάτης στον υπολογιστή,
@@ -114,98 +115,106 @@ export function PreviewPill({ onPress }: { onPress: () => void }) {
   );
 }
 
-/* Πατημένο: ανεβαίνει από κάτω όλη η σελίδα, όπως τη βλέπει ο πελάτης στο κινητό. Δεν πατιέται τίποτα μέσα.
-   Κλείνει με το ✕, με το «Πίσω στην επεξεργασία» ή σέρνοντάς το προς τα κάτω (από πάνω, ή από τη σελίδα όταν είναι στην αρχή της). */
+/* Πατημένο: ανεβαίνει από κάτω η σελίδα όπως τη βλέπει ο πελάτης στο κινητό (app/store/[id]/(tabs)/index.tsx):
+   εξώφυλλο, όνομα, κουμπάκια, υπηρεσίες. Το ⓘ πάνω δεξιά δείχνει τις πληροφορίες, όπως και στην πραγματική σελίδα. */
 export function PreviewSheet({ biz, svcs, hours, onClose }: { biz: any; svcs: Svc[]; hours: Hours; onClose: () => void }) {
-  const { top, bottom } = useSafeAreaInsets();
-  const { height } = useWindowDimensions();
-  const y = useRef(new Animated.Value(0)).current;
-  const atTop = useRef(true);
-  const close = useRef(onClose); close.current = onClose;
-  const pan = useRef(PanResponder.create({
-    onMoveShouldSetPanResponderCapture: (_, g) => atTop.current && g.dy > 8 && g.dy > Math.abs(g.dx) * 1.5,
-    onPanResponderMove: (_, g) => y.setValue(Math.max(0, g.dy)),
-    onPanResponderRelease: (_, g) => {
-      if (g.dy > 120 || g.vy > 1) Animated.timing(y, { toValue: height, duration: 200, useNativeDriver: false }).start(() => close.current());
-      else Animated.spring(y, { toValue: 0, useNativeDriver: false, bounciness: 4 }).start();
-    },
-    onPanResponderTerminate: () => Animated.spring(y, { toValue: 0, useNativeDriver: false }).start(),
-  })).current;
-  const dim = y.interpolate({ inputRange: [0, 400], outputRange: [1, 0], extrapolate: 'clamp' });
+  const [info, setInfo] = useState(false);
   const cat = biz.category ?? 'other';
   const scr = screenFor(cat);
   const k = svcKind(cat);
+  const color = styleOf(biz).color;
+  const name = biz.name?.trim() || 'Το κατάστημά σου';
   const all = svcs.filter((x) => x.name.trim());
+  const general = hours.filter((h) => h.svc === null);
   const days = WEEK.map((d) => {
-    const sl = hours.filter((h) => h.svc === null && h.weekday === d).sort((a, z) => a.opens.localeCompare(z.opens));
+    const sl = general.filter((h) => h.weekday === d).sort((a, z) => a.opens.localeCompare(z.opens));
     return { d, txt: sl.length ? sl.map((h) => `${h.opens.slice(0, 5)} – ${h.closes.slice(0, 5)}`).join(', ') : 'Κλειστά' };
   });
   const phone = biz.phone?.trim() && biz.show_phone !== false ? biz.phone.trim() : '';
-  const title = (x: string) => <Text style={{ color: C.text, fontWeight: '800', fontSize: 21, letterSpacing: -0.3, marginTop: 22, marginBottom: 4 }}>{x}</Text>;
+  const head = (x: string) => <Text style={{ color: C.text, fontWeight: '800', fontSize: 18, marginTop: 14 }}>{x}</Text>;
+  const chip = (x: string) => (
+    <View key={x} style={{ paddingVertical: 7, paddingHorizontal: 11, borderRadius: 11, backgroundColor: C.soft }}>
+      <Text style={{ color: C.text, fontSize: 12.5, fontWeight: '700' }}>{x}</Text>
+    </View>
+  );
+  const row = (icon: any, a: string, b: string, last?: boolean) => (
+    <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center', padding: 14, borderBottomWidth: last ? 0 : 1, borderBottomColor: C.line }}>
+      <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}><Icon name={icon} size={16} color={C.text} /></View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={{ color: C.text, fontWeight: '700', fontSize: 15 }}>{a}</Text>
+        <Text style={{ color: C.mute, fontSize: 13 }}>{b}</Text>
+      </View>
+    </View>
+  );
+  const cancel = +biz.cancel_before_min || 0;
 
   return (
-    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, paddingTop: top + 10 }}>
-        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: alpha('#000000', 0.35), opacity: dim }} />
-        <Animated.View {...pan.panHandlers} style={{ flex: 1, backgroundColor: C.bg, borderTopLeftRadius: 26, borderTopRightRadius: 26, overflow: 'hidden', transform: [{ translateY: y }] }}>
-          <View style={{ alignSelf: 'center', width: 40, height: 5, borderRadius: 3, backgroundColor: C.line, marginTop: 8 }} />
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingTop: 8, paddingBottom: 12, gap: 12 }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }}>Η σελίδα σου</Text>
-              <Text style={{ color: C.mute, fontSize: 13 }}>Έτσι τη βλέπουν οι πελάτες</Text>
-            </View>
-            <Pressable onPress={onClose} accessibilityLabel="Κλείσιμο" hitSlop={8}
-              style={({ pressed }) => ({ width: 38, height: 38, borderRadius: 19, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
-              <Icon name="close" size={14} color={C.text} />
-            </Pressable>
+    <DragSheet title="Η σελίδα σου" sub="Έτσι τη βλέπουν οι πελάτες" onClose={onClose}
+      footer={<Btn kind="ghost" title="Πίσω στην επεξεργασία" onPress={onClose} />}>
+      {!info ? (
+        <>
+          <View style={{ height: 170, backgroundColor: color }}>
+            <Photo uri={biz.cover_url} color={color} />
+            <View style={{ position: 'absolute', top: 12, right: 16 }}><InfoButton onPress={() => setInfo(true)} /></View>
           </View>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 30 }} scrollEventThrottle={16}
-            onScroll={(e) => { atTop.current = e.nativeEvent.contentOffset.y <= 0; }}>
-            <PagePreview biz={biz} bare />
-            <View style={{ paddingHorizontal: 20 }}>
-              {!!biz.description?.trim() && <Text style={{ color: C.mute, fontSize: 15, lineHeight: 22, marginTop: 18 }}>{biz.description.trim()}</Text>}
-              {title(k.mode === 'class' ? 'Μαθήματα' : scr.services)}
-              {all.length === 0 && <Text style={{ color: C.mute, fontSize: 14, paddingVertical: 10 }}>Εδώ θα φαίνονται οι {k.many} σου.</Text>}
-              {all.map((x, n) => {
-                const c = cents(x.price);
-                return (
-                  <View key={x.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, borderBottomWidth: n < all.length - 1 ? 1 : 0, borderBottomColor: C.line }}>
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={{ color: C.text, fontWeight: '700', fontSize: 16 }} numberOfLines={1}>{x.name.trim()}</Text>
-                      <Text style={{ color: C.mute, fontSize: 13 }}>{dur(+x.duration_min || 30)}{+x.capacity > 1 ? ` · έως ${x.capacity} άτομα` : ''}</Text>
-                    </View>
-                    <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{c != null ? `${x.from ? 'από ' : ''}${price(c)}` : k.mode === 'visit' ? 'Κατόπιν εκτίμησης' : ''}</Text>
+          <View style={{ paddingHorizontal: 20, paddingTop: 18, gap: 12 }}>
+            <View>
+              <Text style={{ color: C.text, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 }}>{name}</Text>
+              <Text style={{ color: C.mute, fontSize: 13.5, fontWeight: '600', marginTop: 2 }} numberOfLines={2}>
+                {[scr.kicker, [biz.address, biz.city].filter((v: string) => v?.trim()).join(', ')].filter(Boolean).join(' · ')}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {!!phone && chip('📞 Κλήση')}
+              {!!biz.address?.trim() && chip('📍 Οδηγίες')}
+            </View>
+            {head(k.mode === 'class' ? 'Μαθήματα' : 'Υπηρεσίες και τιμές')}
+            {all.length === 0 && <Text style={{ color: C.mute, fontSize: 14 }}>Εδώ θα φαίνονται οι {k.many} σου.</Text>}
+            {all.map((x) => {
+              const c = cents(x.price);
+              return (
+                <View key={x.key} style={[{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingLeft: 16, paddingRight: 12, borderRadius: 18, borderWidth: 1, borderColor: C.line, backgroundColor: C.bg }, shadow(1)]}>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={{ color: C.text, fontSize: 15.5, fontWeight: '800' }} numberOfLines={1}>{x.name.trim()}</Text>
+                    <Text style={{ color: C.mute, fontSize: 13, fontWeight: '600', marginTop: 2 }}>
+                      {dur(+x.duration_min || 30)}{c != null ? ` · ${x.from ? 'από ' : ''}${price(c)}` : k.mode === 'class' ? ' · με πακέτο' : ''}
+                    </Text>
                   </View>
-                );
-              })}
-              {(!!biz.city?.trim() || !!phone) && title('Επικοινωνία')}
-              {!!(biz.address?.trim() || biz.city?.trim()) && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 }}>
-                  <Icon name="pin" size={16} color={C.mute} />
-                  <Text style={{ color: C.text, fontSize: 15, flex: 1 }}>{[biz.address, biz.city].filter((v: string) => v?.trim()).join(', ')}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, paddingLeft: 12, paddingRight: 8, borderRadius: 999, backgroundColor: C.text }}>
+                    <Text style={{ color: C.bg, fontWeight: '800', fontSize: 13 }}>{k.mode === 'class' ? 'Ώρες' : 'Κλείσε'}</Text>
+                    <Icon name="chevron" size={14} color={C.bg} />
+                  </View>
                 </View>
-              )}
-              {!!phone && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 }}>
-                  <Icon name="phone" size={16} color={C.mute} />
-                  <Text style={{ color: C.text, fontSize: 15 }}>{phone}</Text>
-                </View>
-              )}
-              {hours.some((h) => h.svc === null) && title('Ωράριο')}
-              {hours.some((h) => h.svc === null) && days.map(({ d, txt }) => (
-                <View key={d} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 9 }}>
-                  <Text style={{ color: C.text, fontSize: 15 }}>{DAYNAME[d]}</Text>
-                  <Text style={{ color: txt === 'Κλειστά' ? C.mute : C.text, fontSize: 15 }}>{txt}</Text>
+              );
+            })}
+            {!biz.is_published && <Text style={{ color: C.mute, fontSize: 12.5, textAlign: 'center', marginTop: 10 }}>Η σελίδα δεν θα φαίνεται στην αναζήτηση μέχρι να τη δημοσιεύσεις.</Text>}
+          </View>
+        </>
+      ) : (
+        <View style={{ paddingHorizontal: 20, gap: 12 }}>
+          <Pressable onPress={() => setInfo(false)} hitSlop={6} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', opacity: pressed ? 0.6 : 1 })}>
+            <Icon name="back" size={16} color={C.mute} />
+            <Text style={{ color: C.mute, fontWeight: '700', fontSize: 14 }}>Πληροφορίες · πίσω στη σελίδα</Text>
+          </Pressable>
+          {!!biz.description?.trim() && <Text style={{ color: C.mute, fontSize: 15, lineHeight: 22 }}>{biz.description.trim()}</Text>}
+          <View style={{ borderRadius: 18, backgroundColor: C.card, overflow: 'hidden' }}>
+            {!!biz.address?.trim() && row('pin', biz.address.trim(), biz.city?.trim() ? `${biz.city.trim()} · Οδηγίες` : 'Οδηγίες')}
+            {!!phone && row('phone', phone, 'Κλήση')}
+            {row('clock', 'Κανόνες κρατήσεων', [cancel ? `Δωρεάν ακύρωση έως ${hrsTxt(cancel)} πριν.` : '', `Κρατήσεις έως ${biz.max_days_ahead ?? 14} μέρες μπροστά.`].filter(Boolean).join(' '), true)}
+          </View>
+          {general.length > 0 && head('Ωράριο')}
+          {general.length > 0 && (
+            <View style={{ borderRadius: 18, backgroundColor: C.card, overflow: 'hidden' }}>
+              {days.map(({ d, txt }, n) => (
+                <View key={d} style={{ flexDirection: 'row', paddingVertical: 10, paddingHorizontal: 14, borderBottomWidth: n < 6 ? 1 : 0, borderBottomColor: C.line }}>
+                  <Text style={{ flex: 1, color: C.mute, fontSize: 14 }}>{DAYNAME[d]}</Text>
+                  <Text style={{ color: C.mute, fontSize: 13.5 }}>{txt}</Text>
                 </View>
               ))}
-              {!biz.is_published && <Text style={{ color: C.mute, fontSize: 12.5, textAlign: 'center', marginTop: 18 }}>Η σελίδα δεν θα φαίνεται στην αναζήτηση μέχρι να τη δημοσιεύσεις.</Text>}
             </View>
-          </ScrollView>
-          <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: bottom + 16, borderTopWidth: 1, borderTopColor: C.line }}>
-            <Btn kind="ghost" title="Πίσω στην επεξεργασία" onPress={onClose} />
-          </View>
-        </Animated.View>
-      </View>
-    </Modal>
+          )}
+        </View>
+      )}
+    </DragSheet>
   );
 }
