@@ -80,6 +80,13 @@ export function DeskPreview({ biz, svcs, hours }: { biz: any; svcs: Svc[]; hours
             <View style={{ height: 42, borderRadius: 21, backgroundColor: C.text, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ color: C.bg, fontWeight: '800', fontSize: 14 }}>{k.mode === 'class' ? 'Δες το πρόγραμμα' : scr.cta}</Text>
             </View>
+            {(!!biz.phone?.trim() || !!biz.address?.trim()) && (
+              <View style={{ borderRadius: 14, backgroundColor: C.card, padding: 12, gap: 4 }}>
+                <Text style={{ color: C.text, fontWeight: '800', fontSize: 12.5 }}>Επικοινωνία</Text>
+                {!!biz.address?.trim() && <Text style={{ color: C.mute, fontSize: 12 }} numberOfLines={1}>📍 {biz.address.trim()}</Text>}
+                {!!biz.phone?.trim() && <Text style={{ color: C.mute, fontSize: 12 }} numberOfLines={1}>📞 {biz.phone.trim()}</Text>}
+              </View>
+            )}
             {open.length > 0 && (
               <View style={{ borderRadius: 14, backgroundColor: C.card, padding: 12, gap: 2 }}>
                 <Text style={{ color: C.text, fontWeight: '800', fontSize: 12.5 }}>Ωράριο</Text>

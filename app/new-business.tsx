@@ -243,6 +243,7 @@ export default function NewBusiness() {
         const rows: { label: string; value: string; to: Step }[] = [
           { label: 'Είδος', value: `${catEmoji(cat)} ${catLabel(cat)}`, to: 'type' },
           { label: 'Πού', value: [b.address, b.city].filter(Boolean).join(', ') || '—', to: 'place' },
+          { label: 'Τηλέφωνο', value: b.phone?.trim() || 'Δεν έχεις βάλει', to: 'place' },
           { label: scr.services, value: named.map((x) => `${x.name.trim()}${x.price ? ` ${price(Math.round(parseFloat(x.price.replace(',', '.')) * 100))}` : ''}`).join(' · '), to: 'services' },
           { label: 'Ανοιχτά', value: openDays.length ? openDays.map((d) => DAYS[d]).join(' ') : 'Καμία μέρα', to: 'hours' },
           { label: 'Κρατήσεις', value: `έως ${b.max_days_ahead} μέρες μπροστά · ακύρωση ${hrs(+b.cancel_before_min)} πριν`, to: 'rules' },
