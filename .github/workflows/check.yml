@@ -1,0 +1,29 @@
+name: Έλεγχος PR
+
+# Τρέχει σε κάθε Pull Request προς το main: έλεγχος τύπων και build για web.
+# Δεν ανεβάζει τίποτα· απλώς δείχνει πράσινο ή κόκκινο πριν το Merge.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Έλεγχος τύπων
+        run: npx tsc --noEmit
+      - name: Build για web
+        run: npx expo export --platform web --output-dir web
