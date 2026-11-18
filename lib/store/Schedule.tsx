@@ -136,7 +136,13 @@ export function ScheduleList({ bottom, onBook, onPacks }: { bottom: number; onBo
               })}
             </ScrollView>
           )}
-          <View style={{ height: 12, borderBottomWidth: 1, borderBottomColor: C.line }} />
+          {/* τίτλος ημέρας + υπόλοιπο πακέτου */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: C.line }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: C.text, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 }}>{DAY_FULL[d.getDay()]} {d.getDate()} {MONTHS[d.getMonth()]}</Text>
+              <Text style={{ color: C.mute, fontSize: 13, marginTop: 2 }}>{screenFor(S.biz?.category).times}</Text>
+            </View>
+          </View>
         </View>
 
         {!!S.packOnly && (
