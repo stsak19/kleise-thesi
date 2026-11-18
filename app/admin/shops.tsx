@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Text } from '../../lib/Txt';
 import { C, CATEGORIES, catLabel } from '../../lib/ui';
 import { useWide } from '../../lib/wide';
-import { nameOf, rating, useAdmin } from '../../lib/admin/data';
+import { RATINGS, nameOf, rating, useAdmin } from '../../lib/admin/data';
 import { Box, Chips, Lead, Line, Loading, Page, Row, Search, ShopTag } from '../../lib/admin/parts';
 
 /* Όλα τα καταστήματα της πλατφόρμας, με φίλτρα και αναζήτηση. Πατάς ένα → η καρτέλα του. */
@@ -32,13 +32,13 @@ export default function Shops() {
       {cats.length > 1 && <Chips value={cat} onChange={setCat} items={[{ key: 'all', label: 'Όλα τα είδη' }, ...cats.map((c) => ({ key: c.key, label: c.label }))]} />}
       {!data ? <Loading error={error} /> : wide ? (
         <View style={{ borderWidth: 1, borderColor: C.line, borderRadius: 18, overflow: 'hidden' }}>
-          <Row head widths={W} cells={['Κατάστημα', 'Ιδιοκτήτης', 'Πόλη', 'Κρατήσεις 30ημ.', 'Ακυρώσεις', '★', 'Κατάσταση']} />
+          <Row head widths={W} cells={['Κατάστημα', 'Ιδιοκτήτης', 'Πόλη', 'Κρατήσεις 30ημ.', 'Ακυρώσεις', ...(RATINGS ? ['★'] : []), 'Κατάσταση']} />
           {list.map((b) => (
             <Row key={b.id} widths={W} onPress={() => router.push(`/admin/shop/${b.id}` as any)} cells={[
               <View key="n" style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minWidth: 0 }}><Lead name={b.name} color={b.brand_color} size={26} />
                 <View style={{ minWidth: 0, flex: 1 }}><Text style={{ color: C.text, fontWeight: '700' }} numberOfLines={1}>{b.name}</Text>
                   <Text style={{ color: C.mute, fontSize: 12, fontWeight: '600' }}>{catLabel(b.category)}</Text></View></View>,
-              nameOf(b.owner), b.city, String(b.bookings_30), pct(b), rating(b.rating_avg), <ShopTag key="t" b={b} />]} />
+              nameOf(b.owner), b.city, String(b.bookings_30), pct(b), ...(RATINGS ? [rating(b.rating_avg)] : []), <ShopTag key="t" b={b} />]} />
           ))}
           {list.length === 0 && <Text style={{ color: C.mute, padding: 20 }}>Κανένα κατάστημα.</Text>}
         </View>
@@ -57,6 +57,6 @@ export default function Shops() {
 }
 
 const pct = (b: any) => { const t = (b.bookings_30 ?? 0) + (b.cancelled_30 ?? 0); return t ? `${Math.round((100 * b.cancelled_30) / t)}%` : '–'; };
-const W = [2.4, 1.6, 1.2, 1.1, 0.9, 0.5, 1.2];
+const W = RATINGS ? [2.4, 1.6, 1.2, 1.1, 0.9, 0.5, 1.2] : [2.4, 1.6, 1.2, 1.1, 0.9, 1.2];
 
 

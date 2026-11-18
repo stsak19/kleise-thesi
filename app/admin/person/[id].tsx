@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Text } from '../../../lib/Txt';
 import { C } from '../../../lib/ui';
 import { useWide } from '../../../lib/wide';
-import { STATUS, adminActions, ago, daysLeft, longDate, nameOf, short, useAdmin } from '../../../lib/admin/data';
+import { RATINGS, STATUS, adminActions, ago, daysLeft, longDate, nameOf, short, useAdmin } from '../../../lib/admin/data';
 import { Box, Cols, KV, Lead, Line, Loading, Page, Small, State, Tag } from '../../../lib/admin/parts';
 
 /* Καρτέλα λογαριασμού: όλα μαζί (κρατήσεις, πακέτα, καταστήματα, κριτικές, πώς τον βαθμολόγησαν) και οι ενέργειες. */
@@ -21,7 +21,7 @@ export default function PersonCard() {
   const avgRated = rated.length ? (rated.reduce((a: number, r: any) => a + r.stars, 0) / rated.length).toFixed(1).replace('.', ',') : null;
   const tabs = [
     { key: 'sum', label: 'Σύνοψη' }, { key: 'bk', label: `Κρατήσεις ${bk.length}` }, { key: 'pk', label: `Πακέτα ${(u.packages ?? []).length}` },
-    { key: 'rv', label: `Κριτικές που έγραψε ${(u.reviews ?? []).length}` }, { key: 'rt', label: `Βαθμολογίες από καταστήματα ${rated.length}` },
+    ...(RATINGS ? [{ key: 'rv', label: `Κριτικές που έγραψε ${(u.reviews ?? []).length}` }, { key: 'rt', label: `Βαθμολογίες από καταστήματα ${rated.length}` }] : []),
     { key: 'sh', label: `Καταστήματα ${(u.businesses ?? []).length}` },
   ];
   const gone = () => router.replace('/admin/people');
@@ -70,7 +70,7 @@ export default function PersonCard() {
                 <View style={{ flexDirection: 'row', gap: 22, paddingTop: 6, flexWrap: 'wrap' }}>
                   <Big n={String(bk.filter((x: any) => x.status !== 'cancelled').length)} label="κρατήσεις" />
                   <Big n={String(noShows)} label="δεν ήρθε" bad={noShows > 0} />
-                  <Big n={avgRated ? `${avgRated}★` : '–'} label="από καταστήματα" />
+                  {RATINGS && <Big n={avgRated ? `${avgRated}★` : '–'} label="από καταστήματα" />}
                 </View>
               </Box>
             </View>
@@ -91,11 +91,11 @@ export default function PersonCard() {
               {(u.log ?? []).map((l: any, i: number) => <Line key={i} last={i === u.log.length - 1} title={l.action} sub={[l.note, l.by, ago(l.created_at)].filter(Boolean).join(' · ')} />)}
               <Line last title="Δημιουργία λογαριασμού" sub={longDate(u.created_at)} />
             </Box>
-            <Box title="Κριτικές που έγραψε">
+            {RATINGS && <Box title="Κριτικές που έγραψε">
               {(u.reviews ?? []).length === 0 && empty('Καμία κριτική.')}
               {(u.reviews ?? []).slice(0, 5).map((r: any, i: number, a: any[]) => <Line key={r.id} last={i === a.length - 1} title={`★ ${r.stars} · ${r.business}`}
                 sub={r.comment ? `«${r.comment}»` : ago(r.created_at)} right={<Small title="Διαγραφή" danger onPress={() => adminActions.deleteReview(r, reload)} />} />)}
-            </Box>
+            </Box>}
           </>} />
       ) : (
         <Box>

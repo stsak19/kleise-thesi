@@ -5,7 +5,7 @@ import type { IconName } from '../Icon';
 import { Avatar, C, Icon, Pill, alpha, s } from '../ui';
 import { useWide } from '../wide';
 import { usePerson } from '../profile/data';
-import { initials } from './data';
+import { initials, RATINGS } from './data';
 
 /* Το super admin: πλαϊνό μενού αριστερά (στο κινητό: λωρίδα επιλογών πάνω), περιεχόμενο δεξιά.
    Ίδιο ύφος με το admin της επιχείρησης (lib/owner/desk.tsx). */
@@ -17,7 +17,7 @@ export const NAV: { path: string; label: string; icon: IconName; badge?: 'review
   { path: '/admin/bookings', label: 'Κρατήσεις', icon: 'calendar' },
   { path: '/admin/reviews', label: 'Βαθμολογίες', icon: 'chat', badge: 'reviews' },
   { path: '/admin/deletions', label: 'Αιτήσεις διαγραφής', icon: 'close', badge: 'deletions' },
-];
+].filter((n) => RATINGS || n.path !== '/admin/reviews') as any;
 const sectionOf = (p: string) => (p.startsWith('/admin/shop') ? '/admin/shops' : p.startsWith('/admin/person') ? '/admin/people' : p.replace(/\/$/, '') || '/admin');
 
 export function Shell({ children, badges }: { children: React.ReactNode; badges: Record<string, number> }) {
