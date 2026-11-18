@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Linking, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../../lib/Txt';
-import { Btn, C, Group, Icon, Row, TAB_SPACE, alpha, price, shadow } from '../../../../lib/ui';
+import { Btn, C, Group, Icon, Row, TAB_SPACE, alpha, onColor, price, shadow } from '../../../../lib/ui';
 import { Photo } from '../../../../lib/Photo';
 import { readable } from '../../../../lib/theme';
 import { useStore } from '../../../../lib/store/data';
@@ -70,7 +70,9 @@ export default function StoreHome() {
 
   /* ---------- κομμάτια ---------- */
   const title = (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12 }}>
+    <View style={{ flexDirection: 'row', alignItems: wide ? 'flex-end' : 'center', gap: 12 }}>
+      {/* Κινητό: η φωτογραφία προφίλ (βήμα «Εμφάνιση» του οδηγού) δίπλα στο όνομα, όχι πάνω στο εξώφυλλο */}
+      {!wide && <StoreLogo size={52} />}
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={{ color: C.text, fontSize: wide ? 30 : 24, fontWeight: '800', letterSpacing: -0.5 }}>{biz.name ?? ''}</Text>
         <Text style={{ color: C.mute, fontSize: 13.5, fontWeight: '600', marginTop: 2 }} numberOfLines={2}>
@@ -106,9 +108,9 @@ export default function StoreHome() {
                 {dur(sv.duration_min)}{sv.price_cents != null ? <> · <Text style={{ color: ink, fontWeight: '800' }}>{price(sv.price_cents)}</Text></> : classes ? ' · με πακέτο' : ''}
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, paddingLeft: 12, paddingRight: 8, borderRadius: 999, backgroundColor: C.text }}>
-              <Text style={{ color: C.bg, fontWeight: '800', fontSize: 13 }}>{classes ? 'Ώρες' : 'Κλείσε'}</Text>
-              <Icon name="chevron" size={14} color={C.bg} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, paddingLeft: 12, paddingRight: 8, borderRadius: 999, backgroundColor: color }}>
+              <Text style={{ color: onColor(color), fontWeight: '800', fontSize: 13 }}>{classes ? 'Ώρες' : 'Κλείσε'}</Text>
+              <Icon name="chevron" size={14} color={onColor(color)} />
             </View>
           </Pressable>
         ))}
