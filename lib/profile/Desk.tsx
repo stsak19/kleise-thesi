@@ -42,7 +42,7 @@ export function DeskProfile() {
   const person = usePerson();
   const { hasBiz } = useProfileExtras(person.uid);
   const switchTo = useSwitchTo();
-  const work = useMyWork().list ?? []; // υπάλληλος σε ομάδα (016)
+  const work = useMyWork().list ?? []; // υπάλληλος σε ομάδα (017)
   const prefs = usePrefs();
   const [sel, setSelS] = useState<Key>(last);
   const [pass, setPass] = useState(false);

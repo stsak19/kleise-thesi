@@ -18,7 +18,7 @@ export default function WorkScreen() {
   return (
     <Page title="Το πρόγραμμά μου" sub="Τα ραντεβού και τα μαθήματά σου, τις επόμενες 2 εβδομάδες">
       {list === null ? <Text style={{ color: C.mute }}>Φόρτωση…</Text>
-        : nodb ? <Card><Empty icon="calendar" title="Δεν είναι έτοιμο ακόμα" text="Η βάση χρειάζεται την ενημέρωση 016 (πρόγραμμα υπαλλήλου)." /></Card>
+        : nodb ? <Card><Empty icon="calendar" title="Δεν είναι έτοιμο ακόμα" text="Η βάση χρειάζεται την ενημέρωση 017 (πρόγραμμα υπαλλήλου)." /></Card>
         : list.length === 0 ? <Card><Empty icon="team" title="Δεν είσαι σε καμία ομάδα" text="Όταν μια επιχείρηση σου στείλει πρόσκληση και την αποδεχτείς, εδώ θα βλέπεις το πρόγραμμά σου." /></Card>
         : list.map((w) => {
           const color = styleOf({ category: w.category, brand_color: w.brand_color }).color;

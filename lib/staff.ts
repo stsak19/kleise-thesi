@@ -4,7 +4,7 @@ import { rpc } from './supabase';
 import { useAuth } from './auth';
 
 /* Ο υπάλληλος (δέχτηκε πρόσκληση, staff.user_id): τα επόμενα ραντεβού και μαθήματά του σε κάθε επιχείρηση
-   όπου είναι στην ομάδα (supabase/migrations/016_staff_schedule.sql). */
+   όπου είναι στην ομάδα (supabase/migrations/017_staff_schedule.sql). */
 export type WorkItem = { kind: 'one' | 'class'; id?: string; date: string; time: string; service: string; duration: number;
   client?: string | null; phone?: string | null; count?: number; capacity?: number };
 export type Work = { business_id: string; business: string; category: string; brand_color: string | null; logo_url: string | null;

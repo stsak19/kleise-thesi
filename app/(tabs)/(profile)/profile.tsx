@@ -22,7 +22,7 @@ export default function Profile() {
   const { hasBiz } = useProfileExtras(person.uid);
   const me = () => router.push('/me');
   const switchTo = useSwitchTo();
-  const work = useMyWork().list ?? []; // υπάλληλος σε ομάδα (016)
+  const work = useMyWork().list ?? []; // υπάλληλος σε ομάδα (017)
 
   // Υπολογιστής: σελίδα λογαριασμού με ενότητες αριστερά και φόρμα δεξιά (lib/profile/Desk).
   if (wide) return <DeskProfile />;
