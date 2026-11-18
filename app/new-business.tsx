@@ -17,7 +17,7 @@ import { Btn, C, DAYS, TextBtn, Icon, Input, alpha, catEmoji, catLabel, price, s
 import { EMPTY_BIZ, Hours, Svc, WEEK, newKey, badHours, loadBusiness, presetData, saveBusiness } from '../lib/owner/save';
 import { AmountPick, DAY_UNITS, amountLabel } from '../lib/TimePick';
 import { HoursEditor, Swatches, ToggleCard, TypeGrid } from '../lib/owner/steps';
-import { ServiceBoard, ServiceFields, schedOf, withSched } from '../lib/owner/services';
+import { ServiceBoard, ServiceFields, schedOf, withSched, type Sched } from '../lib/owner/services';
 import { blankFor, groupOf, svcKind } from '../lib/owner/svcKind';
 
 /* Οδηγός «Νέα επιχείρηση»: ο ιδιοκτήτης φτιάχνει τη σελίδα του μία επιλογή τη φορά.
@@ -64,7 +64,10 @@ export default function NewBusiness() {
     const z = Keyboard.addListener('keyboardDidHide', () => setKb(false));
     return () => { a.remove(); z.remove(); };
   }, []);
-  const [svcEdit, setSvcEdit] = useState<{ key: string; fresh: boolean; before?: Svc } | null>(null); // μία υπηρεσία ανοιχτή
+  const [svcEdit, setSvcEdit] = useState<{ key: string; fresh: boolean; before?: Svc; beforeHours?: Hours } | null>(null); // μία υπηρεσία ανοιχτή
+  // Το πρόγραμμα του μαθήματος που επεξεργάζεται κρατιέται εδώ (όχι μόνο μέσα στο ωράριο), αλλιώς μια νέα γραμμή
+  // με ίδια ώρα ενωνόταν με την υπάρχουσα και μια γραμμή χωρίς μέρες χανόταν — το «+ Πρόσθεσε ώρα» έμοιαζε νεκρό.
+  const [sched, setSched] = useState<Sched[]>([]);
 
   // Αν ο χρήστης έχει ήδη κατάστημα, ο οδηγός ξεκινά με τα στοιχεία του (και δεν φτιάχνει δεύτερο).
   useEffect(() => { loadBusiness(uid).then((r) => {
@@ -95,19 +98,21 @@ export default function NewBusiness() {
 
   /* Υπηρεσίες: κάθε μία ανοίγει μόνη της. */
   const editing = svcEdit ? svcs.find((x) => x.key === svcEdit.key) : undefined;
-  const openSvc = (key: string) => { dir.current = 1; setSvcEdit({ key, fresh: false, before: svcs.find((x) => x.key === key) }); };
+  const openSvc = (key: string) => { dir.current = 1; setSched(schedOf(hours, key)); setSvcEdit({ key, fresh: false, before: svcs.find((x) => x.key === key), beforeHours: hours }); };
   const addSvc = (grp?: string) => {
     const k = svcKind(cat);
     const n: Svc = blankFor(k, newKey(), grp);
     if (k.mode === 'class' && grp && grp !== k.groups[0]) n.capacity = '1';
     setSvcs([...svcs, n]); dir.current = 1; setSvcEdit({ key: n.key, fresh: true });
-    if (k.mode === 'class' && n.capacity !== '1') setHours((h) => withSched(h, n.key, [{ time: '19:00', days: [1, 3, 5] }], +n.duration_min));
+    const first: Sched[] = k.mode === 'class' && n.capacity !== '1' ? [{ time: '19:00', days: [1, 3, 5] }] : [];
+    setSched(first);
+    if (first.length) setHours((h) => withSched(h, n.key, first, +n.duration_min));
   };
   const patchSvc = (p: Partial<Svc>) => {
     if (!svcEdit) return;
     setSvcs((list) => list.map((x) => (x.key === svcEdit.key ? { ...x, ...p } : x)));
     // Μάθημα: αν αλλάξει η διάρκεια, το πρόγραμμά του κρατά τις ίδιες ώρες έναρξης.
-    if (p.duration_min) setHours((h) => (h.some((y) => y.svc === svcEdit.key) ? withSched(h, svcEdit.key, schedOf(h, svcEdit.key), +p.duration_min!) : h));
+    if (p.duration_min) setHours((h) => (h.some((y) => y.svc === svcEdit.key) ? withSched(h, svcEdit.key, sched, +p.duration_min!) : h));
   };
   const dropSvc = (key: string) => {
     const x = svcs.find((y) => y.key === key);
@@ -119,7 +124,10 @@ export default function NewBusiness() {
   const closeSvc = (cancel: boolean) => {
     if (!svcEdit) return;
     if (cancel && svcEdit.fresh) dropSvc(svcEdit.key);
-    else if (cancel && svcEdit.before) setSvcs((list) => list.map((x) => (x.key === svcEdit.key ? svcEdit.before! : x)));
+    else if (cancel && svcEdit.before) {
+      setSvcs((list) => list.map((x) => (x.key === svcEdit.key ? svcEdit.before! : x)));
+      if (svcEdit.beforeHours) setHours(svcEdit.beforeHours);
+    }
     else if (!cancel && editing && !editing.name.trim()) dropSvc(svcEdit.key);
     dir.current = -1; setSvcEdit(null);
   };
@@ -239,7 +247,7 @@ export default function NewBusiness() {
       case 'services': return editing
         ? <View style={{ gap: 22 }}>
             <ServiceFields svc={editing} onChange={patchSvc} category={cat} groups={[...new Set(svcs.map((x) => groupOf(svcKind(cat), x)))]}
-              sched={schedOf(hours, editing.key)} onSched={(x) => setHours(withSched(hours, editing.key, x, +editing.duration_min))} />
+              sched={sched} onSched={(x) => { setSched(x); setHours((h) => withSched(h, editing.key, x, +editing.duration_min)); }} />
             {!svcEdit?.fresh && <TextBtn title="Διαγραφή" color={C.bad} onPress={() => { dropSvc(editing.key); dir.current = -1; setSvcEdit(null); }} />}
           </View>
         : <ServiceBoard svcs={svcs} category={cat} hours={hours} onOpen={openSvc} onAdd={addSvc} />;

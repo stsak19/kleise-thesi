@@ -31,6 +31,14 @@ export function withSched(hours: Hours, key: string, sched: Sched[], dur: number
   const rows = sched.filter((x) => TIME.test(x.time)).flatMap((x) => x.days.map((d) => ({ weekday: d, opens: x.time, closes: tf(Math.min(hm(x.time) + (dur || 60), 23 * 60 + 59)), svc: key })));
   return [...hours.filter((h) => h.svc !== key), ...rows];
 }
+/* Νέα γραμμή προγράμματος: μία ώρα μετά την τελευταία (ίδιες μέρες), ώστε να μη συμπέσει με υπάρχουσα. */
+function nextRow(sched: Sched[]): Sched {
+  const used = new Set(sched.map((r) => r.time));
+  const last = sched[sched.length - 1];
+  let m = last && TIME.test(last.time) ? hm(last.time) + 60 : 19 * 60;
+  while (used.has(tf(m % (24 * 60))) && m < 48 * 60) m += 60;
+  return { time: tf(m % (24 * 60)), days: last?.days.length ? [...last.days] : [1, 3, 5] };
+}
 const daysText = (days: number[]) => {
   const w = WEEKDAYS.filter((d) => days.includes(d));
   if (w.length === 5 && [1, 2, 3, 4, 5].every((d) => w.includes(d))) return 'Δευ – Παρ';
@@ -260,7 +268,7 @@ export function ServiceFields({ svc, onChange, category, groups = [], staff = []
               </View>
             </View>
           ))}
-          <Pressable onPress={() => onSched([...(sched ?? []), { time: '19:00', days: [1, 3, 5] }])} hitSlop={6} style={{ alignSelf: 'flex-start' }}>
+          <Pressable onPress={() => onSched([...(sched ?? []), nextRow(sched ?? [])])} hitSlop={6} style={{ alignSelf: 'flex-start' }}>
             <Text style={{ color: C.tint, fontWeight: '700', fontSize: 14 }}>+ Πρόσθεσε ώρα</Text>
           </Pressable>
         </View>
