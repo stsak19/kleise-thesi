@@ -19,6 +19,8 @@ import { AmountPick, DAY_UNITS, amountLabel } from '../lib/TimePick';
 import { ColorSample, HoursEditor, PAGE_COLORS, Swatches, ToggleCard, TypeGrid } from '../lib/owner/steps';
 import { ServiceBoard, ServiceFields, schedOf, withSched, type Sched } from '../lib/owner/services';
 import { blankFor, groupOf, svcKind } from '../lib/owner/svcKind';
+import { PackFields, packMissing, savePack, suggestPacks, type PackForm } from '../lib/owner/packs';
+import { sb } from '../lib/supabase';
 
 /* Οδηγός «Νέα επιχείρηση»: ο ιδιοκτήτης φτιάχνει τη σελίδα του μία επιλογή τη φορά.
    Είδος → όνομα → πού είστε → φωτογραφίες & χρώμα → υπηρεσίες → ωράριο → κανόνες → τελικός έλεγχος.
@@ -76,11 +78,17 @@ export default function NewBusiness() {
   // Το πρόγραμμα του μαθήματος που επεξεργάζεται κρατιέται εδώ (όχι μόνο μέσα στο ωράριο), αλλιώς μια νέα γραμμή
   // με ίδια ώρα ενωνόταν με την υπάρχουσα και μια γραμμή χωρίς μέρες χανόταν — το «+ Πρόσθεσε ώρα» έμοιαζε νεκρό.
   const [sched, setSched] = useState<Sched[]>([]);
+  /* Πακέτα (όταν είναι ανοιχτά τα «Πακέτα κρατήσεων»): χωρίς πακέτο οι πελάτες δεν μπορούν να κλείσουν, οπότε φτιάχνονται εδώ,
+     με έτοιμες προτάσεις του είδους. oldPacks = όσα έχει ήδη ένα υπάρχον κατάστημα. */
+  const [packs, setPacks] = useState<PackForm[]>([]);
+  const [oldPacks, setOldPacks] = useState<any[]>([]);
+  const [packEdit, setPackEdit] = useState<number | null>(null);
 
   // Αν ο χρήστης έχει ήδη κατάστημα, ο οδηγός ξεκινά με τα στοιχεία του (και δεν φτιάχνει δεύτερο).
   useEffect(() => { loadBusiness(uid).then((r) => {
     if (!r) return;
     setB(r.b); setSvcs(r.svcs); setHours(r.hours); setFar(STEPS.length - 1); // υπάρχον κατάστημα: όλα συμπληρωμένα
+    if (r.b?.id) sb.from('packages').select('*').eq('business_id', r.b.id).eq('active', true).then(({ data }) => setOldPacks(data ?? []));
   }); }, [uid]);
 
   // Ήπια μετάβαση ανάμεσα στα βήματα
@@ -155,7 +163,13 @@ export default function NewBusiness() {
     setB((x: any) => ({ ...x, category: k, layout: null, theme: null, brand_color: null, ...p.rules }));
     setRemoved((r) => [...r, ...svcs.filter((x) => x.id).map((x) => x.id!)]);
     setSvcs(p.svcs); setHours(onlyMonday(p.hours));
+    setPacks(p.rules.uses_credits && !oldPacks.length ? suggestPacks(k) : []); setPackEdit(null);
   };
+  const setCredits = (v: boolean) => {
+    setB({ ...b, uses_credits: v });
+    if (v && !packs.length && !oldPacks.length) setPacks(suggestPacks(cat));
+  };
+  const needPacks = !!b.uses_credits && !oldPacks.length;
 
   /* Τι λείπει για να πας στο επόμενο βήμα (κενό = όλα καλά). */
   const missing = (): string => {
@@ -164,6 +178,11 @@ export default function NewBusiness() {
     if (step === 'name' && !b.name.trim()) return 'Γράψε το όνομα';
     if (step === 'place' && !b.city.trim()) return 'Γράψε την πόλη';
     if (step === 'services' && !named.length) return 'Πρόσθεσε τουλάχιστον μία';
+    if (step === 'rules' && needPacks) {
+      if (!packs.length) return 'Πρόσθεσε ένα πακέτο';
+      const bad = packs.map(packMissing).find(Boolean);
+      if (bad) return `${bad} πακέτου`;
+    }
     return '';
   };
   const next = async () => {
@@ -174,6 +193,11 @@ export default function NewBusiness() {
     const r = await saveBusiness(uid, b, svcs, hours, removed);
     setBusy(false);
     if (!r.ok) return say('Δεν αποθηκεύτηκε', r.error);
+    if (b.uses_credits && packs.length) {
+      const errs = (await Promise.all(packs.map((p) => savePack(p, r.id!, named.length)))).filter(Boolean);
+      if (errs.length) r.warnings.push(`Κάποια πακέτα δεν αποθηκεύτηκαν (${errs[0]}). Πρόσθεσέ τα από Κατάστημα → Πακέτα.`);
+      else setPacks([]);
+    }
     r.warnings.forEach((w) => say('Προσοχή', w));
     setDone(r.id);
   };
@@ -269,8 +293,39 @@ export default function NewBusiness() {
             options={[60, 1440]} value={+b.cancel_before_min} onPick={(v) => setB({ ...b, cancel_before_min: v })} />
           <View style={{ gap: 10 }}>
             <ToggleCard title="Έγκριση νέων πελατών" sub="Ο νέος πελάτης κλείνει μόνο αφού τον εγκρίνεις." value={!!b.requires_approval} onChange={(v) => setB({ ...b, requires_approval: v })} />
-            <ToggleCard title="Πακέτα κρατήσεων (καρνέ)" sub="Κάθε κράτηση χρεώνεται από το πακέτο του πελάτη." value={!!b.uses_credits} onChange={(v) => setB({ ...b, uses_credits: v })} />
+            <ToggleCard title="Πακέτα κρατήσεων (καρνέ)" sub="Κάθε κράτηση χρεώνεται από το πακέτο του πελάτη." value={!!b.uses_credits} onChange={setCredits} />
           </View>
+          {!!b.uses_credits && (
+            <View style={{ gap: 10 }}>
+              <Text style={{ color: C.text, fontWeight: '800', fontSize: 17 }}>Τα πακέτα σου</Text>
+              <Text style={{ color: C.mute, fontSize: 14, lineHeight: 20 }}>
+                {oldPacks.length ? `Έχεις ήδη ${oldPacks.length === 1 ? '1 πακέτο' : `${oldPacks.length} πακέτα`}. Τα αλλάζεις από Κατάστημα → Πακέτα. Εδώ προσθέτεις κι άλλα.`
+                  : 'Οι πελάτες διαλέγουν πακέτο πριν κλείσουν θέση. Σου βάλαμε μερικά για αρχή: γράψε τιμή, άλλαξε ό,τι θέλεις ή σβήσε όσα δεν χρειάζεσαι.'}
+              </Text>
+              {packs.map((p, n) => {
+                const set = (x: PackForm) => setPacks((l) => l.map((y, k) => (k === n ? x : y)));
+                const line = [p.sessions ? `${p.sessions} ${p.sessions === '1' ? 'επίσκεψη' : 'επισκέψεις'}` : 'Απεριόριστες', p.days ? `${p.days} μέρες` : null].filter(Boolean).join(' · ');
+                return (
+                  <View key={n} style={[s.card, shadow(1), { gap: 12 }]}>
+                    {packEdit === n ? <PackFields f={p} setF={set} /> : (
+                      <View style={[s.row, { gap: 12 }]}>
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{p.name || 'Χωρίς όνομα'}</Text>
+                          <Text style={{ color: C.mute, fontSize: 13.5 }}>{line}</Text>
+                        </View>
+                        <View style={{ width: 110 }}><Input placeholder="Τιμή €" keyboardType="decimal-pad" value={p.price} onChangeText={(v) => set({ ...p, price: v })} /></View>
+                      </View>
+                    )}
+                    <View style={[s.row, { gap: 18 }]}>
+                      <TextBtn title={packEdit === n ? 'Έτοιμο' : 'Αλλαγή'} onPress={() => setPackEdit(packEdit === n ? null : n)} />
+                      <TextBtn title="Αφαίρεση" color={C.bad} onPress={() => { setPacks((l) => l.filter((_, k) => k !== n)); setPackEdit(null); }} />
+                    </View>
+                  </View>
+                );
+              })}
+              <Btn kind="ghost" icon="plus" title="Νέο πακέτο" onPress={() => { setPacks((l) => [...l, { name: '', kind: 'pack', price: '', sessions: '', days: '30', only: [] }]); setPackEdit(packs.length); }} />
+            </View>
+          )}
         </View>
       );
       case 'review': {
@@ -282,6 +337,8 @@ export default function NewBusiness() {
           { label: 'Ανοιχτά', value: openDays.length ? openDays.map((d) => DAYS[d]).join(' ') : 'Καμία μέρα', to: 'hours' },
           { label: scr.services, value: named.map((x) => `${x.name.trim()}${x.price ? ` ${price(Math.round(parseFloat(x.price.replace(',', '.')) * 100))}` : ''}`).join(' · '), to: 'services' },
           { label: 'Κρατήσεις', value: `έως ${b.max_days_ahead} μέρες μπροστά · ακύρωση ${hrs(+b.cancel_before_min)} πριν`, to: 'rules' },
+          ...(b.uses_credits ? [{ label: 'Πακέτα', to: 'rules' as Step,
+            value: [...oldPacks.map((p) => `${p.name} ${price(p.price_cents)}`), ...packs.map((p) => `${p.name.trim()} ${price(Math.round(parseFloat(p.price.replace(',', '.')) * 100))}`)].join(' · ') || 'Κανένα' }] : []),
         ];
         return (
           <View style={{ gap: 14 }}>

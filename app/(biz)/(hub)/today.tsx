@@ -4,6 +4,7 @@ import { Attention, BizSwitcher, NoBiz, StaffFilter, useDay, useMyBiz, useStaff 
 import { DayDetail, DayHead, DidTheyCome, HourList, NewClients, slotsOf } from '../../../lib/owner/day';
 import { C, ScreenHeader, T, alpha, iso, s } from '../../../lib/ui';
 import { CameBox, DeskList, PackRequestsBox, PendingBox, useWide } from '../../../lib/owner/desk';
+import { NoPacksNote } from '../../../lib/owner/packs';
 
 /* «Πρόγραμμα» (ενώνει τα παλιά Σήμερα και Ημερολόγιο).
    Κινητό: πάνω καρφωμένα λωρίδα ημερών, τίτλος ημέρας και τέσσερα κουτάκια· από κάτω οι ώρες σαν κάρτες που ανοίγουν.
@@ -43,6 +44,7 @@ export default function Today() {
             <T style={{ fontSize: 14 }}>Η σελίδα σου δεν φαίνεται ακόμα στην αναζήτηση. Άνοιξε τη «Δημοσίευση» από το Κατάστημα.</T>
           </View>
         )}
+        <NoPacksNote biz={biz} />
         <PendingBox biz={biz} list={D.pending} onDone={D.load} />
         <PackRequestsBox biz={biz} list={D.packReqs} onDone={D.load} />
         <CameBox day={T0.day} onChange={reload} />
@@ -64,6 +66,7 @@ export default function Today() {
             <T style={{ fontSize: 14 }}>Η σελίδα σου δεν φαίνεται ακόμα στην αναζήτηση. Άνοιξε τη «Δημοσίευση» από την καρτέλα Κατάστημα.</T>
           </View>
         )}
+        <NoPacksNote biz={biz} />
         <NewClients biz={biz} list={D.pending} onDone={D.load} />
         <PackRequestsBox biz={biz} list={D.packReqs} onDone={D.load} />
         <DidTheyCome day={T0.day} onChange={reload} />
