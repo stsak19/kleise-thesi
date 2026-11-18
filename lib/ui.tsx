@@ -9,17 +9,17 @@ export { C, alpha, Icon };
 
 export const CATEGORIES: { key: string; label: string; emoji: string }[] = [
   { key: 'gym', label: 'Γυμναστήρια', emoji: '🏋️' },
-  { key: 'personal_training', label: 'Personal', emoji: '💪' },
-  { key: 'pilates_yoga', label: 'Pilates / Yoga', emoji: '🧘' },
-  { key: 'nails', label: 'Νυχάδικα', emoji: '💅' },
+  { key: 'personal_training', label: 'Personal training', emoji: '💪' },
+  { key: 'pilates_yoga', label: 'Pilates & Yoga', emoji: '🧘' },
+  { key: 'nails', label: 'Περιποίηση νυχιών', emoji: '💅' },
   { key: 'hair', label: 'Κομμωτήρια', emoji: '💇' },
   { key: 'barber', label: 'Κουρεία', emoji: '💈' },
-  { key: 'beauty', label: 'Αισθητική', emoji: '✨' },
-  { key: 'massage_spa', label: 'Μασάζ / Spa', emoji: '💆' },
+  { key: 'beauty', label: 'Κέντρα αισθητικής', emoji: '✨' },
+  { key: 'massage_spa', label: 'Μασάζ & Spa', emoji: '💆' },
   { key: 'physio', label: 'Φυσικοθεραπεία', emoji: '🩺' },
   { key: 'medical', label: 'Ιατρεία', emoji: '⚕️' },
-  { key: 'dental', label: 'Οδοντίατροι', emoji: '🦷' },
-  { key: 'tattoo', label: 'Tattoo', emoji: '🖋️' },
+  { key: 'dental', label: 'Οδοντιατρεία', emoji: '🦷' },
+  { key: 'tattoo', label: 'Tattoo & Piercing', emoji: '🖋️' },
   { key: 'other', label: 'Άλλο', emoji: '📅' },
 ];
 export const catLabel = (k: string) => CATEGORIES.find((c) => c.key === k)?.label ?? k;

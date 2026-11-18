@@ -296,7 +296,7 @@ function SearchBar({ q, setQ, focus, setFocus, onBack }:
 
 /* Οι 8 κατηγορίες της άδειας αρχικής, σε πλέγμα 4×2 με τα 3D εικονίδια. */
 const GRID_CATS = ['hair', 'gym', 'barber', 'nails', 'pilates_yoga', 'massage_spa', 'physio', 'beauty'];
-const SHORT: Record<string, string> = { pilates_yoga: 'Pilates', massage_spa: 'Μασάζ', physio: 'Φυσικοθ.' };
+const SHORT: Record<string, string> = { pilates_yoga: 'Pilates', massage_spa: 'Μασάζ', physio: 'Φυσικοθ.', nails: 'Νύχια', beauty: 'Αισθητική' };
 function CatGrid({ onPick }: { onPick: (k: string) => void }) {
   const light = isLight(C.bg);
   return (
