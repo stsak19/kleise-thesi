@@ -2,17 +2,14 @@ import { say } from '../../../lib/alert';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../../../lib/Txt';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { rpc, sb } from '../../../lib/supabase';
 import { useAuth } from '../../../lib/auth';
 import { Avatar, Btn, C, Card, Chip, Empty, Group, Icon, Input, ScreenHeader, Section, T, alpha, fmtDay, iso, s } from '../../../lib/ui';
 import { styleOf } from '../../../lib/presets';
 import { fetchMyBiz, useActiveBizId } from '../../../lib/owner/active';
 import { deskCol, useWide } from '../../../lib/owner/desk';
-
-type Client = { user_id: string; name: string; phone: string | null; last: string | null; next?: string | null;
-  pack?: { name: string; left: number | null; total: number | null; expires: string | null } | null };
-type GroupKey = 'tomorrow' | 'pack' | 'idle' | 'all' | 'one';
+import { groupsOf, takePicked, type Client, type GroupKey } from '../../../lib/owner/groups';
 
 /* Έξυπνες ομάδες (εκδοχή Α, 2026-11-18): η εφαρμογή βρίσκει μόνη της σε ποιους να στείλεις, από τα owner_clients
    (επόμενη κράτηση, πακέτο, τελευταία επίσκεψη). Κάθε ομάδα έχει έτοιμο κείμενο· το {Όνομα} και η {Ώρα} συμπληρώνονται για τον καθένα. */
@@ -24,7 +21,7 @@ const GROUPS: { key: GroupKey; emoji: string; title: string; sub: string; msgTit
   { key: 'idle', emoji: '💤', title: 'Δεν ήρθαν 30+ μέρες', sub: 'να τους ξαναφέρεις', msgTitle: 'Μας έλειψες',
     body: 'Γεια σου {Όνομα}! Καιρό έχουμε να σε δούμε. Κλείσε την επόμενη θέση σου από την εφαρμογή, σε περιμένουμε!' },
   { key: 'all', emoji: '👥', title: 'Όλοι οι πελάτες', sub: 'ανακοίνωση', msgTitle: '', body: '' },
-  { key: 'one', emoji: '👤', title: 'Ένας πελάτης', sub: 'διάλεξε ποιον', msgTitle: '', body: '' },
+  { key: 'one', emoji: '👤', title: 'Διάλεξε πελάτες', sub: 'έναν ή περισσότερους', msgTitle: '', body: '' },
 ];
 const EXTRA: { label: string; title: string; body: string }[] = [
   { label: '🔒 Κλειστά', title: 'Αλλαγή ωραρίου', body: 'Την [μέρα] θα είμαστε κλειστά. Ευχαριστούμε για την κατανόηση!' },
@@ -49,16 +46,20 @@ export default function Messages() {
   const [biz, setBiz] = useState<any>(null);
   const [clients, setClients] = useState<Client[] | null>(null);
   const [group, setGroup] = useState<GroupKey>(params.to ? 'one' : 'all');
-  const [to, setTo] = useState<string | null>(params.to ?? null);
+  const [ids, setIds] = useState<string[] | null>(params.to ? [params.to] : null); // οι επιλεγμένοι της σελίδας «Σε ποιους»· null = όλη η ομάδα
+  const router = useRouter();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [q, setQ] = useState('');
   const [sending, setSending] = useState(false);
   const wide = useWide();
   // «Μήνυμα» από το πρόγραμμα: ανοίγει την καρτέλα με τον πελάτη ήδη επιλεγμένο.
-  useEffect(() => { if (params.to) { setGroup('one'); setTo(params.to); } }, [params.to]);
+  useEffect(() => { if (params.to) { setGroup('one'); setIds([params.to]); } }, [params.to]);
 
   useFocusEffect(useCallback(() => {
+    // Γύρισε από τη σελίδα «Σε ποιους» με ✓: κρατά την ομάδα, τους επιλεγμένους και το έτοιμο κείμενο.
+    const p = takePicked();
+    if (p) { setGroup(p.group); setIds(p.ids); const g = GROUPS.find((x) => x.key === p.group)!; if (g.body) { setTitle(g.msgTitle); setBody(g.body); } }
     (async () => {
       const data = await fetchMyBiz(session!.user.id);
       setBiz(data);
@@ -67,33 +68,15 @@ export default function Messages() {
   }, [session, active]));
 
   const list = clients ?? [];
-  const members = useMemo(() => {
-    const now = new Date(), today = iso(now);
-    const tm = new Date(now); tm.setDate(tm.getDate() + 1); const tomorrow = iso(tm);
-    const ago = new Date(now); ago.setDate(ago.getDate() - 30); const old = iso(ago);
-    return {
-      tomorrow: list.filter((c) => c.next?.slice(0, 10) === tomorrow),
-      pack: list.filter((c) => c.pack && c.pack.left != null && c.pack.left <= 2 && (!c.pack.expires || c.pack.expires >= today)),
-      idle: list.filter((c) => !c.next && !!c.last && c.last < old),
-      all: list,
-      one: list.filter((c) => c.user_id === to),
-    } as Record<GroupKey, Client[]>;
-  }, [clients, to]);
+  const members = useMemo(() => groupsOf(list), [clients]);
 
   if (!biz) return <View style={s.screen} />;
   const brand = styleOf(biz).color;
-  const target = to ? list.find((c) => c.user_id === to) : null;
-  const shown = list.filter((c) => !q.trim() || (c.name + ' ' + (c.phone ?? '')).toLowerCase().includes(q.trim().toLowerCase()));
-  const rec = members[group];
+  const rec = ids ? list.filter((c) => ids.includes(c.user_id)) : group === 'one' ? [] : members[group];
   const personal = /\{[^}]+\}/.test(body); // με {…} στέλνεται ξεχωριστό μήνυμα στον καθένα
 
-  const pick = (k: GroupKey) => {
-    const g = GROUPS.find((x) => x.key === k)!;
-    setGroup(k);
-    if (k === 'one' && !to) setTo(list[0]?.user_id ?? null);
-    if (g.body) { setTitle(g.msgTitle); setBody(g.body); }
-    else if (GROUPS.some((x) => x.body && x.body === body)) { setTitle(''); setBody(''); } // έφυγε από ομάδα με έτοιμο κείμενο
-  };
+  // Πάτημα ομάδας → ανοίγει η σελίδα «Σε ποιους» με τα άτομα (app/(biz)/owner/recipients).
+  const pick = (k: GroupKey) => router.push({ pathname: '/owner/recipients', params: { g: k, ...(k === group && ids ? { sel: ids.join(',') } : {}) } } as any);
 
   const send = async () => {
     if (!body.trim()) return say('Γράψε το μήνυμα');
@@ -102,7 +85,7 @@ export default function Messages() {
       setSending(true);
       try {
         let sent = 0;
-        if (group === 'all' && !personal) {
+        if (group === 'all' && !ids && !personal) {
           const r = await rpc('owner_notify', { p_business: biz.id, p_user: null, p_title: title.trim(), p_body: body.trim() });
           if (r && r.ok === false) throw new Error(r.error);
           sent = r?.sent ?? rec.length;
@@ -130,8 +113,9 @@ export default function Messages() {
       <Section title="Σε ποιους" />
       <View style={{ gap: 8 }}>
         {GROUPS.map((g) => {
-          const on = group === g.key, n = g.key === 'one' ? null : members[g.key].length;
-          const off = n === 0 && g.key !== 'all';
+          const on = group === g.key && (!!ids || g.key !== 'one');
+          const n = on && ids ? ids.length : g.key === 'one' ? null : members[g.key].length;
+          const off = n === 0 && g.key !== 'all' && g.key !== 'one';
           return (
             <Pressable key={g.key} onPress={() => pick(g.key)} disabled={off} accessibilityRole="button" accessibilityState={{ selected: on }}
               style={({ pressed }) => [s.row, { gap: 12, paddingVertical: 11, paddingHorizontal: 14, borderRadius: 16, borderWidth: on ? 2 : 1,
@@ -140,39 +124,19 @@ export default function Messages() {
                 <Text style={{ fontSize: 18 }}>{g.emoji}</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{g.key === 'one' && target ? target.name || 'Πελάτης' : g.title}</Text>
-                <Text style={{ color: C.mute, fontSize: 12.5 }}>{g.sub}</Text>
+                <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{g.title}</Text>
+                <Text style={{ color: C.mute, fontSize: 12.5 }} numberOfLines={1}>{on && ids ? (rec.length <= 2 ? rec.map((c) => c.name).join(', ') : `${rec.length} επιλεγμένοι`) || g.sub : g.sub}</Text>
               </View>
               {n !== null && <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>{n}</Text>}
+              <Icon name="chevron" size={14} color={C.mute} />
             </Pressable>
           );
         })}
       </View>
 
-      {group === 'one' && <>
-        {list.length > 6 && <Input icon="search" placeholder="Αναζήτηση πελάτη" value={q} onChangeText={setQ} />}
-        <Group>
-          {shown.length === 0 && <View style={{ padding: 16 }}><T mute>Δεν βρέθηκε πελάτης.</T></View>}
-          {shown.slice(0, 30).map((c, i) => {
-            const on = c.user_id === to;
-            return (
-              <Pressable key={c.user_id} onPress={() => setTo(c.user_id)}
-                style={[s.row, { gap: 12, padding: 12, backgroundColor: on ? alpha(brand, 0.08) : 'transparent' },
-                  i < Math.min(shown.length, 30) - 1 && { borderBottomWidth: 1, borderBottomColor: alpha(C.text, 0.08) }]}>
-                <Avatar name={c.name || '?'} color={brand} size={36} />
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: C.text, fontWeight: '700' }}>{c.name || 'Χωρίς όνομα'}</Text>
-                  <Text style={{ color: C.mute, fontSize: 12 }}>{[c.phone, c.last && `τελευταία επίσκεψη ${fmtDay(c.last)}`].filter(Boolean).join(' · ')}</Text>
-                </View>
-                {on && <Icon name="check" size={18} color={brand} />}
-              </Pressable>
-            );
-          })}
-        </Group>
-      </>}
 
       <Section title={GROUPS.find((g) => g.key === group)?.body ? 'Μήνυμα (έτοιμο)' : 'Μήνυμα'} />
-      {(group === 'all' || group === 'one') && (
+      {!GROUPS.find((g) => g.key === group)?.body && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
           {EXTRA.map((t) => <Chip key={t.label} label={t.label} onPress={() => { setTitle(t.title); setBody(t.body); }} />)}
         </ScrollView>
