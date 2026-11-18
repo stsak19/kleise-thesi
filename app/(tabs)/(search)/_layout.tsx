@@ -8,7 +8,6 @@ export default function SearchStack() {
     <Stack screenOptions={stackOptions()}>
       <Stack.Screen name="index" options={{ title: 'SpotOn', headerShown: false }} />
       <Stack.Screen name="business/[id]" options={{ title: '' }} />
-      <Stack.Screen name="booked" options={{ headerShown: false, presentation: 'modal' }} />
     </Stack>
   );
 }

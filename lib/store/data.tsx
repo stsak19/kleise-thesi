@@ -25,6 +25,9 @@ export const endOf = (t: string, min: number) => {
   const [h, m] = t.split(':').map(Number); const e = h * 60 + m + min;
   return `${String(Math.floor(e / 60) % 24).padStart(2, '0')}:${String(e % 60).padStart(2, '0')}`;
 };
+/* Η οθόνη «Κλείστηκε!» μετά από κάθε κράτηση (app/booked). */
+export const showBooked = (o: { biz: string; service: string; date: string; time: string; color?: string; pending?: boolean }) =>
+  router.push({ pathname: '/booked', params: { ...o, color: o.color ?? '', pending: o.pending ? '1' : '' } } as any);
 /* Κράτηση χωρίς διαθέσιμες επισκέψεις: πάμε τον πελάτη στα πακέτα του καταστήματος. */
 export const askPack = (id: string, msg?: string) => say('Χρειάζεσαι πακέτο', msg ?? 'Δεν σου έμειναν κρατήσεις. Διάλεξε ένα πακέτο από το κατάστημα.', [
   { text: 'Όχι τώρα', style: 'cancel' }, { text: 'Δες τα πακέτα', onPress: () => router.navigate(`/store/${id}` as any) }]);
@@ -121,11 +124,12 @@ function useStoreData(id: string) {
   const waitAt = (sv: Service, t: string) => waits.find((w) => w.service_id === sv.id && w.date === date && w.time === t);
   const state = (sl: Slot): SlotState => (myAt(sl.sv, sl.time) ? 'mine' : waitAt(sl.sv, sl.time) ? 'wait' : sl.free > 0 ? 'free' : 'full');
 
-  const run = async (key: string, fn: () => Promise<any>, okTitle: string, okMsg?: string) => {
+  const run = async (key: string, fn: () => Promise<any>, okTitle: string, okMsg?: string, onOk?: () => void) => {
     setBusy(key);
     try {
       const r = await fn();
       if (r && r.ok === false) r.no_credits ? askPack(id) : say(r.pending ? 'Σε αναμονή έγκρισης' : 'Δεν έγινε', r.error);
+      else if (onOk) onOk();
       else say(okTitle, okMsg);
     } catch (e: any) { say('Κάτι πήγε στραβά', e.message); }
     setBusy(null); reload();
@@ -136,7 +140,8 @@ function useStoreData(id: string) {
     if (!signedIn) return askLogin(`/store/${id}`);
     const open = waits.find((w) => w.service_id === sl.sv.id && w.date === date && w.time !== sl.time);
     const go = (backup: string | null) => run(sl.sv.id + sl.time, () => rpc('create_booking', { p_service: sl.sv.id, p_date: date, p_time: sl.time, p_backup_for: backup }),
-      'Κλείστηκε! 🎉', `${sl.sv.name} · ${dayLabel(date)} στις ${sl.time}`);
+      'Κλείστηκε! 🎉', undefined,
+      () => showBooked({ biz: biz?.name ?? '', service: sl.sv.name, date, time: sl.time, color: st?.color, pending: !!biz?.requires_approval }));
     if (!open) return go(null);
     say('Είναι εναλλακτική;', `Έχεις δηλώσει ενδιαφέρον για τις ${open.time}. Αν ελευθερωθεί θέση εκεί, να ακυρωθεί αυτόματα η κράτηση των ${sl.time};`,
       [{ text: 'Ναι, εναλλακτική', onPress: () => go(open.id) }, { text: 'Όχι, θέλω και τις δύο', onPress: () => go(null) }]);

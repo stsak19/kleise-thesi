@@ -1,14 +1,17 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, View } from 'react-native';
-import { Text } from '../../../lib/Txt';
+import { Text } from '../lib/Txt';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Btn, C, Icon, alpha, fmtLong, onColor, shadow } from '../../../lib/ui';
+import { Btn, C, Icon, alpha, fmtLong, onColor, shadow } from '../lib/ui';
 
-/* Επιβεβαίωση μετά την κράτηση, με επιλογές «Δες τις κρατήσεις μου» / «Βρες άλλο κατάστημα». */
+/* Η οθόνη μετά την κράτηση (αντί για αναδυόμενο μήνυμα): κατάστημα, υπηρεσία, μέρα και ώρα,
+   και «Δες τις κρατήσεις μου» / «Πίσω στο κατάστημα». Ανοίγει από το showBooked (lib/store/data).
+   pending=1: το κατάστημα εγκρίνει τις κρατήσεις, άρα «Το αίτημα στάλθηκε». */
 export default function Booked() {
   const router = useRouter();
-  const p = useLocalSearchParams<{ biz: string; service: string; date: string; time: string; color?: string }>();
+  const p = useLocalSearchParams<{ biz: string; service: string; date: string; time: string; color?: string; pending?: string }>();
   const color = p.color || C.tint;
+  const pending = p.pending === '1';
   const a = useRef(new Animated.Value(0)).current;
   useEffect(() => { Animated.spring(a, { toValue: 1, friction: 4, tension: 60, useNativeDriver: false }).start(); }, []);
   const easeIn = (d: number) => { const v = new Animated.Value(0);
@@ -26,8 +29,8 @@ export default function Booked() {
           </Animated.View>
         </View>
         <Animated.View style={{ alignItems: 'center', gap: 8, opacity: t1, transform: [{ translateY: t1.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
-          <Text style={{ color: C.text, fontSize: 30, fontWeight: '900', letterSpacing: -0.8 }}>Κλείστηκε! 🎉</Text>
-          <Text style={{ color: C.mute, fontSize: 16, textAlign: 'center' }}>Σε περιμένουν — θα το βρεις στις κρατήσεις σου.</Text>
+          <Text style={{ color: C.text, fontSize: 30, fontWeight: '900', letterSpacing: -0.8 }}>{pending ? 'Το αίτημα στάλθηκε' : 'Κλείστηκε! 🎉'}</Text>
+          <Text style={{ color: C.mute, fontSize: 16, textAlign: 'center' }}>{pending ? 'Θα σε ειδοποιήσουμε μόλις το εγκρίνει το κατάστημα.' : 'Σε περιμένουν. Θα το βρεις στις Κρατήσεις σου.'}</Text>
         </Animated.View>
         <Animated.View style={{ alignSelf: 'stretch', backgroundColor: C.card, borderRadius: 22, borderWidth: 1, borderColor: C.line, overflow: 'hidden', ...shadow(2),
           opacity: t2, transform: [{ translateY: t2.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
@@ -46,9 +49,8 @@ export default function Booked() {
         </Animated.View>
       </View>
       <View style={{ gap: 12 }}>
-        <Btn title="Δες τις κρατήσεις μου" color={color}
-          onPress={() => { router.dismissAll(); router.navigate('/bookings'); }} />
-        <Btn kind="ghost" title="Βρες άλλο κατάστημα" onPress={() => router.dismissTo('/')} />
+        <Btn title="Δες τις κρατήσεις μου" color={color} onPress={() => router.replace('/bookings')} />
+        <Btn kind="ghost" title="Πίσω στο κατάστημα" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
       </View>
     </View>
   );

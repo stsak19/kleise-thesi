@@ -15,6 +15,7 @@ import { CAT_ART } from '../../../lib/catArt';
 import { useWide } from '../../../lib/wide';
 import { useHomeQuery } from '../../../lib/client/desk';
 import { FavRow } from '../../../lib/client/FavRow';
+import { searchFilters } from '../../../lib/client/search';
 type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null };
 
 
@@ -114,7 +115,7 @@ export default function Home() {
   const load = useCallback(async () => {
     let query = sb.from('businesses').select('*').eq('is_published', true).order('name').limit(100);
     if (cat) query = query.eq('category', cat);
-    if (q.trim()) query = query.ilike('name', `%${q.trim()}%`);
+    for (const f of searchFilters(q)) query = query.or(f);
     const { data } = await query;
     setList((data as Biz[]) ?? []); setLoaded(true);
   }, [cat, q]);
@@ -151,14 +152,14 @@ export default function Home() {
 
   /* Ενότητες με οριζόντια κύλιση, όπως στη Wolt. */
   const sections: { title: string; items: Biz[] }[] = [
-    { title: 'Κοντά σου', items: list.slice(0, 10) },
-    { title: 'Δημοφιλή', items: [...list].reverse().slice(0, 10) },
+    // Δεν έχουμε ακόμα τοποθεσία ή μετρήσεις, οπότε όχι «Κοντά σου»/«Δημοφιλή»: απλώς όλα, και μετά ανά είδος.
+    { title: 'Όλα τα καταστήματα', items: list },
     ...CATEGORIES.map((c) => ({ title: `${c.emoji} ${c.label}`, items: list.filter((b) => b.category === c.key) })),
   ].filter((x) => x.items.length > 0);
 
   // Χωρίς φίλτρα και χωρίς κανένα κατάστημα: τα πρώτα βήματα της πλατφόρμας, κάλεσμα σε επιχειρήσεις.
   const empty = filtering
-    ? <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα ή άλλη κατηγορία."
+    ? <Empty emoji="🔎" title="Δεν βρέθηκαν καταστήματα" text="Δοκίμασε άλλο όνομα, είδος ή πόλη."
         action="Καθαρισμός φίλτρων" onAction={() => { setCat(null); setQ(''); }} />
     : <Empty emoji="🌱" title="Τα πρώτα καταστήματα έρχονται σύντομα" text="Το SpotOn μόλις ξεκίνησε. Έχεις επιχείρηση; Βάλ' την εδώ σε λίγα λεπτά και δέξου κρατήσεις online."
         action="Πρόσθεσε την επιχείρησή σου" onAction={() => router.push('/new-business')} />;

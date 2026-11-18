@@ -5,7 +5,7 @@ import { say } from '../alert';
 import { iso } from '../ui';
 import { useAuth } from '../auth';
 import { askLogin } from '../guest';
-import { useStore, askPack, dayLabel, endOf, type Service, type Slot } from './data';
+import { useStore, askPack, showBooked, type Service, type Slot } from './data';
 
 /* Η ροή κράτησης: μία ροή με βήματα που εμφανίζονται μόνο όταν χρειάζονται.
    Υπηρεσία (αν είναι πάνω από μία) → Άτομο (αν την κάνουν πάνω από ένα άτομα) → Ώρα → Επιβεβαίωση.
@@ -139,7 +139,7 @@ function useBookState() {
       if (person && team.length > 1) { if (keep) setFav({ staff: person.id, service: service.id }); else if (fav?.staff === person.id) setFav(null); }
       const withWho = r?.staff ? ` · με ${withArticle(r.staff)}` : person ? ` · με ${withArticle(person.name)}` : '';
       close(); setTime(null);
-      say(S.biz?.requires_approval ? 'Το αίτημα στάλθηκε' : 'Κλείστηκε! 🎉', `${service.name}${withWho}\n${dayLabel(date)} στις ${time}–${endOf(time, service.duration_min)}`);
+      showBooked({ biz: S.biz?.name ?? '', service: `${service.name}${withWho}`, date, time, color: S.st?.color, pending: !!S.biz?.requires_approval });
     } catch (e: any) { say('Κάτι πήγε στραβά', e.message); }
     setBusy(false); S.reload();
   };
