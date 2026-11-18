@@ -265,10 +265,13 @@ export function ServiceFields({ svc, onChange, category, groups = [], staff = []
                     style={{ backgroundColor: C.bg, borderColor: C.bg }} />
                 </View>
                 <Text style={{ flex: 1, color: C.mute, fontWeight: '700', fontSize: 13 }} numberOfLines={1}>{row.days.length ? daysText(row.days) : 'Διάλεξε μέρες'}</Text>
-                <Pressable onPress={() => onSched(sched!.filter((_, j) => j !== i))} hitSlop={8} accessibilityLabel="Αφαίρεση ώρας">
-                  <Icon name="close" size={14} color={C.mute} />
-                </Pressable>
               </View>
+              {/* Κόκκινο κυκλάκι με λευκό ✕ πάνω στη δεξιά γωνία του πλαισίου. */}
+              <Pressable onPress={() => onSched(sched!.filter((_, j) => j !== i))} hitSlop={8} accessibilityLabel="Αφαίρεση ώρας"
+                style={({ pressed }) => ({ position: 'absolute', top: -7, right: -7, width: 22, height: 22, borderRadius: 11, backgroundColor: C.bad,
+                  alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.75 : 1, zIndex: 2 })}>
+                <Icon name="close" size={10} color={C.onBad} />
+              </Pressable>
               <View style={{ flexDirection: 'row', gap: 5, flexWrap: 'wrap' }}>
                 {WEEKDAYS.map((d) => {
                   const on = row.days.includes(d);
