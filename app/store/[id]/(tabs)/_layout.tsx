@@ -1,11 +1,13 @@
 import { Tabs } from 'expo-router';
 import { C } from '../../../../lib/ui';
 import { View } from 'react-native';
-import { StoreBar, type StoreTabs } from '../../../../lib/store/parts';
+import { type StoreTabs } from '../../../../lib/store/parts';
+import { StoreBar } from '../../../../lib/store/StoreBar';
 import { StoreTopBar } from '../../../../lib/store/desk';
 import { useWide } from '../../../../lib/wide';
 
-/* Οι 2 καρτέλες του καταστήματος: Κατάστημα (στοιχεία + κουμπί που ανοίγει την κράτηση σε παράθυρο) · Οι κρατήσεις μου.
+/* Οι 2 καρτέλες του καταστήματος: Κατάστημα (πληροφορίες πρώτα) · Οι κρατήσεις μου.
+   Κινητό: μπάρα Κατάστημα · [Κλείσε ώρα] · Κρατήσεις (lib/store/StoreBar).
    Ο λογαριασμός ανοίγει από τα αρχικά πάνω δεξιά (app/store/[id]/account), όχι από καρτέλα.
    backBehavior="none": το «πίσω» δεν αλλάζει καρτέλα, βγάζει από το κατάστημα πίσω στο SpotOn.
    Υπολογιστής: πάνω μπάρα του καταστήματος, η καρτέλα σε στήλη στη μέση. */
@@ -16,7 +18,7 @@ export default function StoreTabsLayout() {
     bookings: { icon: 'check', label: wide ? 'Οι κρατήσεις μου' : 'Κρατήσεις' },
   };
   return (
-    <Tabs backBehavior="none" tabBar={(p) => (wide ? <StoreTopBar items={ITEMS} {...(p as any)} /> : <StoreBar items={ITEMS} {...(p as any)} />)}
+    <Tabs backBehavior="none" tabBar={(p) => (wide ? <StoreTopBar items={ITEMS} {...(p as any)} /> : <StoreBar {...(p as any)} />)}
       screenLayout={wide ? ({ children, route }) => (
         <View style={{ flex: 1, flexDirection: 'row', backgroundColor: C.bg }}>
           <View style={{ flex: 1, minWidth: 0, alignItems: 'center' }}>

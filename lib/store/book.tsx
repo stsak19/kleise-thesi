@@ -6,6 +6,7 @@ import { iso } from '../ui';
 import { useAuth } from '../auth';
 import { askLogin } from '../guest';
 import { useStore, askPack, showBooked, type Service, type Slot } from './data';
+import { screenFor } from '../bizscreen';
 
 /* Η ροή κράτησης: μία ροή με βήματα που εμφανίζονται μόνο όταν χρειάζονται.
    Υπηρεσία (αν είναι πάνω από μία) → Άτομο (αν την κάνουν πάνω από ένα άτομα) → Ώρα → Επιβεβαίωση.
@@ -123,6 +124,12 @@ function useBookState() {
   const needLogin = () => { setOpen(false); setResume(true); askLogin(`/store/${S.id}`, 'in', true); };
   useEffect(() => { if (signedIn && resume) { setResume(false); setStep('confirm'); setOpen(true); } }, [signedIn, resume]);
   const close = () => { setOpen(false); setClassSlot(null); };
+  /* Το κύριο κουμπί κράτησης (μέση της κάτω μπάρας στο κινητό, δεξιά κάρτα στον υπολογιστή):
+     μαθήματα → ανοίγει το πρόγραμμα· ραντεβού → ανοίγει τα βήματα της κράτησης. */
+  const [sched, setSched] = useState(false);
+  const scr = screenFor(S.biz?.category);
+  const cta = classes ? 'Κλείσε θέση' : scr.hero === 'profile' || scr.hero === 'clinic' ? scr.cta : 'Κλείσε ώρα';
+  const go = () => (classes ? setSched(true) : start());
   const next = () => { const i = steps.indexOf(step); if (i >= 0 && i < steps.length - 1) setStep(steps[i + 1]); };
   const back = () => { const i = steps.indexOf(step); if (i > 0) setStep(steps[i - 1]); else close(); };
 
@@ -170,6 +177,7 @@ function useBookState() {
 
   return {
     staff, staffFor, team, person, fav, favStaff, usualService, usualNext, setFav,
+    sched, setSched, cta, go,
     open, step, setStep, steps, service, who, date, time, slots, keep, busy, classSlot, classes,
     pickService, pickWho, setDate, setTime, setKeep, start, confirmClass, close, next, back, submit,
   };

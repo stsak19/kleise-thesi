@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Linking, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../../lib/Txt';
@@ -13,7 +12,6 @@ import { StorePacks } from '../../../../lib/store/Packs';
 import { ScheduleSheet } from '../../../../lib/store/Schedule';
 import { screenFor } from '../../../../lib/bizscreen';
 import { useWide } from '../../../../lib/wide';
-import { DragSheet, InfoButton } from '../../../../lib/DragSheet';
 
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
 const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
@@ -33,16 +31,13 @@ export default function StoreHome() {
   const B = useBook();
   const wide = useWide();
   const top = useSafeAreaInsets().top;
-  const [sched, setSched] = useState(false);
-  const [info, setInfo] = useState(false); // κινητό: φύλλο «Πληροφορίες» από το ⓘ
+  const { sched, setSched, cta, go } = B;
   const biz = S.biz ?? {};
   const color = S.st?.color ?? C.accent;
   const ink = readable(color); // το χρώμα του καταστήματος σε τίτλους, τιμές και ώρες (εκδοχή Γ)
   const scr = screenFor(biz.category);
   const classes = S.layout === 'classes';
 
-  const cta = classes ? 'Δες το πρόγραμμα' : scr.hero === 'profile' || scr.hero === 'clinic' ? scr.cta : 'Διάλεξε υπηρεσία';
-  const go = () => (classes ? setSched(true) : B.start());
 
   // Ανοιχτά τώρα; (από το ωράριο της σημερινής μέρας)
   const now = new Date(), t = hm(now);
@@ -192,7 +187,7 @@ export default function StoreHome() {
           <View style={{ width: 340, gap: 14, marginTop: 22 }}>
             <View style={[{ borderWidth: 1, borderColor: C.line, borderRadius: 22, padding: 18, gap: 12, backgroundColor: C.bg }, shadow(2)]}>
               <Text style={{ color: C.text, fontWeight: '800', fontSize: 18 }}>{classes ? 'Κλείσε θέση' : scr.cta}</Text>
-              <Btn title={cta} color={color} onPress={go} disabled={!S.services.length} />
+              <Btn title={classes ? 'Δες το πρόγραμμα' : cta} color={color} onPress={go} disabled={!S.services.length} />
               {!classes && <UsualCard />}
             </View>
             {rules}
@@ -205,47 +200,36 @@ export default function StoreHome() {
   );
 
   /* ---------- κινητό ---------- */
+  /* Πρώτα οι πληροφορίες (εκδοχή Β, 2026-11-18): όνομα, ανοιχτά/κλήση/οδηγίες, περιγραφή, ωράριο, επικοινωνία και κανόνες,
+     μετά υπηρεσίες, πακέτα, ομάδα και ανακοινώσεις. Η κράτηση ανοίγει από το «Κλείσε ώρα» στη μέση της κάτω μπάρας (lib/store/StoreBar). */
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: TAB_SPACE + 76 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: TAB_SPACE }}>
         <View style={{ height: 190 + top, backgroundColor: color }}>
           <Photo uri={biz.cover_url} color={color} />
           <View style={{ position: 'absolute', top: top + 8, left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <ExitPill />
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <InfoButton onPress={() => setInfo(true)} />
               <FavButton />
               <AccountButton />
             </View>
           </View>
         </View>
-        {/* Η σελίδα κρατά μόνο ό,τι χρειάζεται για να κλείσεις· τα υπόλοιπα είναι στο ⓘ */}
         <View style={{ paddingHorizontal: 20, paddingTop: 18, gap: 12 }}>
           {title}
-          {about}
           {chips}
+          {about}
           <Notice />
+          {hours}
+          <View style={{ gap: 8 }}><Head c={ink} t="Επικοινωνία και κανόνες" />{rules}</View>
           {!classes && <UsualCard />}
           {services}
           <StorePacks />
+          {team}
+          {news}
         </View>
       </ScrollView>
-      {S.services.length > 0 && (
-        <View style={{ position: 'absolute', left: 16, right: 16, bottom: TAB_SPACE - 18 }}>
-          <Btn title={cta} color={color} onPress={go} style={shadow(3)} />
-        </View>
-      )}
       {sheets}
-      {info && (
-        <DragSheet title="Πληροφορίες" sub={biz.name ?? ''} onClose={() => setInfo(false)}>
-          <View style={{ paddingHorizontal: 20, gap: 12 }}>
-            {rules}
-            {hours}
-            {team}
-            {news}
-          </View>
-        </DragSheet>
-      )}
     </View>
   );
 }

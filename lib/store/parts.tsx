@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FloatBar, type TabItems } from '../FloatBar';
+import { type TabItems } from '../FloatBar';
 import { Text } from '../Txt';
 import { Photo } from '../Photo';
 import { C, Icon, alpha } from '../ui';
@@ -15,10 +15,8 @@ import { askLogin } from '../guest';
 import { Heart } from '../Icon';
 import { isFavorite, toggleFavorite, useFavorites } from '../favorites';
 
-/* Η κάτω μπάρα του καταστήματος: η ίδια γυάλινη μπάρα του SpotOn (lib/FloatBar), με τη λέξη της ενεργής καρτέλας
-   και πλάτος που αλλάζει με κίνηση. */
+/* Οι καρτέλες του καταστήματος (η κάτω μπάρα του κινητού είναι στο lib/store/StoreBar). */
 export type StoreTabs = TabItems;
-export const StoreBar = (p: { items: StoreTabs; state: any; navigateToTab: (key: string) => void }) => <FloatBar {...p} labels />;
 
 /* «‹ SpotOn»: βγαίνει από το κατάστημα και γυρίζει στην εφαρμογή. */
 export function ExitPill() {

@@ -1,30 +1,38 @@
 import { useState } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView, Text as RNText, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text } from '../../../../lib/Txt';
-import { C, Section, s, shadow } from '../../../../lib/ui';
-import { PastPills, PastRows, Segmented } from '../../../../lib/bookings/parts';
-import { Hero } from '../../../../lib/bookings/Upcoming';
-import { AllLink, BookingRow, PackCard, WaitRow } from '../../../../lib/bookings/cards';
+import { Btn, C, TAB_SPACE, s } from '../../../../lib/ui';
+import { useAuth } from '../../../../lib/auth';
+import { askLogin } from '../../../../lib/guest';
+import { Segmented } from '../../../../lib/bookings/parts';
+import { BannerCard } from '../../../../lib/bookings/Upcoming';
+import { AllLink, PackCard, WaitRow } from '../../../../lib/bookings/cards';
+import { BookingLines } from '../../../../lib/bookings/HistoryLines';
+import { HistoryBox } from '../../../../lib/bookings/HistoryBox';
 import { useStore } from '../../../../lib/store/data';
 import { StoreTop } from '../../../../lib/store/parts';
+import { StorePacks } from '../../../../lib/store/Packs';
 
-/* Οι κρατήσεις μου σε αυτό το κατάστημα: το πακέτο, οι επερχόμενες, η αναμονή και το ιστορικό.
-   Ίδιες κάρτες με τη γενική λίστα «Κρατήσεις» (lib/bookings/cards), μόνο που εδώ φαίνονται μόνο του καταστήματος,
-   και στο τέλος υπάρχει σύνδεσμος προς όλες τις κρατήσεις σε κάθε κατάστημα. */
+type Tab = 'b' | 'p';
+
+/* Οι κρατήσεις μου σε αυτό το κατάστημα, με την ίδια όψη που έχει η καρτέλα «Κρατήσεις» της εφαρμογής (2026-11-18):
+   Κρατήσεις | Πακέτα, κάρτες BannerCard, και το Ιστορικό σε πλαίσιο που ανοίγει. Μόνο του καταστήματος,
+   με σύνδεσμο προς όλες τις κρατήσεις σε κάθε κατάστημα. */
 export default function StoreBookings() {
   const S = useStore();
   const router = useRouter();
-  const [tab, setTab] = useState<'next' | 'past'>('next');
+  const [tab, setTab] = useState<Tab>('b');
   const [busy, setBusy] = useState(false);
   const refresh = async () => { setBusy(true); await S.reload(); setBusy(false); };
   const color = S.st?.color ?? C.accent;
-  const [next, ...rest] = S.upcoming;
   const n = S.upcoming.length + S.waits.length;
+  const name = S.biz?.name ?? '';
+  const signedIn = !!useAuth().session;
 
   const Empty = ({ text }: { text: string }) => (
-    <View style={{ paddingHorizontal: 24, paddingVertical: 40, alignItems: 'center', gap: 6 }}>
-      <Text style={{ fontSize: 28 }}>🗓️</Text>
+    <View style={{ paddingHorizontal: 24, paddingVertical: 36, alignItems: 'center', gap: 6 }}>
+      <RNText style={{ fontSize: 28 }}>🗓️</RNText>
       <Text style={{ color: C.mute, fontSize: 14, textAlign: 'center' }}>{text}</Text>
     </View>
   );
@@ -32,45 +40,34 @@ export default function StoreBookings() {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <StoreTop title="Οι κρατήσεις μου" />
-      <ScrollView contentContainerStyle={[s.pad, { paddingTop: 14 }]} refreshControl={<RefreshControl refreshing={busy} onRefresh={refresh} />}>
-        <Segmented value={tab} onChange={setTab} items={[{ key: 'next', label: 'Επερχόμενες', count: n, alert: true }, { key: 'past', label: 'Ιστορικό', count: S.past.length }]} />
+      <ScrollView contentContainerStyle={[s.pad, { paddingTop: 14, paddingBottom: TAB_SPACE, gap: 10 }]} refreshControl={<RefreshControl refreshing={busy} onRefresh={refresh} />}>
+        {!signedIn ? (
+          <View style={{ paddingVertical: 40, alignItems: 'center', gap: 14 }}>
+            <Text style={{ color: C.text, fontWeight: '800', fontSize: 20, textAlign: 'center' }}>Συνδέσου για να δεις τις κρατήσεις σου</Text>
+            <Text style={{ color: C.mute, fontSize: 14, textAlign: 'center' }}>Εδώ θα βλέπεις τις κρατήσεις και τα πακέτα σου σε αυτό το κατάστημα.</Text>
+            <Btn title="Σύνδεση" color={color} onPress={() => askLogin(`/store/${S.id}/bookings`, 'in', true)} />
+          </View>
+        ) : <>
+        <Segmented value={tab} onChange={setTab} items={[
+          { key: 'b', label: 'Κρατήσεις', count: n, alert: true },
+          { key: 'p', label: 'Πακέτα', count: S.packInfo ? 1 : 0 },
+        ]} />
 
-        {tab === 'next' ? <>
-          {!!S.packInfo && <>
-            <Section title="Το πακέτο σου" />
-            <PackCard name={S.biz?.name ?? ''} biz={S.biz} color={color} p={S.packInfo} />
-          </>}
-          {S.packages.length > 0 && (!S.packInfo || (S.packInfo.left <= 0 && !S.packInfo.unlimited && !S.packInfo.asked)) &&
-            <AllLink icon="pack" text={S.packInfo ? 'Τελείωσε το πακέτο · διάλεξε νέο' : 'Διάλεξε πακέτο του καταστήματος'} onPress={() => router.navigate(`/store/${S.id}` as any)} />}
-          {n === 0 && <Empty text="Δεν έχεις κλείσει ώρα εδώ. Κλείσε από την αρχική του καταστήματος." />}
-          {!!next && <>
-            {!!S.packInfo && <Section title="Η επόμενη κράτηση" />}
-            <Hero b={next} biz={S.biz} color={color} onCancel={() => S.cancelBooking(next)} />
-          </>}
-          {rest.length > 0 && <>
-            <View style={[s.row, { marginTop: 10 }]}>
-              <Text style={[s.h, { flex: 1 }]}>Προγραμματισμένα</Text>
-              <Text style={{ color: C.mute, fontWeight: '600' }}>{rest.length}</Text>
-            </View>
-            {rest.map((b) => <BookingRow key={b.id} b={b} color={color} onCancel={() => S.cancelBooking(b)} />)}
-          </>}
-          {S.waits.length > 0 && <>
-            <Section title="Σε αναμονή" />
-            {S.waits.map((w) => <WaitRow key={w.id} w={w} onLeave={() => S.leave(w)} />)}
-          </>}
-        </> : <>
-          {S.past.length === 0 ? <Empty text="Δεν υπάρχουν παλιές κρατήσεις ακόμα." /> : (
-            <View style={[s.card, shadow(1), { paddingTop: 0, gap: 0 }]}>
-              <PastPills items={S.past} />
-              <PastRows items={S.past} color={color} />
-            </View>
-          )}
-        </>}
-
-        <View style={{ marginTop: 14, gap: 8 }}>
+        {tab === 'b' ? <>
+          {n === 0 && <Empty text="Δεν έχεις κλείσει ώρα εδώ ακόμα. Πάτα το κουμπί στη μέση της μπάρας." />}
+          {S.upcoming.map((b) => <BannerCard key={b.id} b={{ ...b, business: b.business ?? name } as any} biz={S.biz} color={color} onCancel={() => S.cancelBooking(b)} />)}
+          {S.waits.map((w) => <WaitRow key={w.id} w={w} onLeave={() => S.leave(w)} />)}
+          <HistoryBox title="Ιστορικό κρατήσεων" sub={S.past.length ? `${S.past.length} ${S.past.length === 1 ? 'παλιά κράτηση' : 'παλιές κρατήσεις'}` : 'Καμία παλιά κράτηση ακόμα'}>
+            <BookingLines D={{ past: S.past.map((b) => ({ ...b, business: b.business ?? name })) } as any} />
+          </HistoryBox>
           <AllLink text="Κρατήσεις σε όλα τα καταστήματα" onPress={() => router.navigate('/bookings')} />
-          {!!S.packInfo && <AllLink icon="pack" text="Πακέτα σε όλα τα καταστήματα" onPress={() => router.navigate({ pathname: '/bookings', params: { tab: 'p' } } as any)} />}
-        </View>
+        </> : <>
+          {!!S.packInfo && <PackCard name={name} biz={S.biz} color={color} p={S.packInfo} />}
+          {!S.packInfo && !S.packages.length && <Empty text="Αυτό το κατάστημα δεν έχει πακέτα." />}
+          {(!S.packInfo || (S.packInfo.left <= 0 && !S.packInfo.unlimited && !S.packInfo.asked)) && <StorePacks title={S.packInfo ? 'Νέο πακέτο' : 'Διάλεξε πακέτο'} />}
+          <AllLink icon="pack" text="Πακέτα σε όλα τα καταστήματα" onPress={() => router.navigate({ pathname: '/bookings', params: { tab: 'p' } } as any)} />
+        </>}
+        </>}
       </ScrollView>
     </View>
   );
