@@ -155,15 +155,15 @@ export function AmountPick({ label, sub, options, value, onPick, units = MIN_UNI
   const chip = (key: string, text: string, on: boolean, onPress: () => void, dashed?: boolean) => (
     <Pressable key={key} onPress={onPress} accessibilityRole="button" accessibilityState={{ selected: on }}
       style={({ pressed }) => [{ paddingVertical: 11, paddingHorizontal: 16, borderRadius: 14, backgroundColor: on ? C.accent : C.soft, opacity: pressed ? 0.85 : 1 },
-        dashed && { backgroundColor: 'transparent', borderWidth: 1.5, borderStyle: 'dashed', borderColor: C.btn2Line, paddingVertical: 9.5, paddingHorizontal: 14.5 }]}>
+        dashed && { backgroundColor: on ? C.accent : 'transparent', borderWidth: 1.5, borderStyle: 'dashed', borderColor: C.btn2Line, paddingVertical: 9.5, paddingHorizontal: 14.5 }]}>
       <Text style={{ color: on ? C.onAccent : C.text, fontWeight: '700', fontSize: 14 }}>{text}</Text>
     </Pressable>
   );
   const row = (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {options.map((v) => chip(String(v), amountLabel(v, units), v === value, () => onPick(v)))}
-      {/* Δική τιμή: φαίνεται πάνω στο ίδιο το «+ Άλλο» (επιλεγμένο), όχι σε ξεχωριστό κουμπί. */}
-      {custom ? chip('more', amountLabel(value, units), true, () => setOpen(true)) : chip('more', '+ Άλλο', false, () => setOpen(true), true)}
+      {/* Δική τιμή: γράφεται πάνω στο ίδιο το «+ Άλλο», που κρατά τη διακεκομμένη γραμμή και γεμίζει σαν επιλεγμένο. */}
+      {chip('more', custom ? amountLabel(value, units) : '+ Άλλο', custom, () => setOpen(true), true)}
       {open && <AmountSheet value={value || options[0]} units={units} title={sheetTitle ?? label ?? 'Δική σου τιμή'} sub={sheetSub ?? sub} max={max}
         onClose={() => setOpen(false)} onPick={onPick} />}
     </View>
