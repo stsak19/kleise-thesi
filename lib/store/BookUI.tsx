@@ -300,7 +300,7 @@ export function BookSheet() {
           {B.step === 'confirm' && <StepConfirm />}
         </ScrollView>
         {B.step !== 'service' && (
-          <Btn title={B.busy ? '…' : cta} disabled={!canNext || B.busy} onPress={B.step === 'confirm' ? B.submit : B.next} style={{ marginTop: 14 }} />
+          <Btn title={B.busy ? '…' : cta} color={S.st?.color} disabled={!canNext || B.busy} onPress={B.step === 'confirm' ? B.submit : B.next} style={{ marginTop: 14 }} />
         )}
       </Animated.View>
     </Modal>

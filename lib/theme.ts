@@ -74,6 +74,15 @@ const lum = (hex: string) => { const [r, g, b] = rgb(hex); return 0.299 * r + 0.
 /* Πολύ ανοιχτό χρώμα (π.χ. κίτρινο, λευκό): το κείμενο πάνω του γίνεται σκούρο. */
 export const isLight = (hex: string) => lum(hex) > 186;
 export const isDark = () => lum(C.bg) < 128;
+/* Το χρώμα του καταστήματος ως χρώμα κειμένου (ώρες, τιμές, τίτλοι): αν είναι πολύ ανοιχτό σε λευκό φόντο
+   (π.χ. κίτρινο) σκουραίνει, αν είναι πολύ σκούρο σε σκούρο φόντο ανοίγει, ώστε να διαβάζεται πάντα. */
+export const readable = (hex: string) => {
+  const [r, g, b] = rgb(hex), l = lum(hex), dark = isDark();
+  const mix = (to: number, k: number) => '#' + [r, g, b].map((v) => Math.round(v + (to - v) * k).toString(16).padStart(2, '0')).join('');
+  if (!dark && l > 150) return mix(0, Math.min(0.6, (l - 120) / 200));
+  if (dark && l < 100) return mix(255, Math.min(0.6, (130 - l) / 200));
+  return hex;
+};
 
 /* Διαβάθμιση χρώματος (linear-/radial-gradient σε CSS). Στον browser γίνεται backgroundImage,
    στο κινητό experimental_backgroundImage του React Native. */

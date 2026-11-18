@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../../lib/Txt';
 import { Btn, C, Group, Icon, Row, TAB_SPACE, alpha, price, shadow } from '../../../../lib/ui';
 import { Photo } from '../../../../lib/Photo';
+import { readable } from '../../../../lib/theme';
 import { useStore } from '../../../../lib/store/data';
 import { useBook, firstName } from '../../../../lib/store/book';
 import { BookSheet, Face, UsualCard, dur } from '../../../../lib/store/BookUI';
@@ -16,7 +17,7 @@ import { DragSheet, InfoButton } from '../../../../lib/DragSheet';
 
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
 const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
-const Head = ({ t }: { t: string }) => <Text style={{ color: C.text, fontWeight: '800', fontSize: 18, marginTop: 14 }}>{t}</Text>;
+const Head = ({ t, c }: { t: string; c: string }) => <Text style={{ color: c, fontWeight: '800', fontSize: 18, marginTop: 14 }}>{t}</Text>;
 const hm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
 /* Η αρχική του καταστήματος: μπαίνεις και βλέπεις πρώτα τα στοιχεία του (φωτογραφία, όνομα, αν είναι ανοιχτά, κλήση,
@@ -36,6 +37,7 @@ export default function StoreHome() {
   const [info, setInfo] = useState(false); // κινητό: φύλλο «Πληροφορίες» από το ⓘ
   const biz = S.biz ?? {};
   const color = S.st?.color ?? C.accent;
+  const ink = readable(color); // το χρώμα του καταστήματος σε τίτλους, τιμές και ώρες (εκδοχή Γ)
   const scr = screenFor(biz.category);
   const classes = S.layout === 'classes';
 
@@ -72,7 +74,8 @@ export default function StoreHome() {
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={{ color: C.text, fontSize: wide ? 30 : 24, fontWeight: '800', letterSpacing: -0.5 }}>{biz.name ?? ''}</Text>
         <Text style={{ color: C.mute, fontSize: 13.5, fontWeight: '600', marginTop: 2 }} numberOfLines={2}>
-          {[scr.kicker, [biz.address, biz.city].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}
+          {!!scr.kicker && <Text style={{ color: ink, fontWeight: '800' }}>{scr.kicker}</Text>}
+          {[scr.kicker ? '' : null, [biz.address, biz.city].filter(Boolean).join(', ')].filter((x) => x !== null && (x || scr.kicker)).join(' · ')}
         </Text>
       </View>
       <Credits />
@@ -89,7 +92,7 @@ export default function StoreHome() {
 
   const services = S.services.length > 0 && (
     <View>
-      <Head t={classes ? 'Μαθήματα' : 'Υπηρεσίες και τιμές'} />
+      <Head c={ink} t={classes ? 'Μαθήματα' : 'Υπηρεσίες και τιμές'} />
       <Text style={{ color: C.mute, fontSize: 13, marginTop: 2, marginBottom: 10 }}>{classes ? 'Πάτα ένα μάθημα για να δεις τις ώρες του.' : 'Πάτα μια υπηρεσία για να κλείσεις.'}</Text>
       <View style={{ flexDirection: wide ? 'row' : 'column', flexWrap: 'wrap', gap: 10 }}>
         {S.services.map((sv) => (
@@ -100,7 +103,7 @@ export default function StoreHome() {
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={{ color: C.text, fontSize: 15.5, fontWeight: '800' }} numberOfLines={1}>{sv.name}</Text>
               <Text style={{ color: C.mute, fontSize: 13, fontWeight: '600', marginTop: 2 }}>
-                {dur(sv.duration_min)}{sv.price_cents != null ? ` · ${price(sv.price_cents)}` : classes ? ' · με πακέτο' : ''}
+                {dur(sv.duration_min)}{sv.price_cents != null ? <> · <Text style={{ color: ink, fontWeight: '800' }}>{price(sv.price_cents)}</Text></> : classes ? ' · με πακέτο' : ''}
               </Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, paddingLeft: 12, paddingRight: 8, borderRadius: 999, backgroundColor: C.text }}>
@@ -115,7 +118,7 @@ export default function StoreHome() {
 
   const hours = S.hours.length > 0 && (
     <View style={{ gap: 8 }}>
-      <Head t="Ωράριο" />
+      <Head c={ink} t="Ωράριο" />
       <View style={{ borderRadius: 18, backgroundColor: C.card, overflow: 'hidden' }}>
         {WEEK.map((wd, i) => {
           const list = S.hours.filter((h) => h.weekday === wd).sort((a, z) => a.opens.localeCompare(z.opens));
@@ -144,7 +147,7 @@ export default function StoreHome() {
 
   const team = B.staff.length > 1 && (
     <View style={{ gap: 10 }}>
-      <Head t="Η ομάδα" />
+      <Head c={ink} t="Η ομάδα" />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
         {B.staff.map((st) => (
           <View key={st.id} style={{ width: 84, alignItems: 'center', gap: 4 }}>
@@ -158,7 +161,7 @@ export default function StoreHome() {
 
   const news = S.messages.length > 0 && (
     <View style={{ gap: 10 }}>
-      <Head t="Ανακοινώσεις" />
+      <Head c={ink} t="Ανακοινώσεις" />
       <MessageList />
     </View>
   );
@@ -187,7 +190,7 @@ export default function StoreHome() {
           <View style={{ width: 340, gap: 14, marginTop: 22 }}>
             <View style={[{ borderWidth: 1, borderColor: C.line, borderRadius: 22, padding: 18, gap: 12, backgroundColor: C.bg }, shadow(2)]}>
               <Text style={{ color: C.text, fontWeight: '800', fontSize: 18 }}>{classes ? 'Κλείσε θέση' : scr.cta}</Text>
-              <Btn title={cta} onPress={go} disabled={!S.services.length} />
+              <Btn title={cta} color={color} onPress={go} disabled={!S.services.length} />
               {!classes && <UsualCard />}
             </View>
             {rules}
@@ -227,7 +230,7 @@ export default function StoreHome() {
       </ScrollView>
       {S.services.length > 0 && (
         <View style={{ position: 'absolute', left: 16, right: 16, bottom: TAB_SPACE - 18 }}>
-          <Btn title={cta} onPress={go} style={shadow(3)} />
+          <Btn title={cta} color={color} onPress={go} style={shadow(3)} />
         </View>
       )}
       {sheets}

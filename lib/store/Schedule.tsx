@@ -2,6 +2,7 @@ import { Modal, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../Txt';
 import { Btn, C, DAYS, MONTHS, alpha, shadow } from '../ui';
+import { readable } from '../theme';
 import { useStore, type Slot } from './data';
 import { Seats } from './Seats';
 import { useBook } from './book';
@@ -22,14 +23,15 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
   const multi = S.services.length > 1;
   const d = new Date(S.date + 'T00:00');
   const today = S.days[0];
+  const ink = readable(S.st?.color ?? C.text); // ώρες και σήματα στο χρώμα του καταστήματος
 
   const Row = ({ sl, last }: { sl: Slot; last: boolean }) => {
     const st = S.state(sl), dis = S.busy === sl.sv.id + sl.time, w = S.waitAt(sl.sv, sl.time);
     const many = sl.capacity > 1;
     const seats = many && !!sl.sv.show_seats; // κουτάκια με τις κρατημένες θέσεις, αν το θέλει ο ιδιοκτήτης
     const tag = st === 'mine' ? (
-      <View style={{ alignSelf: 'flex-start', paddingVertical: 3, paddingHorizontal: 8, borderRadius: 7, backgroundColor: C.accent }}>
-        <Text style={{ color: C.onAccent, fontSize: 11, fontWeight: '700' }}>✓ Έχεις κράτηση</Text>
+      <View style={{ alignSelf: 'flex-start', paddingVertical: 3, paddingHorizontal: 8, borderRadius: 7, backgroundColor: alpha(ink, 0.12) }}>
+        <Text style={{ color: ink, fontSize: 11, fontWeight: '800' }}>✓ Έχεις κράτηση</Text>
       </View>
     ) : st === 'wait' ? (
       <View style={{ alignSelf: 'flex-start', paddingVertical: 3, paddingHorizontal: 8, borderRadius: 7, borderWidth: 1, borderStyle: 'dashed', borderColor: C.mute }}>
@@ -44,7 +46,7 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 20, borderBottomWidth: last ? 0 : 1, borderBottomColor: C.line }}>
         <View style={{ flex: 1, gap: 7, minWidth: 0 }}>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10 }}>
-            <Text style={{ color: st === 'full' ? C.mute : C.text, fontSize: 28, fontWeight: '500', letterSpacing: -1, fontVariant: ['tabular-nums'] }}>{sl.time}</Text>
+            <Text style={{ color: st === 'full' ? C.mute : ink, fontSize: 28, fontWeight: '600', letterSpacing: -1, fontVariant: ['tabular-nums'] }}>{sl.time}</Text>
             {(multi || S.layout === 'classes') && <Text style={{ flex: 1, color: C.mute, fontSize: 13 }} numberOfLines={1}>{sl.sv.name}</Text>}
           </View>
           {tag}
@@ -53,7 +55,7 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
         {st === 'mine' ? <Btn size="sm" kind="danger" title="Ακύρωση" disabled={dis} onPress={() => S.cancel(sl)} />
           : st === 'wait' ? <Btn size="sm" kind="ghost" title="Απόσυρση" disabled={dis} onPress={() => S.unwait(sl)} />
           : st === 'full' ? <Btn size="sm" kind="ghost" title="Αναμονή" disabled={dis} onPress={() => S.wait(sl)} />
-          : <Btn size="sm" title="Κράτηση" disabled={dis || (!!S.pack && S.pack.left <= 0)} onPress={() => { onClose(); B.confirmClass(sl); }} />}
+          : <Btn size="sm" title="Κράτηση" color={S.st?.color} disabled={dis || (!!S.pack && S.pack.left <= 0)} onPress={() => { onClose(); B.confirmClass(sl); }} />}
       </View>
     );
   };

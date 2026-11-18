@@ -2,6 +2,7 @@ import { View } from 'react-native';
 import { Text } from '../Txt';
 import { Btn, C, Card, Pill, price, s } from '../ui';
 import { PLAN_KIND } from '../owner/kinds';
+import { readable } from '../theme';
 import { useStore, type Package } from './data';
 
 /* Τα πακέτα του καταστήματος, όπως τα έφτιαξε ο ιδιοκτήτης. Ο πελάτης πατά «Το θέλω» και το κατάστημα
@@ -17,7 +18,7 @@ export function StorePacks({ title = 'Πακέτα' }: { title?: string }) {
   const color = S.st?.color ?? C.accent;
   return (
     <View style={{ gap: 10 }}>
-      <Text style={{ color: C.text, fontWeight: '800', fontSize: 18, marginTop: 10 }}>{title}</Text>
+      <Text style={{ color: readable(color), fontWeight: '800', fontSize: 18, marginTop: 10 }}>{title}</Text>
       {S.packages.map((p) => {
         const asked = S.pendingPack?.id === p.id;
         const line = packLine(p);
@@ -33,7 +34,7 @@ export function StorePacks({ title = 'Πακέτα' }: { title?: string }) {
                 <Text style={{ color: C.text, fontWeight: '800', fontSize: 17 }}>{p.name}</Text>
                 {!!line && <Text style={{ color: C.mute, fontSize: 13.5 }}>{line}</Text>}
               </View>
-              <Text style={{ color: C.text, fontWeight: '900', fontSize: 22, letterSpacing: -0.5 }}>{p.price_cents ? price(p.price_cents) : 'Δωρεάν'}</Text>
+              <Text style={{ color: readable(color), fontWeight: '900', fontSize: 22, letterSpacing: -0.5 }}>{p.price_cents ? price(p.price_cents) : 'Δωρεάν'}</Text>
             </View>
             {!!p.note && <Text style={{ color: C.mute, fontSize: 13.5, lineHeight: 19 }}>{p.note}</Text>}
             {asked ? (
