@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -73,21 +74,32 @@ export function StoreTop({ title, right }: { title: string; right?: React.ReactN
 }
 
 /* Καρδιά «Αγαπημένο»: αποθηκεύει το κατάστημα για να φαίνεται πάνω πάνω στην αρχική.
-   Αποθηκευμένο = χάπι με γεμάτη καρδιά και λέξη· όχι = κύκλος με περίγραμμα καρδιάς (φαίνεται και πάνω σε σκούρο εξώφυλλο). Επισκέπτης: ζητά σύνδεση. */
+   Πάτημα → η καρδιά γίνεται κόκκινη και για λίγο φαίνεται η λέξη «Στα αγαπημένα», μετά μένει μόνο η κόκκινη καρδιά.
+   Όχι αγαπημένο = κύκλος με περίγραμμα καρδιάς (φαίνεται και πάνω σε σκούρο εξώφυλλο). Επισκέπτης: ζητά σύνδεση. */
 export function FavButton({ size = 34 }: { size?: number }) {
   const S = useStore();
   const P = usePerson();
   const favs = useFavorites();
+  const [flash, setFlash] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
   if (!S.biz) return null;
   const on = isFavorite(favs, S.biz.id);
-  const press = () => (P.guest ? askLogin(`/store/${S.id}`) : toggleFavorite(S.biz));
+  const press = () => {
+    if (P.guest) return askLogin(`/store/${S.id}`);
+    if (timer.current) clearTimeout(timer.current);
+    setFlash(!on);
+    if (!on) timer.current = setTimeout(() => setFlash(false), 1600);
+    toggleFavorite(S.biz);
+  };
+  const word = on && flash;
   return (
     <Pressable onPress={press} accessibilityRole="button" accessibilityState={{ selected: on }} hitSlop={6}
       accessibilityLabel={on ? 'Αφαίρεση από τα αγαπημένα' : 'Προσθήκη στα αγαπημένα'}
       style={({ pressed, hovered }: any) => ({ height: size, minWidth: size, borderRadius: size / 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-        gap: 6, paddingHorizontal: on ? 12 : 0, backgroundColor: C.card, opacity: pressed || hovered ? 0.8 : 1 })}>
-      <Heart size={15} filled={on} color={C.text} bg={C.card} />
-      {on && <Text style={{ color: C.text, fontWeight: '800', fontSize: 13 }}>Αγαπημένο</Text>}
+        gap: 6, paddingHorizontal: word ? 12 : 0, backgroundColor: C.card, opacity: pressed || hovered ? 0.8 : 1 })}>
+      <Heart size={15} filled={on} color={on ? C.bad : C.text} bg={C.card} />
+      {word && <Text style={{ color: C.text, fontWeight: '800', fontSize: 13 }}>Στα αγαπημένα</Text>}
     </Pressable>
   );
 }
