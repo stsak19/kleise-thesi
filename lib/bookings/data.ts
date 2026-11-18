@@ -7,7 +7,7 @@ import { C, fmtDay, iso } from '../ui';
 import { useAuth } from '../auth';
 
 export type Booking = { id: string; date: string; time: string; status: string; service: string; service_id: string; business: string; business_id: string; address?: string | null };
-export type Biz = { id: string; name: string; category: string; city?: string; address?: string | null; logo_url?: string | null; cover_url?: string | null; color: string };
+export type Biz = { slug?: string | null; id: string; name: string; category: string; city?: string; address?: string | null; logo_url?: string | null; cover_url?: string | null; color: string };
 
 /* Όλα όσα χρειάζεται η οθόνη «Κρατήσεις»: κρατήσεις, αναμονή, πακέτα, ειδοποιήσεις και τα καταστήματα. */
 export function useMyBookings() {
@@ -42,7 +42,7 @@ export function useMyBookings() {
   const packHistory: any[] = d?.pack_history ?? [];
 
   const color = (b: { business_id?: string }) => (b.business_id && biz[b.business_id]?.color) || C.tint;
-  const open = (b: { business_id?: string }) => { if (b.business_id) router.push(`/store/${b.business_id}`); };
+  const open = (b: { business_id?: string }) => { if (b.business_id) router.push((biz[b.business_id]?.slug ? `/store/${biz[b.business_id].slug}` : `/store/${b.business_id}`) as any); };
   const cancel = (b: Booking) => say('Ακύρωση κράτησης', `${b.business} · ${fmtDay(b.date)} ${b.time}`, [
     { text: 'Όχι' },
     { text: 'Ακύρωση', style: 'destructive', onPress: async () => { const r = await rpc('cancel_booking', { p_booking: b.id }); if (!r.ok) say(r.error); load(); } },

@@ -48,7 +48,7 @@ export default function StoreBookings() {
           <View style={{ paddingVertical: 40, alignItems: 'center', gap: 14 }}>
             <Text style={{ color: C.text, fontWeight: '800', fontSize: 20, textAlign: 'center' }}>Συνδέσου για να δεις τις κρατήσεις σου</Text>
             <Text style={{ color: C.mute, fontSize: 14, textAlign: 'center' }}>Εδώ θα βλέπεις τις κρατήσεις και τα πακέτα σου σε αυτό το κατάστημα.</Text>
-            <Btn title="Σύνδεση" color={color} onPress={() => askLogin(`/store/${S.id}/bookings`, 'in', true)} />
+            <Btn title="Σύνδεση" color={color} onPress={() => askLogin(`/store/${S.path}/bookings`, 'in', true)} />
           </View>
         ) : <>
         <Segmented value={tab} onChange={setTab} items={[

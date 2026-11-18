@@ -1,3 +1,4 @@
+import { storeHref } from '../../../lib/store/key';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Image, Keyboard, LayoutAnimation, Pressable, ScrollView, View } from 'react-native';
 import { BlurView } from 'expo-blur';
@@ -17,7 +18,7 @@ import { useHomeQuery } from '../../../lib/client/desk';
 import { FavRow } from '../../../lib/client/FavRow';
 import { searchFilters } from '../../../lib/client/search';
 import { Rating, fmtAvg } from '../../../lib/reviews';
-type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null; rating_avg?: number | string | null; rating_count?: number | null };
+type Biz = { slug?: string | null; theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null; rating_avg?: number | string | null; rating_count?: number | null };
 
 
 /* Κάρτα καταστήματος: εξώφυλλο (ή σκούρο πλαίσιο με λάμψη στο χρώμα του), ετικέτα κατηγορίας
@@ -168,7 +169,7 @@ export default function Home() {
     : <Empty emoji="🌱" title="Τα πρώτα καταστήματα έρχονται σύντομα" text="Το SpotOn μόλις ξεκίνησε. Έχεις επιχείρηση; Βάλ' την εδώ σε λίγα λεπτά και δέξου κρατήσεις online."
         action="Πρόσθεσε την επιχείρησή σου" onAction={() => router.push('/new-business')} />;
 
-  if (wide) return <DeskHome {...{ chips, sections, list, loaded, filtering, empty, cat, onOpen: (b: Biz) => router.push(`/store/${b.id}`) }} />;
+  if (wide) return <DeskHome {...{ chips, sections, list, loaded, filtering, empty, cat, onOpen: (b: Biz) => router.push(storeHref(b) as any) }} />;
 
   /* Κινητό: χωρίς αναζήτηση = άδεια αρχική («Τι ψάχνεις;», μπάρα στη μέση, 8 κατηγορίες).
      Μόλις γράψεις, διαλέξεις κατηγορία ή πατήσεις «Όλα τα καταστήματα», η μπάρα ανεβαίνει πάνω και από κάτω βγαίνουν τα καταστήματα. */
@@ -216,7 +217,7 @@ export default function Home() {
                 {list.length} {list.length === 1 ? 'κατάστημα' : 'καταστήματα'}{q.trim() ? ` για «${q.trim()}»` : cat ? ` · ${catLabel(cat)}` : ''}
               </Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 12, rowGap: 18 }}>
-                {list.map((b) => <MiniCard key={b.id} b={b} width="47.5%" onPress={() => router.push(`/store/${b.id}`)} />)}
+                {list.map((b) => <MiniCard key={b.id} b={b} width="47.5%" onPress={() => router.push(storeHref(b) as any)} />)}
               </View>
             </View>
           )}

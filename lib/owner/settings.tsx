@@ -126,7 +126,25 @@ function Details({ st }: { st: St }) {
         <Input label="Διεύθυνση" icon="pin" placeholder="Οδός και αριθμός" value={b.address ?? ''} onChangeText={(v) => setB({ ...b, address: v })} />
         <Input label="Περιγραφή" placeholder="Τι κάνετε, τι να περιμένει ο πελάτης…" multiline value={b.description ?? ''} onChangeText={(v) => setB({ ...b, description: v })} />
       </Card>
+      {!!b.id && b.owner_id === uid && <RemoveRow b={b} />}
     </View>
+  );
+}
+
+/* Στο τέλος των Στοιχείων: αίτηση αφαίρεσης της επιχείρησης (app/remove-business.tsx, migration 020). Μόνο ο ιδιοκτήτης. */
+function RemoveRow({ b }: { b: any }) {
+  const router = useRouter();
+  const pending = !!b.removal_requested_at;
+  return (
+    <Pressable onPress={() => router.push(`/remove-business?id=${b.id}` as any)} accessibilityRole="button"
+      style={({ pressed, hovered }: any) => [s.row, { gap: 12, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 18, borderWidth: 1,
+        borderColor: alpha(C.bad, 0.25), backgroundColor: pressed || hovered ? alpha(C.bad, 0.08) : alpha(C.bad, 0.04) }]}>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={{ color: C.bad, fontWeight: '800', fontSize: 15 }}>{pending ? 'Η αίτηση αφαίρεσης είναι σε εξέλιξη' : 'Αφαίρεση επιχείρησης από το SpotOn'}</Text>
+        <Text style={{ color: C.mute, fontSize: 13 }}>{pending ? 'Πάτα για να δεις πότε αφαιρείται ή να την ακυρώσεις.' : 'Στείλε αίτηση· έχεις 7 μέρες να αλλάξεις γνώμη.'}</Text>
+      </View>
+      <Icon name="chevron" size={16} color={C.bad} />
+    </Pressable>
   );
 }
 

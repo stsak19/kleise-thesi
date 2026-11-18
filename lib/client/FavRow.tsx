@@ -1,3 +1,4 @@
+import { storeHref } from '../store/key';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text } from '../Txt';
@@ -17,7 +18,7 @@ export function FavRow({ pad = 16 }: { pad?: number }) {
       <Text style={[s.h, { paddingHorizontal: pad }]}>Τα αγαπημένα σου</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingHorizontal: pad }}>
         {favs.map((b) => (
-          <Pressable key={b.id} onPress={() => router.push(`/store/${b.id}`)} accessibilityLabel={b.name}
+          <Pressable key={b.id} onPress={() => router.push(storeHref(b) as any)} accessibilityLabel={b.name}
             style={({ pressed, hovered }: any) => ({ width: 74, alignItems: 'center', gap: 6, opacity: pressed || hovered ? 0.75 : 1 })}>
             <View style={{ width: 70, height: 70, borderRadius: 35, borderWidth: 2, borderColor: C.text, padding: 3 }}>
               <View style={{ flex: 1, borderRadius: 35, overflow: 'hidden' }}>

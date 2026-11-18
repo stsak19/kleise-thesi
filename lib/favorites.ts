@@ -4,7 +4,7 @@ import { useAuth } from './auth';
 
 /* Αγαπημένα καταστήματα του πελάτη (πίνακας favorites, migration 012).
    Κοινή κατάσταση για όλη την εφαρμογή: η καρδιά στο κατάστημα και η σειρά στην αρχική βλέπουν τα ίδια. */
-export type FavBiz = { id: string; name: string; category: string; city: string; logo_url?: string | null; cover_url?: string | null;
+export type FavBiz = { slug?: string | null; id: string; name: string; category: string; city: string; logo_url?: string | null; cover_url?: string | null;
   brand_color?: string | null; theme?: string | null; layout?: string | null };
 
 let uid = '', list: FavBiz[] = [];
@@ -13,7 +13,7 @@ const emit = () => subs.forEach((f) => f(list));
 
 async function load(id: string) {
   const { data, error } = await sb.from('favorites')
-    .select('created_at, businesses(id, name, category, city, logo_url, cover_url, brand_color, theme, layout, is_published)')
+    .select('created_at, businesses(*)')
     .order('created_at', { ascending: false });
   if (id !== uid || error) return; // άλλαξε λογαριασμός στο μεταξύ, ή δεν έχει τρέξει ακόμα το 012
   list = ((data ?? []) as any[]).map((r) => r.businesses).filter((b) => b && b.is_published !== false);

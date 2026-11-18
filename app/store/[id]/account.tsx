@@ -24,8 +24,8 @@ export default function StoreAccount() {
         </View>
       </View>
       <Group>
-        <Row icon="user" title="Τα στοιχεία μου" sub="Όνομα, τηλέφωνο" onPress={() => router.push(`/store/${S.id}/me`)} />
-        <Row icon="gear" title="Ρυθμίσεις" sub="Εμφάνιση, ειδοποιήσεις, κωδικός" onPress={() => router.push(`/store/${S.id}/settings`)} />
+        <Row icon="user" title="Τα στοιχεία μου" sub="Όνομα, τηλέφωνο" onPress={() => router.push(`/store/${S.path}/me`)} />
+        <Row icon="gear" title="Ρυθμίσεις" sub="Εμφάνιση, ειδοποιήσεις, κωδικός" onPress={() => router.push(`/store/${S.path}/settings`)} />
         <Row icon="back" title="Επιστροφή στο SpotOn" last onPress={() => router.replace('/')} />
       </Group>
     </ScrollView>
