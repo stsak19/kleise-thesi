@@ -8,6 +8,7 @@ import { useAuth } from '../../../lib/auth';
 import { fetchMyBiz } from '../../../lib/owner/active';
 import { Btn, C, Card, Group, Icon, Section, T, alpha, catLabel, onColor, s } from '../../../lib/ui';
 import { BizHeader } from '../../../lib/BizHeader';
+import { ColorSample } from '../../../lib/owner/steps';
 import { LAYOUTS, THEMES, presetFor, styleOf, themeOf } from '../../../lib/presets';
 
 /* Ήπιοι, «σοβαροί» τόνοι — χωρίς φωσφοριζέ. */
@@ -118,6 +119,7 @@ export default function Style() {
             );
           })}
         </View>
+        <ColorSample color={st.color} category={b.category} />
         {!!b.brand_color && <Btn kind="ghost" size="sm" title={`Χρώμα του θέματος (${themeOf(b.theme)?.name ?? st.theme.name})`} onPress={() => setB({ ...b, brand_color: null })} />}
       </Card>
 

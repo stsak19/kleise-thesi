@@ -4,6 +4,8 @@ import { C, CATEGORIES, Card, Icon, Input, Toggle, alpha, onColor, s, shadow } f
 import { screenFor } from '../bizscreen';
 import { TimeBtn } from '../TimePick';
 import { DAYNAME, Hours, Svc, WEEK, newKey, nextSpan } from './save';
+import { readable } from '../theme';
+import { svcKind } from './svcKind';
 
 /* Τα κομμάτια του οδηγού «Νέα επιχείρηση»: ένα για κάθε βήμα. */
 
@@ -195,6 +197,36 @@ export function HoursEditor({ hours, setHours }: { hours: Hours; setHours: (h: H
           </View>
         );
       })}
+    </View>
+  );
+}
+
+/* Ζωντανό δείγμα κάτω από τα χρώματα: δείχνει στον καταστηματάρχη τι αλλάζει το χρώμα σελίδας
+   (τίτλοι, ώρες, τιμές, κουμπιά κράτησης — εκδοχή Γ, βλ. app/store/[id]). */
+export function ColorSample({ color, category }: { color: string; category?: string | null }) {
+  const ink = readable(color);
+  const k = svcKind(category ?? 'other');
+  const cls = k.mode === 'class';
+  return (
+    <View style={{ gap: 10 }}>
+      <Text style={{ color: C.mute, fontSize: 13.5, lineHeight: 19 }}>
+        Μπαίνει στους <Text style={{ color: ink, fontWeight: '800' }}>τίτλους</Text>, στις <Text style={{ color: ink, fontWeight: '800' }}>ώρες</Text>, στις{' '}
+        <Text style={{ color: ink, fontWeight: '800' }}>τιμές</Text> και στα <Text style={{ color: ink, fontWeight: '800' }}>κουμπιά κράτησης</Text> της σελίδας σου. Δες το δείγμα:
+      </Text>
+      <View style={{ borderRadius: 18, borderWidth: 1, borderColor: C.line, backgroundColor: C.bg, padding: 14, gap: 10 }}>
+        <Text style={{ color: ink, fontWeight: '800', fontSize: 16 }}>{cls ? 'Μαθήματα' : 'Υπηρεσίες και τιμές'}</Text>
+        <View style={[s.row, { gap: 12, padding: 12, borderRadius: 14, backgroundColor: C.soft }]}>
+          <Text style={{ color: ink, fontWeight: '700', fontSize: 20, letterSpacing: -0.6 }}>18:00</Text>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={{ color: C.text, fontWeight: '800', fontSize: 14 }} numberOfLines={1}>{cls ? 'Ομαδικό μάθημα' : 'Η υπηρεσία σου'}</Text>
+            <Text style={{ color: C.mute, fontSize: 12 }}>60′</Text>
+          </View>
+          <Text style={{ color: ink, fontWeight: '800', fontSize: 14 }}>15 €</Text>
+        </View>
+        <View style={{ height: 46, borderRadius: 23, backgroundColor: color, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: onColor(color), fontWeight: '800', fontSize: 15 }}>{cls ? 'Κλείσε θέση' : 'Κλείσε το ραντεβού'}</Text>
+        </View>
+      </View>
     </View>
   );
 }
