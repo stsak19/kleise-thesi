@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpotOn</title>
+<script>
+  // Το GitHub Pages δείχνει αυτό το αρχείο για κάθε διεύθυνση που δεν υπάρχει (π.χ. /kleise-thesi/store/<id>).
+  // Φορτώνει την εφαρμογή στην ίδια διεύθυνση: την προεπισκόπηση ενός PR αν η διεύθυνση είναι μέσα στο
+  // /kleise-thesi/pr-preview/pr-<αριθμός>/, αλλιώς την κανονική. Αν η προεπισκόπηση έχει σβηστεί, πάει στην αρχική.
+  (function () {
+    var m = location.pathname.match(/^(\/kleise-thesi\/pr-preview\/pr-\d+)(\/|$)/);
+    var base = m ? m[1] : '/kleise-thesi';
+    fetch(base + '/index.html', { cache: 'no-cache' })
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.text(); })
+      .then(function (html) { document.open(); document.write(html); document.close(); })
+      .catch(function () { location.replace('/kleise-thesi/'); });
+  })();
+</script>
+</head>
+<body></body>
+</html>
