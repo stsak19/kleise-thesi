@@ -206,7 +206,7 @@ function useStoreData(id: string, path: string) {
   const unwait = (sl: Slot) => leave({ service_id: sl.sv.id, date, time: sl.time });
 
   return {
-    id, path, biz, st, layout, services, schedServices, packOnly, showAll, hasPack, preview, hours, days, date, setDate, service, setService, slots, note, busy,
+    id, path: (biz?.slug as string | undefined) || path, biz, st, layout, services, schedServices, packOnly, showAll, hasPack, preview, hours, days, date, setDate, service, setService, slots, note, busy,
     packages, pendingPack, choosePack, cancelPack, payOnline,
     upcoming, past, waits, pack, packInfo: packCard, membership, messages, state, waitAt, book, wait, cancel, unwait, cancelBooking, leave, reload,
   };

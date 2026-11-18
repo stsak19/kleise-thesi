@@ -1,8 +1,9 @@
 -- 019: Σύνδεσμος καταστήματος με το όνομά του (2026-11-18).
 -- Αντί για /store/f692c9d7-ab41-… ο σύνδεσμος γίνεται /store/barber-nikos (λατινικά, πεζά, με παύλες).
--- Το slug φτιάχνεται μόνο του από το όνομα όταν δημιουργείται το κατάστημα και ΔΕΝ αλλάζει όταν αλλάζει το όνομα,
--- ώστε να μη σπάνε οι σύνδεσμοι που έχουν ήδη μοιραστεί. Αν υπάρχει ήδη, παίρνει -2, -3…
--- Οι παλιοί σύνδεσμοι με τον κωδικό (uuid) συνεχίζουν να δουλεύουν.
+-- Το slug φτιάχνεται μόνο του από το όνομα και ΑΛΛΑΖΕΙ όταν αλλάζει το όνομα (επιλογή χρήστη 2026-11-18).
+-- Τα παλιά slugs κρατιούνται στο business_old_slugs, οπότε ένας παλιός σύνδεσμος ανοίγει το κατάστημα
+-- και η διεύθυνση γίνεται αμέσως η νέα. Αν το slug υπάρχει ήδη, παίρνει -2, -3…
+-- Οι σύνδεσμοι με τον κωδικό (uuid) συνεχίζουν να δουλεύουν.
 -- Τρέχει μετά τα 001–018 και μπορεί να ξανατρέξει.
 
 alter table businesses add column if not exists slug text;
@@ -12,6 +13,15 @@ do $$ begin
       and slug !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'));
 exception when duplicate_object then null; end $$;
 create unique index if not exists businesses_slug_key on businesses (slug);
+
+-- Παλιά slugs (μετά από αλλαγή ονόματος): οδηγούν στο κατάστημα με το νέο του όνομα.
+-- Καμία πολιτική: διαβάζεται μόνο από την store_by_slug().
+create table if not exists business_old_slugs (
+  slug text primary key,
+  business_id uuid not null references businesses on delete cascade,
+  created_at timestamptz not null default now()
+);
+alter table business_old_slugs enable row level security;
 
 -- Ελληνικά → λατινικά για διευθύνσεις: «Κουρείο Νίκος» → kourio-nikos, «Ψυχή & Σώμα» → psychi-soma.
 create or replace function slugify_el(p text) returns text language plpgsql immutable as $$
@@ -34,26 +44,48 @@ create or replace function free_slug(p_base text, p_self uuid) returns text
 language plpgsql stable security definer set search_path=public as $$
 declare cand text := p_base; n int := 1;
 begin
-  while exists (select 1 from businesses where slug = cand and id is distinct from p_self) loop
+  -- Ούτε παλιό slug άλλου καταστήματος: οι παλιοί του σύνδεσμοι να οδηγούν πάντα σε εκείνο.
+  while exists (select 1 from businesses where slug = cand and id is distinct from p_self)
+     or exists (select 1 from business_old_slugs where slug = cand and business_id is distinct from p_self) loop
     n := n + 1; cand := p_base || '-' || n;
   end loop;
   return cand;
 end $$;
 revoke all on function free_slug(text, uuid) from public, anon, authenticated;
 
--- Νέο κατάστημα (ή χωρίς slug): φτιάχνεται από το όνομα. Αν κάποιος γράψει δικό του slug, καθαρίζεται και γίνεται μοναδικό.
+-- Νέο κατάστημα, χωρίς slug ή με νέο όνομα: το slug βγαίνει από το όνομα. Αν κάποιος γράψει δικό του slug, καθαρίζεται
+-- και γίνεται μοναδικό. Το προηγούμενο slug μπαίνει στα παλιά, ώστε οι σύνδεσμοι που έχουν μοιραστεί να μη σπάνε.
 create or replace function business_slug() returns trigger language plpgsql security definer set search_path=public as $$
 begin
-  if new.slug is null or btrim(new.slug) = '' then
-    if tg_op = 'UPDATE' and old.slug is not null then new.slug := old.slug;
-    else new.slug := free_slug(slugify_el(new.name), new.id); end if;
-  elsif tg_op = 'INSERT' or new.slug is distinct from old.slug then
+  if tg_op = 'INSERT' then
+    new.slug := free_slug(slugify_el(coalesce(nullif(btrim(new.slug), ''), new.name)), new.id);
+  elsif new.slug is distinct from old.slug and nullif(btrim(new.slug), '') is not null then
     new.slug := free_slug(slugify_el(new.slug), new.id);
+  elsif old.slug is null or new.name is distinct from old.name then
+    -- Ίδιο όνομα σε λατινικά (π.χ. μόνο τόνος ή κεφαλαία) = ίδιο slug, δεν αλλάζει.
+    if old.slug is null or slugify_el(new.name) is distinct from regexp_replace(old.slug, '-[0-9]+$', '') then
+      new.slug := free_slug(slugify_el(new.name), new.id);
+    else new.slug := old.slug; end if;
+  else
+    new.slug := old.slug;
   end if;
+  if tg_op = 'UPDATE' and old.slug is not null and new.slug is distinct from old.slug then
+    insert into business_old_slugs(slug, business_id) values (old.slug, new.id)
+      on conflict (slug) do update set business_id = excluded.business_id, created_at = now();
+  end if;
+  delete from business_old_slugs where slug = new.slug;  -- το slug ανήκει πια σε αυτό το κατάστημα
   return new;
 end $$;
 drop trigger if exists businesses_slug on businesses;
 create trigger businesses_slug before insert or update on businesses for each row execute function business_slug();
+
+-- Από τη διεύθυνση στο κατάστημα: το τωρινό slug, αλλιώς ένα παλιό. Επιστρέφει { id, slug } με το τωρινό slug.
+create or replace function store_by_slug(p_slug text) returns jsonb
+language sql stable security definer set search_path=public as $$
+  select coalesce(
+    (select jsonb_build_object('id', b.id, 'slug', b.slug) from businesses b where b.slug = lower(p_slug)),
+    (select jsonb_build_object('id', b.id, 'slug', b.slug) from business_old_slugs o join businesses b on b.id = o.business_id where o.slug = lower(p_slug))) $$;
+grant execute on function store_by_slug(text) to anon, authenticated;
 
 -- Υπάρχοντα καταστήματα: με τη σειρά που φτιάχτηκαν (το παλαιότερο κρατά το σκέτο όνομα).
 do $$ declare r record; begin

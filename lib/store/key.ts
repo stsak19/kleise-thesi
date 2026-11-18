@@ -1,7 +1,7 @@
-import { sb } from '../supabase';
+import { rpc } from '../supabase';
 
-/* Σύνδεσμος καταστήματος: /store/<slug> (από το όνομα, migration 019) ή, για παλιούς συνδέσμους, /store/<uuid>.
-   Το slug δεν αλλάζει όταν αλλάζει το όνομα, οπότε οι σύνδεσμοι που έχουν μοιραστεί δεν σπάνε. */
+/* Σύνδεσμος καταστήματος: /store/<slug> (από το όνομα, migration 019) ή /store/<uuid>.
+   Το slug αλλάζει μαζί με το όνομα· ένα παλιό slug (ή ο κωδικός) ανοίγει το κατάστημα και η διεύθυνση γίνεται η νέα (app/store/[id]/_layout.tsx). */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (k: string) => UUID.test(k);
 
@@ -17,8 +17,10 @@ export const knownId = (k: string) => (isUuid(k) ? k : known.get(k));
 export async function resolveStore(k: string): Promise<string | null> {
   const hit = knownId(k);
   if (hit) return hit;
-  const { data, error } = await sb.from('businesses').select('id, slug').eq('slug', k).maybeSingle();
-  if (error || !data) return null;
-  rememberSlug(data);
-  return data.id;
+  // Τωρινό ή παλιό slug (μετά από αλλαγή ονόματος).
+  const r = await rpc<{ id: string; slug: string } | null>('store_by_slug', { p_slug: k }).catch(() => null);
+  if (!r?.id) return null;
+  known.set(k, r.id); rememberSlug(r);
+  return r.id;
 }
+

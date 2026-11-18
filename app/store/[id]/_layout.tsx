@@ -4,7 +4,7 @@ import { Stack, useLocalSearchParams, useRouter, type ErrorBoundaryProps } from 
 import { Text } from '../../../lib/Txt';
 import { C } from '../../../lib/ui';
 import { stackOptions } from '../../../lib/stack';
-import { StoreProvider } from '../../../lib/store/data';
+import { StoreProvider, useStore } from '../../../lib/store/data';
 import { BookProvider } from '../../../lib/store/book';
 import { knownId, resolveStore } from '../../../lib/store/key';
 
@@ -29,6 +29,7 @@ export default function StoreStack() {
   if (id === null) return <NotFound />;
   return (
     <StoreProvider id={id} path={key}>
+      <CurrentUrl at={key} />
       <BookProvider>
       <Stack screenOptions={stackOptions()}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -39,6 +40,16 @@ export default function StoreStack() {
       </BookProvider>
     </StoreProvider>
   );
+}
+
+/* Αν η διεύθυνση γράφει τον κωδικό ή ένα παλιό όνομα (το κατάστημα μετονομάστηκε), γίνεται η τωρινή: /store/<slug>.
+   Το κατάστημα δεν ξαναφορτώνει, γιατί το νέο slug είναι ήδη γνωστό (lib/store/key.ts). */
+function CurrentUrl({ at }: { at: string }) {
+  const S = useStore();
+  const router = useRouter();
+  const slug: string | undefined = S.biz?.slug;
+  useEffect(() => { if (slug && slug !== at) router.setParams({ id: slug }); }, [slug, at]);
+  return null;
 }
 
 /* Λάθος ή παλιός σύνδεσμος (το κατάστημα δεν υπάρχει πια). */
