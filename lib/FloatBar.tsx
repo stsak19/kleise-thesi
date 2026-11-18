@@ -15,7 +15,7 @@ export type TabItems = Record<string, { icon: IconName; label: string }>;
 
 /* labels: η ενεργή καρτέλα δείχνει και τη λέξη της (π.χ. μέσα σε κατάστημα). Τότε η μπάρα έχει δυναμικό πλάτος:
    η ενεργή καρτέλα «ανοίγει» με ελατήριο, οι άλλες κλείνουν, και η σταγόνα ακολουθεί σε θέση και μέγεθος. */
-const ICON = 40, PAD = 6;
+const ICON = 40, PAD = 6, APART = 40; // APART = μέγεθος του ξεχωριστού κύκλου
 /* extra: ένα κουμπί-ενέργεια στο τέλος της μπάρας, μετά από λεπτή γραμμή (π.χ. «Επιχείρηση» / «Πελάτης»).
    Δεν είναι καρτέλα: δεν παίρνει τη σταγόνα, απλώς κάνει κάτι όταν πατηθεί. */
 export type BarExtra = { icon: IconName; label: string; onPress: () => void; apart?: boolean };
@@ -33,8 +33,10 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
   // Αν η λέξη της ενεργής καρτέλας δεν χωράει (στενό κινητό + ξεχωριστός κύκλος), μένουν μόνο εικονίδια.
   const screenW = useWindowDimensions().width;
   const labelW = textW[shown[idx]?.name] ? textW[shown[idx].name] + 14 : 0;
-  const need = 2 * PAD + shown.length * ICON + (shown.length - 1) * gap + labelW + (extra ? (extra.apart ? 62 : ICON + gap + 1) : 0) + 32;
-  const lab = !!labels && need <= screenW;
+  // Η μπάρα μένει πάντα στη μέση· ο ξεχωριστός κύκλος (apart) «κρέμεται» δεξιά της χωρίς να τη μετακινεί,
+  // άρα η μισή μπάρα + κύκλος πρέπει να χωράνε στο μισό πλάτος της οθόνης.
+  const barW = 2 * PAD + shown.length * ICON + (shown.length - 1) * gap + labelW + (extra && !extra.apart ? ICON + gap + 1 : 0);
+  const lab = !!labels && (extra?.apart ? barW / 2 + APART + 8 + 10 <= screenW / 2 : barW + 32 <= screenW);
   const widthOf = (i: number) => (lab && i === idx && textW[shown[i]?.name] ? ICON + textW[shown[i].name] + 14 : ICON);
   const leftOf = (i: number) => { let x = 0; for (let j = 0; j < i; j++) x += widthOf(j) + gap; return x; };
   const drv = !labels; // με λέξεις αλλάζουν πλάτη/θέσεις, που δεν τα κινεί ο native driver
@@ -79,7 +81,8 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
           ))}
         </View>
       )}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      {/* Η μπάρα στη μέση· ο ξεχωριστός κύκλος κρέμεται δεξιά της (left: 100%) χωρίς να αλλάζει το κέντρο */}
+      <View>
       <View ref={bar} {...pan.panHandlers} onLayout={() => bar.current?.measureInWindow((bx: number) => { barX.current = bx; })}>
       <BlurView intensity={light ? 40 : 30} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
         style={{ height: 52, borderRadius: 26, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap, paddingHorizontal: PAD,
@@ -115,10 +118,11 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
       </BlurView>
       </View>
       {extra?.apart && (
-        <Pressable onPress={extra.onPress} accessibilityRole="button" accessibilityLabel={extra.label} hitSlop={4}
-          style={({ pressed }) => ({ width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', backgroundColor: C.text,
-            transform: [{ scale: pressed ? 0.94 : 1 }], boxShadow: `0px 10px 26px ${alpha(C.shade, light ? 0.25 : 0.5)}` })}>
-          <Icon name={extra.icon} size={20} color={C.bg} />
+        <Pressable onPress={extra.onPress} accessibilityRole="button" accessibilityLabel={extra.label} hitSlop={6}
+          style={({ pressed }) => ({ position: 'absolute', left: '100%', top: (52 - APART) / 2, marginLeft: 8, width: APART, height: APART, borderRadius: APART / 2,
+            alignItems: 'center', justifyContent: 'center', backgroundColor: C.text,
+            transform: [{ scale: pressed ? 0.92 : 1 }], boxShadow: `0px 8px 20px ${alpha(C.shade, light ? 0.22 : 0.5)}` })}>
+          <Icon name={extra.icon} size={17} color={C.bg} />
         </Pressable>
       )}
       </View>
