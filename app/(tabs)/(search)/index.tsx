@@ -16,7 +16,8 @@ import { useWide } from '../../../lib/wide';
 import { useHomeQuery } from '../../../lib/client/desk';
 import { FavRow } from '../../../lib/client/FavRow';
 import { searchFilters } from '../../../lib/client/search';
-type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null };
+import { Rating, fmtAvg } from '../../../lib/reviews';
+type Biz = { theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null; rating_avg?: number | string | null; rating_count?: number | null };
 
 
 /* Κάρτα καταστήματος: εξώφυλλο (ή σκούρο πλαίσιο με λάμψη στο χρώμα του), ετικέτα κατηγορίας
@@ -30,7 +31,10 @@ function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
         <Photo uri={b.cover_url} color={brand} />
       </View>
       <View style={{ paddingHorizontal: 14, paddingVertical: 12, gap: 2 }}>
-        <Text style={{ color: C.text, fontWeight: '800', fontSize: 16, letterSpacing: -0.2 }} numberOfLines={1}>{b.name}</Text>
+        <View style={[s.row, { gap: 8 }]}>
+          <Text style={{ color: C.text, fontWeight: '800', fontSize: 16, letterSpacing: -0.2, flex: 1 }} numberOfLines={1}>{b.name}</Text>
+          <Rating avg={b.rating_avg} count={b.rating_count} />
+        </View>
         <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{catEmoji(b.category)} {catLabel(b.category)} · {b.city}</Text>
       </View>
     </Pressable>
@@ -54,7 +58,7 @@ function MiniCard({ b, onPress, width }: { b: Biz; onPress: () => void; width?: 
       </View>
       <View style={{ paddingTop: 6, paddingHorizontal: 2, gap: 1 }}>
         <Text style={{ color: C.text, fontWeight: '800', fontSize: 15, letterSpacing: -0.2 }} numberOfLines={1}>{b.name}</Text>
-        <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{catLabel(b.category)}</Text>
+        <Text style={{ color: C.mute, fontSize: 13 }} numberOfLines={1}>{catLabel(b.category)}{b.rating_count ? <Text style={{ color: C.text, fontWeight: '700' }}>{`  ★ ${fmtAvg(b.rating_avg)}`}</Text> : null}</Text>
       </View>
     </Pressable>
   );

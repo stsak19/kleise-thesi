@@ -13,6 +13,7 @@ import { HistoryBox } from '../../../../lib/bookings/HistoryBox';
 import { useStore } from '../../../../lib/store/data';
 import { StoreTop } from '../../../../lib/store/parts';
 import { StorePacks } from '../../../../lib/store/Packs';
+import { RateCard, useMyReviews } from '../../../../lib/reviews';
 
 type Tab = 'b' | 'p';
 
@@ -29,6 +30,8 @@ export default function StoreBookings() {
   const n = S.upcoming.length + S.waits.length;
   const name = S.biz?.name ?? '';
   const signedIn = !!useAuth().session;
+  const R = useMyReviews(); // βαθμολογίες καταστημάτων μετά την επίσκεψη
+  const past = S.past.map((b) => ({ ...b, business: b.business ?? name }));
 
   const Empty = ({ text }: { text: string }) => (
     <View style={{ paddingHorizontal: 24, paddingVertical: 36, alignItems: 'center', gap: 6 }}>
@@ -54,11 +57,12 @@ export default function StoreBookings() {
         ]} />
 
         {tab === 'b' ? <>
+          <RateCard R={R} items={past} store={false} />
           {n === 0 && <Empty text="Δεν έχεις κλείσει ώρα εδώ ακόμα. Πάτα το κουμπί στη μέση της μπάρας." />}
           {S.upcoming.map((b) => <BannerCard key={b.id} b={{ ...b, business: b.business ?? name } as any} biz={S.biz} color={color} onCancel={() => S.cancelBooking(b)} />)}
           {S.waits.map((w) => <WaitRow key={w.id} w={w} onLeave={() => S.leave(w)} />)}
           <HistoryBox title="Ιστορικό κρατήσεων" sub={S.past.length ? `${S.past.length} ${S.past.length === 1 ? 'παλιά κράτηση' : 'παλιές κρατήσεις'}` : 'Καμία παλιά κράτηση ακόμα'}>
-            <BookingLines D={{ past: S.past.map((b) => ({ ...b, business: b.business ?? name })) } as any} />
+            <BookingLines D={{ past } as any} R={R} />
           </HistoryBox>
           <AllLink text="Κρατήσεις σε όλα τα καταστήματα" onPress={() => router.navigate('/bookings')} />
         </> : <>
@@ -69,6 +73,7 @@ export default function StoreBookings() {
         </>}
         </>}
       </ScrollView>
+      {R.sheet}
     </View>
   );
 }

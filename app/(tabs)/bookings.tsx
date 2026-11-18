@@ -11,6 +11,7 @@ import { BookingLines, PackLines } from '../../lib/bookings/HistoryLines';
 import { PackList, packEnded } from '../../lib/bookings/PackList';
 import Upcoming from '../../lib/bookings/Upcoming';
 import { deskCol, useWide } from '../../lib/wide';
+import { RateCard, useMyReviews } from '../../lib/reviews';
 
 type Main = 'b' | 'p';
 let lastMain: Main = 'b';
@@ -19,6 +20,7 @@ let lastMain: Main = 'b';
    Κάτω από τη λίστα της καθεμιάς, το δικό της Ιστορικό σε πλαίσιο που ανοίγει (πακέτα: έληξαν, τελείωσαν, ανανεώθηκαν). */
 export default function Bookings() {
   const D = useMyBookings();
+  const R = useMyReviews(); // βαθμολογίες καταστημάτων μετά την επίσκεψη
   const [main, setMainS] = useState(lastMain);
   const setMain = (m: Main) => { lastMain = m; setMainS(m); };
   // /bookings?tab=p (π.χ. από το κατάστημα «Πακέτα σε όλα τα καταστήματα») ανοίγει κατευθείαν τα Πακέτα.
@@ -48,12 +50,14 @@ export default function Bookings() {
           <Card><Empty emoji="📅" title="Καμία επερχόμενη κράτηση" text="Βρες ένα κατάστημα και κλείσε θέση σε λίγα δευτερόλεπτα."
             action="Βρες κατάστημα" onAction={D.find} /></Card>
         )}
+        <RateCard R={R} items={D.past} />
         {n > 0 && <Upcoming D={D} />}
         <Extras D={D} />
         <HistoryBox title="Ιστορικό κρατήσεων" sub={D.past.length ? `${D.past.length} ${D.past.length === 1 ? 'παλιά κράτηση' : 'παλιές κρατήσεις'}` : 'Καμία παλιά κράτηση ακόμα'}>
-          <BookingLines D={D} />
+          <BookingLines D={D} R={R} />
         </HistoryBox>
       </>}
+      {R.sheet}
     </ScrollView>
   );
 }

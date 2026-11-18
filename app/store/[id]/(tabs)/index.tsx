@@ -13,6 +13,7 @@ import { screenFor } from '../../../../lib/bizscreen';
 import { useWide } from '../../../../lib/wide';
 import { useState } from 'react';
 import { DragSheet, InfoButton } from '../../../../lib/DragSheet';
+import { Rating, Reviews } from '../../../../lib/reviews';
 
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
 const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
@@ -76,6 +77,8 @@ export default function StoreHome() {
           {!!scr.kicker && <Text style={{ color: ink, fontWeight: '800' }}>{scr.kicker}</Text>}
           {[scr.kicker ? '' : null, [biz.address, biz.city].filter(Boolean).join(', ')].filter((x) => x !== null && (x || scr.kicker)).join(' · ')}
         </Text>
+        {/* Μέσος όρος βαθμολογιών (016_reviews.sql)· χωρίς κριτικές δεν φαίνεται */}
+        {!!biz.rating_count && <View style={{ marginTop: 4 }}><Rating avg={biz.rating_avg} count={biz.rating_count} size={13.5} /></View>}
       </View>
       <Credits />
     </View>
@@ -159,6 +162,9 @@ export default function StoreHome() {
     </View>
   );
 
+  // Κριτικές πελατών: στη σελίδα, κάτω από υπηρεσίες και πακέτα (κινητό και υπολογιστής).
+  const reviews = <Reviews businessId={S.id} head={(x) => <Head c={ink} t={x} />} />;
+
   const news = S.messages.length > 0 && (
     <View style={{ gap: 10 }}>
       <Head c={ink} t="Ανακοινώσεις" />
@@ -183,6 +189,7 @@ export default function StoreHome() {
             {services}
             <StorePacks />
             {team}
+            {reviews}
             {news}
           </View>
           <View style={{ width: 340, gap: 14, marginTop: 22 }}>
@@ -225,6 +232,7 @@ export default function StoreHome() {
           {classes && !S.packages.length ? (
             <Text style={{ color: C.mute, fontSize: 14, marginTop: 14, lineHeight: 20 }}>Το κατάστημα δεν έχει βάλει ακόμα πακέτα.</Text>
           ) : <StorePacks title={classes ? 'Διάλεξε πακέτο' : 'Πακέτα'} />}
+          {reviews}
         </View>
       </ScrollView>
       {info && (
