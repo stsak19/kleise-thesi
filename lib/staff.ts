@@ -10,7 +10,7 @@ export type WorkItem = { kind: 'one' | 'class'; id?: string; date: string; time:
 export type Work = { business_id: string; business: string; category: string; brand_color: string | null; logo_url: string | null;
   staff_id: string; staff: string; access: string; items: WorkItem[] };
 
-/* list: null = φορτώνει· nodb = η βάση δεν έχει ακόμα το 016. */
+/* list: null = φορτώνει· nodb = η βάση δεν έχει ακόμα το 017. */
 export function useMyWork() {
   const signedIn = !!useAuth().session;
   const [list, setList] = useState<Work[] | null>(null);
