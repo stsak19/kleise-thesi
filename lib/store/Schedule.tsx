@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../Txt';
 import { Btn, C, DAYS, MONTHS, alpha, shadow } from '../ui';
 import { useStore, type Slot } from './data';
+import { Seats } from './Seats';
 import { useBook } from './book';
 import { screenFor } from '../bizscreen';
 import { useWide } from '../wide';
@@ -25,6 +26,7 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
   const Row = ({ sl, last }: { sl: Slot; last: boolean }) => {
     const st = S.state(sl), dis = S.busy === sl.sv.id + sl.time, w = S.waitAt(sl.sv, sl.time);
     const many = sl.capacity > 1;
+    const seats = many && !!sl.sv.show_seats; // κουτάκια με τις κρατημένες θέσεις, αν το θέλει ο ιδιοκτήτης
     const tag = st === 'mine' ? (
       <View style={{ alignSelf: 'flex-start', paddingVertical: 3, paddingHorizontal: 8, borderRadius: 7, backgroundColor: C.accent }}>
         <Text style={{ color: C.onAccent, fontSize: 11, fontWeight: '700' }}>✓ Έχεις κράτηση</Text>
@@ -33,7 +35,7 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
       <View style={{ alignSelf: 'flex-start', paddingVertical: 3, paddingHorizontal: 8, borderRadius: 7, borderWidth: 1, borderStyle: 'dashed', borderColor: C.mute }}>
         <Text style={{ color: C.text, fontSize: 11, fontWeight: '700' }}>Σε αναμονή{w?.position ? ` · ${w.position}ος` : ''}</Text>
       </View>
-    ) : (
+    ) : seats ? null : (
       <Text style={{ color: C.mute, fontSize: 12 }}>
         {st === 'full' ? 'Δεν υπάρχουν διαθέσιμες θέσεις' : many ? `${sl.free} ${sl.free === 1 ? 'θέση ελεύθερη' : 'θέσεις ελεύθερες'}` : 'Ελεύθερο'}
       </Text>
@@ -46,6 +48,7 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
             {(multi || S.layout === 'classes') && <Text style={{ flex: 1, color: C.mute, fontSize: 13 }} numberOfLines={1}>{sl.sv.name}</Text>}
           </View>
           {tag}
+          {seats && <Seats taken={sl.taken} capacity={sl.capacity} />}
         </View>
         {st === 'mine' ? <Btn size="sm" kind="danger" title="Ακύρωση" disabled={dis} onPress={() => S.cancel(sl)} />
           : st === 'wait' ? <Btn size="sm" kind="ghost" title="Απόσυρση" disabled={dis} onPress={() => S.unwait(sl)} />

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { Text } from '../Txt';
-import { Btn, C, Icon, Input, alpha, s } from '../ui';
+import { Btn, C, Icon, Input, Toggle, alpha, s } from '../ui';
+import { Seats } from '../store/Seats';
 import { TimeBtn } from '../TimePick';
 import { Choice } from './steps';
 import { type Hours, type Svc } from './save';
@@ -216,6 +217,19 @@ export function ServiceFields({ svc, onChange, category, groups = [], staff = []
             <Text style={{ color: C.text, fontWeight: '800', fontSize: 20, minWidth: 34, textAlign: 'center' }}>{cap}</Text>
             <Step label="+" onPress={() => onChange({ capacity: String(Math.min(200, cap + 1)) })} />
           </View>
+        </View>
+      )}
+
+      {cap > 1 && (
+        <View style={[s.row, { gap: 14, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: C.line }]}>
+          <View style={{ flex: 1, gap: 8 }}>
+            <View style={{ gap: 2 }}>
+              <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>Να φαίνονται οι κρατήσεις</Text>
+              <Text style={{ color: C.mute, fontSize: 13, lineHeight: 18 }}>{svc.seats ? 'Οι πελάτες βλέπουν πόσες θέσεις γέμισαν.' : 'Οι πελάτες βλέπουν μόνο «Κράτηση», χωρίς αριθμούς.'}</Text>
+            </View>
+            {!!svc.seats && <Seats taken={Math.round(cap * 0.6)} capacity={cap} size={cap > 24 ? 8 : 11} />}
+          </View>
+          <Toggle value={!!svc.seats} onChange={(v) => onChange({ seats: v })} />
         </View>
       )}
 

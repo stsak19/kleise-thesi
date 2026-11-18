@@ -12,7 +12,7 @@ import { router } from 'expo-router';
    Όπως οι κρατήσεις του Gym_Schedule: πρόγραμμα ημέρας, οι κρατήσεις μου, μηνύματα, πακέτο.
    Φορτώνονται μία φορά στο _layout και τα μοιράζονται όλες οι καρτέλες. */
 
-export type Service = { id: string; name: string; duration_min: number; price_cents: number | null; capacity: number };
+export type Service = { id: string; name: string; duration_min: number; price_cents: number | null; capacity: number; show_seats?: boolean };
 export type Slot = { sv: Service; time: string; capacity: number; taken: number; free: number };
 export type Hours = { weekday: number; opens: string; closes: string; service_id: string | null };
 export type SlotState = 'mine' | 'wait' | 'free' | 'full';

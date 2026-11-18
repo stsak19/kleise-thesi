@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../Txt';
 import { Photo } from '../Photo';
 import { Btn, C, DAYS, Icon, alpha, price, s, shadow, Toggle } from '../ui';
+import { Seats } from './Seats';
 import { useStore, endOf } from './data';
 import { ANY, firstName, useBook, withArticle, type Staff, type Step } from './book';
 import { StoreLogo } from './parts';
@@ -190,7 +191,12 @@ export function SummaryLines() {
       <Line k={cls ? 'Μάθημα' : 'Υπηρεσία'} v={sv ? `${sv.name}` : ''} />
       {withWho !== null && <Line k="Με" v={withWho} />}
       <Line k="Πότε" v={when} />
-      {cls && B.classSlot && <Line k="Θέσεις" v={B.classSlot.free === 1 ? 'Η τελευταία ελεύθερη' : `${B.classSlot.free} ελεύθερες`} />}
+      {cls && B.classSlot && (B.classSlot.sv.show_seats
+        ? <View style={[s.row, { justifyContent: 'space-between', gap: 12, paddingVertical: 11, borderTopWidth: 1, borderTopColor: C.line }]}>
+            <Text style={{ color: C.mute, fontWeight: '600', fontSize: 14 }}>Θέσεις</Text>
+            <View style={{ flexShrink: 1 }}><Seats taken={B.classSlot.taken} capacity={B.classSlot.capacity} /></View>
+          </View>
+        : <Line k="Θέσεις" v={B.classSlot.free === 1 ? 'Η τελευταία ελεύθερη' : `${B.classSlot.free} ελεύθερες`} />)}
       {!!pay && <Line k={pk ? 'Πληρωμή' : 'Σύνολο'} v={pay} big={!pk} />}
     </View>
   );

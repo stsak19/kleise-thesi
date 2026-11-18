@@ -7,7 +7,7 @@ import { presetFor } from '../presets';
    Τα χρησιμοποιούν οι «Ρυθμίσεις καταστήματος» και ο οδηγός «Νέα επιχείρηση». */
 
 /* grp: ομάδα στη λίστα (Κούρεμα, Χρώμα…)· note: οδηγία προς τον πελάτη· from: η τιμή είναι «από». */
-export type Svc = { key: string; id?: string; name: string; duration_min: string; price: string; capacity: string; grp?: string; note?: string; from?: boolean };
+export type Svc = { key: string; id?: string; name: string; duration_min: string; price: string; capacity: string; grp?: string; note?: string; from?: boolean; seats?: boolean };
 /* svc: null = γενικό ωράριο, αλλιώς το key της υπηρεσίας. Πολλά διαστήματα την ίδια μέρα = διάλειμμα. */
 export type Slot = { weekday: number; opens: string; closes: string; svc: string | null };
 export type Hours = Slot[];
@@ -40,7 +40,7 @@ export async function loadBusiness(uid: string) {
     b: data,
     svcs: (sv ?? []).map((x): Svc => ({ key: x.id, id: x.id, name: x.name, duration_min: String(x.duration_min),
       price: x.price_cents != null ? String(x.price_cents / 100) : '', capacity: String(x.capacity),
-      grp: x.grp ?? '', note: x.note ?? '', from: !!x.price_from })),
+      grp: x.grp ?? '', note: x.note ?? '', from: !!x.price_from, seats: !!x.show_seats })),
     hours: (h ?? []).map((x): Slot => ({ weekday: x.weekday, opens: x.opens.slice(0, 5), closes: x.closes.slice(0, 5), svc: x.service_id ?? null })),
   };
 }
@@ -78,7 +78,13 @@ export async function saveBusiness(uid: string, b: any, svcs: Svc[], hours: Hour
         if (error && !b.show_phone) warnings.push('Το τηλέφωνο φαίνεται ακόμα στους πελάτες: η βάση χρειάζεται την ενημέρωση 011.');
       }
       const known = Object.fromEntries(list.filter((x) => x.id).map((x) => [x.key, x.id!]));
-      return { ok: true, id: r.id, warnings, ids: { ...known, ...(r.ids ?? {}) } };
+      const ids = { ...known, ...(r.ids ?? {}) };
+      // Να φαίνονται οι γεμάτες θέσεις (κουτάκια): ξεχωριστή στήλη (supabase/migrations/014). Χωρίς αυτήν όλα αποθηκεύονται κανονικά.
+      const on = list.filter((x) => x.seats && ids[x.key]).map((x) => ids[x.key]);
+      const off = list.filter((x) => !x.seats && ids[x.key]).map((x) => ids[x.key]);
+      const errs = await Promise.all([on, off].map((g, i) => (g.length ? sb.from('services').update({ show_seats: i === 0 }).in('id', g).then(({ error }) => error) : null)));
+      if (errs[0]) warnings.push('Οι κρατημένες θέσεις δεν φαίνονται ακόμα στους πελάτες: η βάση χρειάζεται την ενημέρωση 014.');
+      return { ok: true, id: r.id, warnings, ids };
     } catch (e: any) { return { ok: false, error: e?.message ?? 'Άγνωστο σφάλμα' }; }
   }
 }
