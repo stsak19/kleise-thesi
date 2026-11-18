@@ -25,7 +25,7 @@ import { blankFor, groupOf, svcKind } from '../lib/owner/svcKind';
    Με το είδος μπαίνουν έτοιμες προτάσεις (lib/presets.ts), ώστε τα επόμενα βήματα να είναι κυρίως «Συνέχεια». */
 
 type Step = 'type' | 'name' | 'place' | 'look' | 'services' | 'hours' | 'rules' | 'review';
-const STEPS: Step[] = ['type', 'name', 'place', 'look', 'services', 'hours', 'rules', 'review'];
+const STEPS: Step[] = ['type', 'name', 'place', 'look', 'hours', 'services', 'rules', 'review'];
 
 const NAME_HINT: Record<string, string> = {
   gym: 'FitZone Gym', personal_training: 'Coach Νίκος', pilates_yoga: 'Studio Ισορροπία', nails: 'Nails by Νίκη',
@@ -279,8 +279,8 @@ export default function NewBusiness() {
           { label: 'Είδος', value: `${catEmoji(cat)} ${catLabel(cat)}`, to: 'type' },
           { label: 'Πού', value: [b.address, b.city].filter(Boolean).join(', ') || '—', to: 'place' },
           { label: 'Τηλέφωνο', value: b.phone?.trim() ? `${b.phone.trim()} · ${b.show_phone !== false ? 'φαίνεται στους πελάτες' : 'κρυφό'}` : 'Δεν έχεις βάλει', to: 'place' },
-          { label: scr.services, value: named.map((x) => `${x.name.trim()}${x.price ? ` ${price(Math.round(parseFloat(x.price.replace(',', '.')) * 100))}` : ''}`).join(' · '), to: 'services' },
           { label: 'Ανοιχτά', value: openDays.length ? openDays.map((d) => DAYS[d]).join(' ') : 'Καμία μέρα', to: 'hours' },
+          { label: scr.services, value: named.map((x) => `${x.name.trim()}${x.price ? ` ${price(Math.round(parseFloat(x.price.replace(',', '.')) * 100))}` : ''}`).join(' · '), to: 'services' },
           { label: 'Κρατήσεις', value: `έως ${b.max_days_ahead} μέρες μπροστά · ακύρωση ${hrs(+b.cancel_before_min)} πριν`, to: 'rules' },
         ];
         return (
@@ -411,7 +411,7 @@ export default function NewBusiness() {
           </Pressable>
           <View style={{ flex: 1, flexDirection: 'row', gap: 5 }}>
             {STEPS.map((_, k) => (
-              <View key={k} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: k <= i ? C.accent : alpha(C.text, 0.08) }} />
+              <View key={k} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: k <= i ? C.text : alpha(C.text, 0.1) }} />
             ))}
           </View>
         </View>
