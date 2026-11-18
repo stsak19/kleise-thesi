@@ -139,7 +139,7 @@ function useBookState() {
      μαθήματα → ανοίγει το πρόγραμμα· ραντεβού → ανοίγει τα βήματα της κράτησης. */
   const [sched, setSched] = useState(false);
   const scr = screenFor(S.biz?.category);
-  const cta = classes ? 'Κλείσε θέση' : scr.hero === 'profile' || scr.hero === 'clinic' ? scr.cta : 'Κλείσε ώρα';
+  const cta = classes ? (S.preview ? 'Πρόγραμμα' : 'Κλείσε θέση') : scr.hero === 'profile' || scr.hero === 'clinic' ? scr.cta : 'Κλείσε ώρα';
   const go = () => (classes ? (wide ? setSched(true) : toPage()) : start());
   const next = () => { const i = steps.indexOf(step); if (i >= 0 && i < steps.length - 1) setStep(steps[i + 1]); };
   const back = () => { const i = steps.indexOf(step); if (i > 0) setStep(steps[i - 1]); else close(); };

@@ -86,7 +86,9 @@ function useStoreData(id: string) {
   /* «Όλα» στο πρόγραμμα μόνο όταν ο πελάτης έχει πακέτο που καλύπτει δύο ή περισσότερα μαθήματα μαζί (2026-11-18).
      Αλλιώς διαλέγει ένα μάθημα τη φορά (και στα ραντεβού πάντα μία υπηρεσία). */
   const hasPack = layout === 'classes' && !!biz?.uses_credits && myM?.status === 'approved' && ((myM?.credits ?? 0) > 0 || !!myM?.unlimited || myM?.total != null);
-  const showAll = hasPack && schedServices.length >= 2;
+  /* Γυμναστήριο με πακέτα, χωρίς πακέτο ακόμα: το πρόγραμμα φαίνεται μόνο για να δει τις ώρες (χωρίς κράτηση) — έλεγχος 2026-11-18. */
+  const preview = layout === 'classes' && !!biz?.uses_credits && !hasPack;
+  const showAll = (hasPack || preview) && schedServices.length >= 2;
   useEffect(() => {
     if (!layout || !schedServices.length) return;
     if (service && !schedServices.some((x) => x.id === service)) setService(showAll ? null : schedServices[0].id);
@@ -193,7 +195,7 @@ function useStoreData(id: string) {
   const unwait = (sl: Slot) => leave({ service_id: sl.sv.id, date, time: sl.time });
 
   return {
-    id, biz, st, layout, services, schedServices, packOnly, showAll, hasPack, hours, days, date, setDate, service, setService, slots, note, busy,
+    id, biz, st, layout, services, schedServices, packOnly, showAll, hasPack, preview, hours, days, date, setDate, service, setService, slots, note, busy,
     packages, pendingPack, choosePack, cancelPack,
     upcoming, past, waits, pack, packInfo: packCard, membership, messages, state, waitAt, book, wait, cancel, unwait, cancelBooking, leave, reload,
   };
