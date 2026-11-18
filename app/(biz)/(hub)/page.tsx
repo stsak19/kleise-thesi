@@ -64,6 +64,8 @@ export default function Page() {
           <Row key={key} icon={ICON[key]} title={sectionLabel(key, biz.category)} sub={SUB_ROW[key](biz)}
             onPress={() => router.push(wide ? `/shop-settings?s=${key}` : `/owner/setup?s=${key}`)} />
         ))}
+        <Row icon="pack" title={kindOf(biz.category).plans}
+          sub={biz.uses_credits ? 'Τι αγοράζουν οι πελάτες για να κλείνουν θέση' : 'Πακέτα, συνδρομές, δωροκάρτες'} onPress={() => router.push('/owner/plans')} />
         <Row icon="team" title={kindOf(biz.category).team} sub={staff.length > 1 ? `${staff.length} άτομα · ωράρια, υπηρεσίες, προσκλήσεις` : 'Πρόσθεσε άτομα που δουλεύουν μαζί σου'}
           onPress={() => router.push('/team')} />
         <Row icon="store" title="Δες τη σελίδα σαν πελάτης" sub="Έτσι τη βλέπουν όσοι κλείνουν θέση" onPress={() => router.push(`/store/${biz.id}`)} last />

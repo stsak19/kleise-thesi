@@ -236,13 +236,10 @@ function Rules({ st }: { st: St }) {
           options={[15, 30]} value={+b.max_days_ahead} onPick={(v) => setB({ ...b, max_days_ahead: v })} />
         <AmountPick label="Μέχρι πότε ακυρώνουν;" sub="Πόση ώρα πριν από το ραντεβού μπορούν να το ακυρώσουν." max={60 * 1440}
           options={[60, 1440]} value={+b.cancel_before_min} onPick={(v) => setB({ ...b, cancel_before_min: v })} />
-        {b.uses_credits && <AmountPick label="Διάρκεια πακέτου" sub="Πόσες μέρες ισχύει ένα πακέτο από την ενεργοποίηση." units={DAY_UNITS} max={730}
-          options={[30, 60]} value={+b.package_days} onPick={(v) => setB({ ...b, package_days: v })} />}
       </Card>
       <Group>
         <SwitchRow label="Έγκριση νέων πελατών" sub="Ο νέος πελάτης κλείνει μόνο αφού τον εγκρίνεις" value={!!b.requires_approval} onChange={(v) => setB({ ...b, requires_approval: v })} />
-        <SwitchRow label="Πακέτα κρατήσεων (καρνέ)" sub="Κάθε κράτηση χρεώνεται από το πακέτο του πελάτη" value={!!b.uses_credits} onChange={(v) => setB({ ...b, uses_credits: v })} />
-        <SwitchRow label="Δημοσίευση στην αναζήτηση" sub="Οι πελάτες βρίσκουν το κατάστημα και κλείνουν θέση" value={!!b.is_published} onChange={(v) => setB({ ...b, is_published: v })} last />
+        <SwitchRow label="Πακέτα κρατήσεων (καρνέ)" sub="Κάθε κράτηση χρεώνεται από το πακέτο του πελάτη. Τα πακέτα (τιμή, επισκέψεις, μέρες) είναι στο Κατάστημα → Πακέτα." value={!!b.uses_credits} onChange={(v) => setB({ ...b, uses_credits: v })} last />
       </Group>
     </View>
   );
