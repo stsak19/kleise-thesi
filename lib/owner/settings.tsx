@@ -1,26 +1,29 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Image, Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text } from '../Txt';
 import { say } from '../alert';
-import { pickAndUpload } from '../upload';
 import { sb } from '../supabase';
 import { useAuth } from '../auth';
-import { LAYOUTS, styleOf } from '../presets';
+import { THEMES, styleOf } from '../presets';
 import { DAYNAME, EMPTY_BIZ, HEX, Hours, Slot, Svc, WEEK, badHours, loadBusiness, newKey, nextSpan, presetData, saveBusiness } from './save';
 import { Btn, C, CATEGORIES, catLabel, Card, Chip, Group, Icon, Input, Section, SwitchRow, T, TextBtn, Toggle, alpha, catEmoji, s, shadow } from '../ui';
 import { AmountPick, DAY_UNITS, TimeBtn } from '../TimePick';
 import { ServiceBoard, ServiceModal, draftFor, withSched, type Person, type SvcDraft } from './services';
 import { groupOf, svcKind } from './svcKind';
 import { useActiveBizId } from './active';
+import { PhotosEditor } from './Photos';
+import { ColorSample, Swatches } from './steps';
+import { useWide } from '../wide';
 
 /* «Ρυθμίσεις καταστήματος»: Στοιχεία · Υπηρεσίες · Ωράριο · Κανόνες · Εμφάνιση.
    Υπολογιστής: μία ενότητα τη φορά, με το πλαϊνό μενού να δείχνει ποια (app/(biz)/(hub)/shop-settings.tsx).
-   Κινητό: όλες μαζί σε μία σελίδα (app/(biz)/owner/setup.tsx). Η λογική των υπηρεσιών αλλάζει ανά είδος (lib/owner/svcKind.ts). */
+   Κινητό: μία ενότητα τη φορά, από τη σελίδα «Κατάστημα» (app/(biz)/owner/setup.tsx?s=…). Η λογική των υπηρεσιών αλλάζει ανά είδος (lib/owner/svcKind.ts). */
 
 export type SectionKey = 'details' | 'services' | 'hours' | 'rules' | 'look';
 export const SECTIONS: { key: SectionKey; label: string }[] = [
-  { key: 'details', label: 'Στοιχεία' }, { key: 'services', label: 'Υπηρεσίες' }, { key: 'hours', label: 'Ωράριο' },
+  // Ίδια σειρά με τον οδηγό: στοιχεία → ωράριο → υπηρεσίες → κανόνες → εμφάνιση
+  { key: 'details', label: 'Στοιχεία' }, { key: 'hours', label: 'Ωράριο' }, { key: 'services', label: 'Υπηρεσίες' },
   { key: 'rules', label: 'Κανόνες' }, { key: 'look', label: 'Εμφάνιση' },
 ];
 /* Ο τίτλος της ενότητας Υπηρεσίες αλλάζει ανά είδος (Μαθήματα, Συνεδρίες, Είδη επίσκεψης). */
@@ -80,7 +83,6 @@ type St = ReturnType<typeof useStoreSettings>;
 /* ---------- Στοιχεία ---------- */
 function Details({ st }: { st: St }) {
   const { b, setB, svcs, setSvcs, setHours, setRemoved, uid } = st;
-  const [up, setUp] = useState<string | null>(null);
   const applyPreset = (cat: string) => {
     const p = presetData(cat);
     setB((x: any) => ({ ...x, category: cat, layout: null, theme: null, brand_color: null, ...p.rules }));
@@ -93,13 +95,6 @@ function Details({ st }: { st: St }) {
     say(`Είδος: ${catLabel(cat)}`, `Οι υπηρεσίες θα δουλεύουν πλέον ως «${svcKind(cat).title}». Θέλεις να μπουν και οι προτεινόμενες υπηρεσίες, ωράριο και κανόνες; Αλλάζουν όταν πατήσεις «Αποθήκευση».`,
       [{ text: 'Όχι', style: 'cancel' }, { text: 'Ναι, βάλ’ τες', onPress: () => applyPreset(cat) }]);
   };
-  const photo = async (kind: 'logo' | 'cover') => {
-    setUp(kind);
-    try { const url = await pickAndUpload(uid, kind); if (url) setB({ ...b, [kind === 'logo' ? 'logo_url' : 'cover_url']: url }); }
-    catch (e: any) { say('Δεν ανέβηκε η φωτογραφία', e.message); }
-    setUp(null);
-  };
-  const brand = styleOf(b).color;
   return (
     <View style={{ gap: 14 }}>
       <Card style={{ gap: 14 }}>
@@ -121,26 +116,6 @@ function Details({ st }: { st: St }) {
         </View>
         <Input label="Διεύθυνση" icon="pin" placeholder="Οδός και αριθμός" value={b.address ?? ''} onChangeText={(v) => setB({ ...b, address: v })} />
         <Input label="Περιγραφή" placeholder="Τι κάνετε, τι να περιμένει ο πελάτης…" multiline value={b.description ?? ''} onChangeText={(v) => setB({ ...b, description: v })} />
-      </Card>
-      <Card style={{ padding: 0, gap: 0, overflow: 'hidden' }}>
-        <Pressable onPress={() => photo('cover')} style={{ height: 150, backgroundColor: C.banner, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-          {!!b.cover_url && <Image source={{ uri: b.cover_url }} style={{ position: 'absolute', width: '100%', height: '100%' }} resizeMode="cover" />}
-          <View style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 999, paddingVertical: 8, paddingHorizontal: 14 }}>
-            <Text style={{ color: '#fff', fontWeight: '700' }}>{up === 'cover' ? 'Ανέβασμα…' : b.cover_url ? '📷 Αλλαγή εξωφύλλου' : '📷 Εξώφυλλο 16:9'}</Text>
-          </View>
-        </Pressable>
-        <View style={[s.row, { padding: 16, paddingTop: 0, gap: 14, alignItems: 'flex-end' }]}>
-          <Pressable onPress={() => photo('logo')} style={{ marginTop: -36, width: 80, height: 80, borderRadius: 24, backgroundColor: C.card, padding: 4, ...shadow(2) }}>
-            <View style={{ flex: 1, borderRadius: 20, overflow: 'hidden', backgroundColor: alpha(brand, 0.14), alignItems: 'center', justifyContent: 'center' }}>
-              {b.logo_url ? <Image source={{ uri: b.logo_url }} style={{ width: '100%', height: '100%' }} />
-                : <Text style={{ color: brand, fontWeight: '900', fontSize: 28 }}>{(b.name || '🏪').slice(0, 1)}</Text>}
-            </View>
-          </Pressable>
-          <View style={{ flex: 1, paddingTop: 12, gap: 2 }}>
-            <Text style={{ color: C.text, fontWeight: '900', fontSize: 18 }} numberOfLines={1}>{b.name || 'Το κατάστημά σου'}</Text>
-            <TextBtn title={up === 'logo' ? 'Ανέβασμα…' : b.logo_url ? 'Αλλαγή λογότυπου' : 'Προσθήκη λογότυπου (1:1)'} color={brand} onPress={() => photo('logo')} />
-          </View>
-        </View>
       </Card>
     </View>
   );
@@ -263,32 +238,29 @@ function Rules({ st }: { st: St }) {
   );
 }
 
-/* ---------- Εμφάνιση ---------- */
+/* ---------- Εμφάνιση: ίδια με το βήμα «Εμφάνιση» του οδηγού (εξώφυλλο, φωτογραφία προφίλ, χρώμα σελίδας) ---------- */
+const COLORS = Array.from(new Set(THEMES.map((t) => t.color)));
 function Look({ st }: { st: St }) {
-  const router = useRouter();
-  const { b } = st;
-  const look = styleOf(b);
+  const { b, setB, uid } = st;
+  const wide = useWide();
   return (
-    <Card style={{ gap: 10 }}>
-      <View style={[s.row, { gap: 12 }]}>
-        <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: look.color }} />
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }}>{LAYOUTS.find((l) => l.key === look.layout)?.name} · {look.theme.name}</Text>
-          <T mute style={{ fontSize: 13 }}>Χρώμα, θέμα και διάταξη της σελίδας σου.</T>
-        </View>
+    <View style={{ gap: 22 }}>
+      <PhotosEditor uid={uid} b={b} setB={setB} wide={wide} />
+      <View style={{ gap: 10 }}>
+        <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>Χρώμα σελίδας</Text>
+        <Swatches colors={COLORS} value={styleOf(b).color} onPick={(c) => setB({ ...b, brand_color: c })} />
+        <ColorSample color={styleOf(b).color} category={b.category} />
       </View>
-      {b.id ? <Btn kind="ghost" size="sm" title="Άλλαξε την εμφάνιση" onPress={() => router.push('/owner/style')} />
-        : <T mute style={{ fontSize: 12 }}>Θα μπορείς να την αλλάξεις μετά την πρώτη αποθήκευση.</T>}
-    </Card>
+    </View>
   );
 }
 
 const SUB: Record<SectionKey, string | undefined> = {
-  details: 'Όνομα, είδος, διεύθυνση και φωτογραφίες.',
+  details: 'Όνομα, είδος, διεύθυνση και τηλέφωνο.',
   services: undefined,
   hours: 'Για μεσημεριανό κενό πάτα «+ Διάλειμμα».',
   rules: 'Πώς και πότε κλείνουν θέση οι πελάτες.',
-  look: undefined,
+  look: 'Εξώφυλλο, φωτογραφία προφίλ και χρώμα σελίδας.',
 };
 const servicesSub = (st: St) => {
   const k = svcKind(st.b.category);
@@ -313,7 +285,7 @@ export function SettingsDesk({ section }: { section: SectionKey }) {
         </View>
         {section === 'services'
           ? <ServicesAdd st={st} label={k.add} />
-          : section !== 'look' && <Btn title={st.busy ? 'Αποθήκευση…' : 'Αποθήκευση'} disabled={st.busy} onPress={save} />}
+          : <Btn title={st.busy ? 'Αποθήκευση…' : 'Αποθήκευση'} disabled={st.busy} onPress={save} />}
       </View>
       <View style={section === 'services' ? null : { maxWidth: 760 }}><Body st={st} /></View>
     </ScrollView>
@@ -346,25 +318,28 @@ function AddOnly({ st, onClose }: { st: St; onClose: () => void }) {
 }
 
 /* Κινητό: όλες οι ενότητες σε μία σελίδα, με αποθήκευση στο τέλος. */
-export function SettingsPhone() {
+/* Κινητό: μία ενότητα τη φορά (owner/setup?s=…), όπως στον υπολογιστή. Χωρίς ενότητα: όλες μαζί. */
+export function SettingsPhone({ section }: { section?: SectionKey }) {
   const st = useStoreSettings();
   const router = useRouter();
   if (!st.ready) return <View style={s.screen} />;
-  const k = svcKind(st.b.category);
   const save = async () => { if (await st.persist()) { say('Αποθηκεύτηκε'); router.back(); } };
+  const Body = { details: Details, services: Services, hours: HoursSec, rules: Rules, look: Look };
+  const list = section ? SECTIONS.filter((x) => x.key === section) : SECTIONS;
   return (
     <ScrollView style={s.screen} contentContainerStyle={s.pad} keyboardShouldPersistTaps="handled">
-      <Section title="Στοιχεία" />
-      <Details st={st} />
-      <Section title={k.title} sub={servicesSub(st)} />
-      <Services st={st} />
-      <Section title="Ωράριο" sub={SUB.hours} />
-      <HoursSec st={st} />
-      <Section title="Κανόνες κρατήσεων" />
-      <Rules st={st} />
-      <Section title="Εμφάνιση" />
-      <Look st={st} />
-      <Btn title={st.busy ? 'Αποθήκευση…' : 'Αποθήκευση'} disabled={st.busy} onPress={save} style={{ marginTop: 8 }} />
+      {list.map(({ key }) => {
+        const B = Body[key];
+        return (
+          <View key={key} style={{ gap: 12 }}>
+            {section
+              ? !!(key === 'services' ? servicesSub(st) : SUB[key]) && <T mute style={{ fontSize: 14 }}>{key === 'services' ? servicesSub(st) : SUB[key]}</T>
+              : <Section title={sectionLabel(key, st.b.category)} sub={key === 'services' ? servicesSub(st) : SUB[key]} />}
+            <B st={st} />
+          </View>
+        );
+      })}
+      {section !== 'services' && <Btn title={st.busy ? 'Αποθήκευση…' : 'Αποθήκευση'} disabled={st.busy} onPress={save} style={{ marginTop: 8 }} />}
     </ScrollView>
   );
 }
