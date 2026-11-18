@@ -15,11 +15,34 @@ const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρ�
    Λωρίδα ημερών, φίλτρο μαθημάτων, και οι ώρες με Κράτηση · Ακύρωση · Αναμονή · Απόσυρση.
    Το «Κράτηση» κλείνει το πρόγραμμα και ανοίγει την επιβεβαίωση (lib/store/BookUI). Κινητό: φύλλο από κάτω· υπολογιστής: στη μέση. */
 export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const S = useStore();
-  const B = useBook();
   const wide = useWide();
   const insets = useSafeAreaInsets();
   if (!open) return null;
+  return (
+    <Modal transparent visible animationType="fade" onRequestClose={onClose} statusBarTranslucent>
+      <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} accessibilityLabel="Κλείσιμο" />
+      <View style={[wide
+          ? { position: 'absolute', alignSelf: 'center', top: '6%', bottom: '6%', width: 620, borderRadius: 28 }
+          : { position: 'absolute', left: 0, right: 0, bottom: 0, top: insets.top + 40, borderTopLeftRadius: 28, borderTopRightRadius: 28 },
+        { backgroundColor: C.bg, paddingTop: 10, overflow: 'hidden' }, shadow(3)]}>
+        {!wide && <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: C.line, alignSelf: 'center', marginBottom: 6 }} />}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 20, paddingTop: 4 }}>
+          <Text style={{ flex: 1, color: C.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.4 }}>Πρόγραμμα</Text>
+          <Pressable onPress={onClose} accessibilityLabel="Κλείσιμο" style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: C.mute, fontWeight: '800', fontSize: 15 }}>✕</Text>
+          </Pressable>
+        </View>
+        <ScheduleList bottom={insets.bottom + 24} onBook={onClose} />
+      </View>
+    </Modal>
+  );
+}
+
+/* Το περιεχόμενο του προγράμματος (ημέρες, φίλτρο, ώρες). Μπαίνει στο παράθυρο του υπολογιστή (ScheduleSheet)
+   και ως κανονική σελίδα στο κινητό (app/store/[id]/(tabs)/book.tsx, το ＋ της μπάρας). */
+export function ScheduleList({ bottom, onBook }: { bottom: number; onBook?: () => void }) {
+  const S = useStore();
+  const B = useBook();
   const multi = S.schedServices.length > 1;
   const d = new Date(S.date + 'T00:00');
   const today = S.days[0];
@@ -55,26 +78,13 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
         {st === 'mine' ? <Btn size="sm" kind="danger" title="Ακύρωση" disabled={dis} onPress={() => S.cancel(sl)} />
           : st === 'wait' ? <Btn size="sm" kind="ghost" title="Απόσυρση" disabled={dis} onPress={() => S.unwait(sl)} />
           : st === 'full' ? <Btn size="sm" kind="ghost" title="Αναμονή" disabled={dis} onPress={() => S.wait(sl)} />
-          : <Btn size="sm" title="Κράτηση" color={S.st?.color} disabled={dis || (!!S.pack && S.pack.left <= 0)} onPress={() => { onClose(); B.confirmClass(sl); }} />}
+          : <Btn size="sm" title="Κράτηση" color={S.st?.color} disabled={dis || (!!S.pack && S.pack.left <= 0)} onPress={() => { onBook?.(); B.confirmClass(sl); }} />}
       </View>
     );
   };
 
   return (
-    <Modal transparent visible animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} accessibilityLabel="Κλείσιμο" />
-      <View style={[wide
-          ? { position: 'absolute', alignSelf: 'center', top: '6%', bottom: '6%', width: 620, borderRadius: 28 }
-          : { position: 'absolute', left: 0, right: 0, bottom: 0, top: insets.top + 40, borderTopLeftRadius: 28, borderTopRightRadius: 28 },
-        { backgroundColor: C.bg, paddingTop: 10, overflow: 'hidden' }, shadow(3)]}>
-        {!wide && <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: C.line, alignSelf: 'center', marginBottom: 6 }} />}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 20, paddingTop: 4 }}>
-          <Text style={{ flex: 1, color: C.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.4 }}>Πρόγραμμα</Text>
-          <Pressable onPress={onClose} accessibilityLabel="Κλείσιμο" style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: C.mute, fontWeight: '800', fontSize: 15 }}>✕</Text>
-          </Pressable>
-        </View>
-        <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 24 }} stickyHeaderIndices={[0]}>
+        <ScrollView contentContainerStyle={{ paddingBottom: bottom }} stickyHeaderIndices={[0]}>
         <View style={{ backgroundColor: C.bg }}>
           {/* λωρίδα ημερών */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingTop: 14 }}>
@@ -144,7 +154,5 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
           S.slots.map((sl, i) => <Row key={sl.sv.id + sl.time} sl={sl} last={i === S.slots!.length - 1} />)
         )}
         </ScrollView>
-      </View>
-    </Modal>
   );
 }

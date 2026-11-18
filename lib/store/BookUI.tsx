@@ -3,7 +3,7 @@ import { Animated, Modal, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../Txt';
 import { Photo } from '../Photo';
-import { Btn, C, DAYS, Icon, alpha, price, s, shadow, Toggle } from '../ui';
+import { Btn, C, DAYS, Icon, alpha, price, s, shadow, Toggle, TAB_SPACE } from '../ui';
 import { Seats } from './Seats';
 import { useStore, endOf } from './data';
 import { ANY, firstName, useBook, withArticle, type Staff, type Step } from './book';
@@ -249,14 +249,9 @@ export function StepConfirm() {
   );
 }
 
-/* ---------- φύλλο κινητού ---------- */
-export function BookSheet() {
+/* ---------- κοινά κομμάτια: παράθυρο (υπολογιστής / επιβεβαίωση μαθήματος) και σελίδα (κινητό) ---------- */
+function useStepInfo() {
   const S = useStore(); const B = useBook();
-  const bottom = useSafeAreaInsets().bottom;
-  const wide = useWide();
-  const y = useRef(new Animated.Value(600)).current;
-  useEffect(() => { if (B.open) { y.setValue(600); Animated.spring(y, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start(); } }, [B.open]);
-  if (!B.open) return null;
   const i = B.steps.indexOf(B.step), n = B.steps.length;
   const sub = [B.step !== 'service' && B.service ? B.service.name + ' · ' + dur(B.service.duration_min) : '',
     B.step === 'time' && B.team.length ? (B.who === ANY ? 'Οποιοσδήποτε' : B.person ? (B.favStaff?.id === B.person.id ? '♥ ' : '') + firstName(B.person.name) : '') : ''].filter(Boolean);
@@ -265,6 +260,88 @@ export function BookSheet() {
     : B.step === 'time' && B.time ? `Συνέχεια · ${fmtLong(B.date)}, ${B.time}`
     : B.step === 'service' && B.service ? `Συνέχεια · ${B.service.price_cents != null ? price(B.service.price_cents) : dur(B.service.duration_min)}` : 'Συνέχεια';
   const title = B.classSlot ? 'Όλα σωστά;' : TITLE[B.step];
+  return { i, n, sub, canNext, cta, title };
+}
+
+/* Πίσω · «Βήμα 2 από 3» · τίτλος · (✕) · γραμμή προόδου · επιλογές μέχρι τώρα */
+function StepHead({ onClose }: { onClose?: () => void }) {
+  const B = useBook();
+  const { i, n, sub, title } = useStepInfo();
+  return (
+    <View>
+      <View style={[s.row, { gap: 10 }]}>
+        {i > 0 && !B.classSlot && (
+          <Pressable onPress={B.back} accessibilityLabel="Πίσω" style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="back" size={17} color={C.text} />
+          </Pressable>
+        )}
+        <View style={{ flex: 1 }}>
+          {!B.classSlot && n > 1 && <Text style={{ color: C.mute, fontSize: 12, fontWeight: '700' }}>Βήμα {i + 1} από {n}</Text>}
+          <Text style={{ color: C.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.4 }}>{title}</Text>
+        </View>
+        {!!onClose && (
+          <Pressable onPress={onClose} accessibilityLabel="Κλείσιμο" style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: C.mute, fontWeight: '800', fontSize: 15 }}>✕</Text>
+          </Pressable>
+        )}
+      </View>
+      {!B.classSlot && n > 1 && (
+        <View style={{ flexDirection: 'row', gap: 5, marginTop: 10, marginBottom: 12 }}>
+          {B.steps.map((x, j) => <View key={x} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: j <= i ? C.text : C.line }} />)}
+        </View>
+      )}
+      {B.step !== 'confirm' && sub.length > 0 && <View style={{ marginBottom: 12 }}><Chips items={sub} /></View>}
+    </View>
+  );
+}
+
+const StepBody = () => {
+  const B = useBook();
+  return <>
+    {B.step === 'service' && <StepService />}
+    {B.step === 'staff' && <StepStaff />}
+    {B.step === 'time' && <StepTime />}
+    {B.step === 'confirm' && <StepConfirm />}
+  </>;
+};
+
+function StepBtn({ style }: { style?: any }) {
+  const S = useStore(); const B = useBook();
+  const { canNext, cta } = useStepInfo();
+  if (B.step === 'service') return null;
+  return <Btn title={B.busy ? '…' : cta} color={S.st?.color} disabled={!canNext || B.busy} onPress={B.step === 'confirm' ? B.submit : B.next} style={style} />;
+}
+
+/* ---------- η κράτηση ως κανονική σελίδα (κινητό, το ＋ της μπάρας του καταστήματος) ----------
+   Ίδια βήματα με το παράθυρο, αλλά μέσα στη σελίδα: πάνω το κατάστημα, μετά το βήμα, το κουμπί πάνω από την κάτω μπάρα. */
+export function BookPage() {
+  const B = useBook();
+  const bottom = useSafeAreaInsets().bottom;
+  const btn = B.step !== 'service';
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: TAB_SPACE + (btn ? 72 : 0) }} showsVerticalScrollIndicator={false}>
+        <StepHead />
+        <StepBody />
+      </ScrollView>
+      {btn && (
+        <View style={{ position: 'absolute', left: 20, right: 20, bottom: Math.max(bottom, 10) + 6 + 74 }}>
+          <StepBtn />
+        </View>
+      )}
+    </View>
+  );
+}
+
+/* ---------- παράθυρο: υπολογιστής, και στο κινητό μόνο η επιβεβαίωση μαθήματος ---------- */
+export function BookSheet() {
+  const B = useBook();
+  const bottom = useSafeAreaInsets().bottom;
+  const wide = useWide();
+  const y = useRef(new Animated.Value(600)).current;
+  const show = B.open && (wide || !!B.classSlot); // κινητό: τα βήματα των ραντεβού είναι στη σελίδα· εδώ μόνο η επιβεβαίωση μαθήματος
+  useEffect(() => { if (show) { y.setValue(600); Animated.spring(y, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start(); } }, [show]);
+  if (!show) return null;
   return (
     <Modal transparent visible animationType="fade" onRequestClose={B.close} statusBarTranslucent>
       <Pressable onPress={B.close} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} accessibilityLabel="Κλείσιμο" />
@@ -273,35 +350,11 @@ export function BookSheet() {
           : { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '90%', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingBottom: bottom + 18 },
         { backgroundColor: C.bg, paddingTop: 10, paddingHorizontal: 20, transform: [{ translateY: y }] }, shadow(3)]}>
         {!wide && <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: C.line, alignSelf: 'center', marginBottom: 12 }} />}
-        <View style={[s.row, { gap: 10 }]}>
-          {i > 0 && !B.classSlot && (
-            <Pressable onPress={B.back} accessibilityLabel="Πίσω" style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name="back" size={17} color={C.text} />
-            </Pressable>
-          )}
-          <View style={{ flex: 1 }}>
-            {!B.classSlot && n > 1 && <Text style={{ color: C.mute, fontSize: 12, fontWeight: '700' }}>Βήμα {i + 1} από {n}</Text>}
-            <Text style={{ color: C.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.4 }}>{title}</Text>
-          </View>
-          <Pressable onPress={B.close} accessibilityLabel="Κλείσιμο" style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: C.mute, fontWeight: '800', fontSize: 15 }}>✕</Text>
-          </Pressable>
-        </View>
-        {!B.classSlot && n > 1 && (
-          <View style={{ flexDirection: 'row', gap: 5, marginTop: 10, marginBottom: 12 }}>
-            {B.steps.map((x, j) => <View key={x} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: j <= i ? C.text : C.line }} />)}
-          </View>
-        )}
-        {B.step !== 'confirm' && sub.length > 0 && <View style={{ marginBottom: 12 }}><Chips items={sub} /></View>}
+        <StepHead onClose={B.close} />
         <ScrollView style={{ flexGrow: 0 }} contentContainerStyle={{ paddingBottom: 4, paddingTop: B.classSlot ? 12 : 0 }} showsVerticalScrollIndicator={false}>
-          {B.step === 'service' && <StepService />}
-          {B.step === 'staff' && <StepStaff />}
-          {B.step === 'time' && <StepTime />}
-          {B.step === 'confirm' && <StepConfirm />}
+          <StepBody />
         </ScrollView>
-        {B.step !== 'service' && (
-          <Btn title={B.busy ? '…' : cta} color={S.st?.color} disabled={!canNext || B.busy} onPress={B.step === 'confirm' ? B.submit : B.next} style={{ marginTop: 14 }} />
-        )}
+        <StepBtn style={{ marginTop: 14 }} />
       </Animated.View>
     </Modal>
   );

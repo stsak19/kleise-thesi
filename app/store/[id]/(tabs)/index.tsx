@@ -6,10 +6,9 @@ import { Photo } from '../../../../lib/Photo';
 import { readable } from '../../../../lib/theme';
 import { useStore } from '../../../../lib/store/data';
 import { useBook, firstName } from '../../../../lib/store/book';
-import { BookSheet, Face, UsualCard, dur } from '../../../../lib/store/BookUI';
+import { Face, UsualCard, dur } from '../../../../lib/store/BookUI';
 import { AccountButton, Credits, ExitPill, FavButton, MessageList, Notice, StoreLogo } from '../../../../lib/store/parts';
 import { StorePacks } from '../../../../lib/store/Packs';
-import { ScheduleSheet } from '../../../../lib/store/Schedule';
 import { screenFor } from '../../../../lib/bizscreen';
 import { useWide } from '../../../../lib/wide';
 
@@ -31,7 +30,7 @@ export default function StoreHome() {
   const B = useBook();
   const wide = useWide();
   const top = useSafeAreaInsets().top;
-  const { sched, setSched, cta, go } = B;
+  const { cta, go } = B;
   const biz = S.biz ?? {};
   const color = S.st?.color ?? C.accent;
   const ink = readable(color); // το χρώμα του καταστήματος σε τίτλους, τιμές και ώρες (εκδοχή Γ)
@@ -93,7 +92,7 @@ export default function StoreHome() {
       <Text style={{ color: C.mute, fontSize: 13, marginTop: 2, marginBottom: 10 }}>{classes ? 'Πάτα ένα μάθημα για να δεις τις ώρες του.' : 'Πάτα μια υπηρεσία για να κλείσεις.'}</Text>
       <View style={{ flexDirection: wide ? 'row' : 'column', flexWrap: 'wrap', gap: 10 }}>
         {S.services.map((sv) => (
-          <Pressable key={sv.id} onPress={classes ? () => { S.setService(sv.id); setSched(true); } : () => B.start({ service: sv })}
+          <Pressable key={sv.id} onPress={classes ? () => { S.setService(sv.id); go(); } : () => B.start({ service: sv })}
             accessibilityRole="button" accessibilityLabel={`${sv.name}, κλείσε`}
             style={({ pressed, hovered }: any) => [{ width: wide ? '48.6%' : '100%', flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingLeft: 16, paddingRight: 12,
               borderRadius: 18, borderWidth: 1, borderColor: hovered ? C.text : C.line, backgroundColor: C.bg, transform: [{ scale: pressed ? 0.98 : 1 }] }, shadow(1)]}>
@@ -163,8 +162,6 @@ export default function StoreHome() {
     </View>
   );
 
-  const sheets = <><ScheduleSheet open={sched} onClose={() => setSched(false)} /><BookSheet /></>;
-
   /* ---------- υπολογιστής ---------- */
   if (wide) return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
@@ -195,7 +192,6 @@ export default function StoreHome() {
           </View>
         </View>
       </ScrollView>
-      {sheets}
     </View>
   );
 
@@ -229,7 +225,6 @@ export default function StoreHome() {
           {news}
         </View>
       </ScrollView>
-      {sheets}
     </View>
   );
 }

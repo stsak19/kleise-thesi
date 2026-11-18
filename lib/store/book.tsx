@@ -1,4 +1,6 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useWide } from '../wide';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { rpc, sb } from '../supabase';
 import { say } from '../alert';
@@ -44,6 +46,15 @@ async function fetchSlots(sv: Service, date: string, staff: string | null): Prom
 function useBookState() {
   const S = useStore();
   const signedIn = !!useAuth().session;
+  const wide = useWide();
+  const router = useRouter();
+  /* Κινητό: η κράτηση είναι κανονική σελίδα του καταστήματος (το ＋ της μπάρας, app/store/[id]/(tabs)/book.tsx).
+     page = η σελίδα είναι ανοιχτή τώρα· όσο είναι, τα βήματα δείχνονται μέσα της και όχι σε παράθυρο.
+     Υπολογιστής: όπως πριν, παράθυρο στη μέση. */
+  const [page, setPageState] = useState(false);
+  const pageRef = useRef(false);
+  const setPage = (v: boolean) => { pageRef.current = v; setPageState(v); };
+  const toPage = () => { if (!wide && !pageRef.current) router.navigate(`/store/${S.id}/book` as any); };
   const [staff, setStaffList] = useState<Staff[]>([]);
   const [favs, setFavs] = useState<Record<string, Fav>>(favCache ?? {});
   const [open, setOpen] = useState(false);
@@ -110,7 +121,7 @@ function useBookState() {
     setDate(o.date ?? (days.includes(date) ? date : days[0] ?? iso(new Date())));
     setTime(o.time ?? null);
     const first: Step = o.at ?? (o.service ? (staffFor(o.service).length > 1 ? 'staff' : 'time') : S.services.length > 1 ? 'service' : staffFor(S.services[0] ?? null).length > 1 ? 'staff' : 'time');
-    setStep(first); setOpen(true);
+    setStep(first); setOpen(true); toPage();
   };
   /* Μαθήματα: το «Κράτηση» του προγράμματος ανοίγει κατευθείαν την επιβεβαίωση. */
   const confirmClass = (sl: Slot) => {
@@ -121,7 +132,7 @@ function useBookState() {
   /* Επισκέπτης: κρατάμε ό,τι διάλεξε (υπηρεσία, άτομο, μέρα, ώρα) και ζητάμε σύνδεση.
      Μόλις συνδεθεί, το παράθυρο ξανανοίγει στην επιβεβαίωση, χωρίς να ξαναδιαλέξει τίποτα. */
   const [resume, setResume] = useState(false);
-  const needLogin = () => { setOpen(false); setResume(true); askLogin(`/store/${S.id}`, 'in', true); };
+  const needLogin = () => { setOpen(false); setResume(true); askLogin(`/store/${S.id}${wide ? '' : '/book'}`, 'in', true); };
   useEffect(() => { if (signedIn && resume) { setResume(false); setStep('confirm'); setOpen(true); } }, [signedIn, resume]);
   const close = () => { setOpen(false); setClassSlot(null); };
   /* Το κύριο κουμπί κράτησης (μέση της κάτω μπάρας στο κινητό, δεξιά κάρτα στον υπολογιστή):
@@ -129,7 +140,7 @@ function useBookState() {
   const [sched, setSched] = useState(false);
   const scr = screenFor(S.biz?.category);
   const cta = classes ? 'Κλείσε θέση' : scr.hero === 'profile' || scr.hero === 'clinic' ? scr.cta : 'Κλείσε ώρα';
-  const go = () => (classes ? setSched(true) : start());
+  const go = () => (classes ? (wide ? setSched(true) : toPage()) : start());
   const next = () => { const i = steps.indexOf(step); if (i >= 0 && i < steps.length - 1) setStep(steps[i + 1]); };
   const back = () => { const i = steps.indexOf(step); if (i > 0) setStep(steps[i - 1]); else close(); };
 
@@ -177,7 +188,7 @@ function useBookState() {
 
   return {
     staff, staffFor, team, person, fav, favStaff, usualService, usualNext, setFav,
-    sched, setSched, cta, go,
+    sched, setSched, cta, go, page, setPage, resume,
     open, step, setStep, steps, service, who, date, time, slots, keep, busy, classSlot, classes,
     pickService, pickWho, setDate, setTime, setKeep, start, confirmClass, close, next, back, submit,
   };
