@@ -25,8 +25,8 @@ const hm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.get
    Ένα κουμπί ανά είδος ανοίγει το παράθυρο της κράτησης:
    - ραντεβού με ομάδα/πολλές υπηρεσίες (κομμωτήριο κ.λπ.): «Διάλεξε υπηρεσία» → βήματα (lib/store/BookUI · BookSheet)
    - ένα άτομο ή ιατρείο (personal, φυσιο, γιατρός): το κουμπί του είδους, π.χ. «Κλείσε προπόνηση» → ίδια βήματα
-   - μαθήματα (γυμναστήριο, pilates): «Δες το πρόγραμμα» → πρόγραμμα σε παράθυρο (lib/store/Schedule)
-   Κινητό: το κουμπί μένει σταθερό πάνω από την κάτω μπάρα. Υπολογιστής: δεξιά κάρτα με το κουμπί και την επικοινωνία. */
+   - μαθήματα (γυμναστήριο, pilates): «Δες το πρόγραμμα» → πρόγραμμα (lib/store/Schedule)· χωρίς πακέτο μόνο για να δεις τις ώρες
+   Κινητό: η κράτηση είναι το ＋ στη μέση της μπάρας του καταστήματος. Υπολογιστής: δεξιά κάρτα με το κουμπί και την επικοινωνία. */
 export default function StoreHome() {
   const S = useStore();
   const B = useBook();
@@ -92,22 +92,22 @@ export default function StoreHome() {
   // Μαθήματα (γυμναστήριο, pilates): η λίστα των μαθημάτων είναι στην κράτηση (＋ / «Δες το πρόγραμμα»), όχι στο κατάστημα (2026-11-18).
   const services = !classes && S.services.length > 0 && (
     <View>
-      <Head c={ink} t={classes ? 'Μαθήματα' : 'Υπηρεσίες και τιμές'} />
-      <Text style={{ color: C.mute, fontSize: 13, marginTop: 2, marginBottom: 10 }}>{classes ? 'Πάτα ένα μάθημα για να δεις τις ώρες του.' : 'Πάτα μια υπηρεσία για να κλείσεις.'}</Text>
+      <Head c={ink} t="Υπηρεσίες και τιμές" />
+      <Text style={{ color: C.mute, fontSize: 13, marginTop: 2, marginBottom: 10 }}>Πάτα μια υπηρεσία για να κλείσεις.</Text>
       <View style={{ flexDirection: wide ? 'row' : 'column', flexWrap: 'wrap', gap: 10 }}>
         {S.services.map((sv) => (
-          <Pressable key={sv.id} onPress={classes ? () => { S.setService(sv.id); go(); } : () => B.start({ service: sv })}
+          <Pressable key={sv.id} onPress={() => B.start({ service: sv })}
             accessibilityRole="button" accessibilityLabel={`${sv.name}, κλείσε`}
             style={({ pressed, hovered }: any) => [{ width: wide ? '48.6%' : '100%', flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingLeft: 16, paddingRight: 12,
               borderRadius: 18, borderWidth: 1, borderColor: hovered ? C.text : C.line, backgroundColor: C.bg, transform: [{ scale: pressed ? 0.98 : 1 }] }, shadow(1)]}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={{ color: C.text, fontSize: 15.5, fontWeight: '800' }} numberOfLines={1}>{sv.name}</Text>
               <Text style={{ color: C.mute, fontSize: 13, fontWeight: '600', marginTop: 2 }}>
-                {dur(sv.duration_min)}{sv.price_cents != null ? <> · <Text style={{ color: ink, fontWeight: '800' }}>{price(sv.price_cents)}</Text></> : classes ? ' · με πακέτο' : ''}
+                {dur(sv.duration_min)}{sv.price_cents != null ? <> · <Text style={{ color: ink, fontWeight: '800' }}>{price(sv.price_cents)}</Text></> : ''}
               </Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, paddingLeft: 12, paddingRight: 8, borderRadius: 999, backgroundColor: color }}>
-              <Text style={{ color: onColor(color), fontWeight: '800', fontSize: 13 }}>{classes ? 'Ώρες' : 'Κλείσε'}</Text>
+              <Text style={{ color: onColor(color), fontWeight: '800', fontSize: 13 }}>Κλείσε</Text>
               <Icon name="chevron" size={14} color={onColor(color)} />
             </View>
           </Pressable>
