@@ -25,7 +25,7 @@ import { blankFor, groupOf, svcKind } from '../lib/owner/svcKind';
    Με το είδος μπαίνουν έτοιμες προτάσεις (lib/presets.ts), ώστε τα επόμενα βήματα να είναι κυρίως «Συνέχεια». */
 
 type Step = 'type' | 'name' | 'place' | 'look' | 'services' | 'hours' | 'rules' | 'review';
-const STEPS: Step[] = ['type', 'name', 'place', 'look', 'hours', 'services', 'rules', 'review'];
+const STEPS: Step[] = ['type', 'name', 'place', 'hours', 'services', 'rules', 'look', 'review'];
 
 const NAME_HINT: Record<string, string> = {
   gym: 'FitZone Gym', personal_training: 'Coach Νίκος', pilates_yoga: 'Studio Ισορροπία', nails: 'Nails by Νίκη',
