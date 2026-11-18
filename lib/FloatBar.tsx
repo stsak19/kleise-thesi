@@ -36,7 +36,7 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
   // Η μπάρα μένει πάντα στη μέση· ο ξεχωριστός κύκλος (apart) «κρέμεται» δεξιά της χωρίς να τη μετακινεί,
   // άρα η μισή μπάρα + κύκλος πρέπει να χωράνε στο μισό πλάτος της οθόνης.
   const barW = 2 * PAD + shown.length * ICON + (shown.length - 1) * gap + labelW + (extra && !extra.apart ? ICON + gap + 1 : 0);
-  const lab = !!labels && (extra?.apart ? barW / 2 + APART + 8 + 10 <= screenW / 2 : barW + 32 <= screenW);
+  const lab = !!labels && (extra?.apart ? barW / 2 + APART + 8 + 10 <= screenW / 2 : barW + 16 <= screenW);
   const widthOf = (i: number) => (lab && i === idx && textW[shown[i]?.name] ? ICON + textW[shown[i].name] + 14 : ICON);
   const leftOf = (i: number) => { let x = 0; for (let j = 0; j < i; j++) x += widthOf(j) + gap; return x; };
   const drv = !labels; // με λέξεις αλλάζουν πλάτη/θέσεις, που δεν τα κινεί ο native driver
@@ -72,7 +72,7 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
   })).current;
   const fg = (on: boolean) => (on ? (light ? '#0a0a0a' : '#f0eee6') : light ? alpha('#0a0a0a', 0.55) : alpha('#f0eee6', 0.6));
   return (
-    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'center', paddingHorizontal: 16, paddingBottom: Math.max(bottom, 10) + 6 }}>
+    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'center', paddingHorizontal: 8, paddingBottom: Math.max(bottom, 10) + 6 }}>
       {labels && (
         <View pointerEvents="none" style={{ position: 'absolute', opacity: 0, flexDirection: 'row' }}>
           {shown.map((r) => (
