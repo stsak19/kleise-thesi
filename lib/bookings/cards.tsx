@@ -89,8 +89,8 @@ export function PackCard({ name, biz, color, p, onPress, ended, endText }: { nam
         )}
       </View>
       {!p.pending && !!p.total && !!p.expires && (
-        <View style={{ height: 6, borderRadius: 3, backgroundColor: alpha(color, 0.14), marginHorizontal: 14, marginBottom: 10 }}>
-          <View style={{ width: `${Math.min(100, (100 * p.left) / p.total)}%`, height: 6, borderRadius: 3, backgroundColor: color }} />
+        <View style={{ height: 6, borderRadius: 3, backgroundColor: C.soft, marginHorizontal: 14, marginBottom: 10 }}>
+          <View style={{ width: `${Math.min(100, (100 * p.left) / p.total)}%`, height: 6, borderRadius: 3, backgroundColor: packBar(p.left) }} />
         </View>
       )}
       <View style={[s.row, { gap: 6, paddingHorizontal: 14, paddingBottom: 14 }]}>
@@ -114,3 +114,6 @@ export function AllLink({ text, onPress, icon = 'calendar' }: { text: string; on
     </Pressable>
   );
 }
+
+/* Η γραμμή του πακέτου: πράσινη όσο μένουν πολλές, πορτοκαλί στις 2, κόκκινη στη 1 (και στο 0). Ίδια στον πελάτη και στον ιδιοκτήτη. */
+export const packBar = (left: number) => (left <= 1 ? C.bad : left === 2 ? C.warn : C.ok);
