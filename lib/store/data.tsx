@@ -31,7 +31,7 @@ export const showBooked = (o: { biz: string; service: string; date: string; time
 /* Κράτηση χωρίς διαθέσιμες επισκέψεις: πάμε τον πελάτη στα πακέτα του καταστήματος. */
 export const askPack = (id: string, msg?: string) => say('Χρειάζεσαι πακέτο', msg ?? 'Δεν σου έμειναν κρατήσεις. Διάλεξε ένα πακέτο από το κατάστημα.', [
   { text: 'Όχι τώρα', style: 'cancel' }, { text: 'Δες τα πακέτα', onPress: () => router.navigate(`/store/${id}` as any) }]);
-export type Package = { id: string; name: string; kind: string; price_cents: number; sessions: number | null; days: number | null; note: string | null; popular?: boolean };
+export type Package = { id: string; name: string; kind: string; price_cents: number; sessions: number | null; days: number | null; note: string | null; popular?: boolean; service_ids?: string[] | null };
 
 export const dayLabel = (d: string) => (d === iso(new Date()) ? 'Σήμερα' : fmtLong(d));
 
@@ -78,10 +78,20 @@ function useStoreData(id: string) {
     setMine(my ?? { bookings: [], waitlist: [], memberships: [] }); setNotes(n.data ?? []);
   }, [signedIn]);
 
+  /* Πακέτο για συγκεκριμένα μαθήματα (015_pack_services): μόλις ενεργοποιηθεί, το πρόγραμμα δείχνει μόνο αυτά.
+     null = όλα τα μαθήματα (χωρίς πακέτο, ή πακέτο για όλα). */
+  const myM = (mine.memberships ?? []).find((m: any) => m.business_id === id);
+  const packOnly: string[] | null = layout === 'classes' && biz?.uses_credits && myM?.status === 'approved' && Array.isArray(myM?.services) && myM.services.length
+    && services.some((x) => myM.services.includes(x.id)) ? myM.services : null;
+  const packKey = packOnly?.join(',') ?? '';
+  const schedServices = packOnly ? services.filter((x) => packOnly.includes(x.id)) : services;
+  // Αν είχε διαλέξει μάθημα εκτός πακέτου (π.χ. από τη λίστα του καταστήματος), το πρόγραμμα γυρίζει στα «Όλα» του πακέτου.
+  useEffect(() => { if (packOnly && service && !packOnly.includes(service)) setService(null); }, [packKey, service]);
+
   const loadDay = useCallback(async () => {
     if (!layout) return;
     // Μαθήματα: «Όλα» (service = null) ή μόνο το επιλεγμένο τμήμα. Ραντεβού: πάντα μία υπηρεσία.
-    const list = layout === 'classes' && !service ? services : services.filter((x) => x.id === service);
+    const list = layout === 'classes' && !service ? schedServices : schedServices.filter((x) => x.id === service);
     if (!list.length) { setSlots([]); return; }
     const [all, dn] = await Promise.all([
       Promise.all(list.map((sv) => avail(sv, date))),
@@ -91,7 +101,7 @@ function useStoreData(id: string) {
     const now = new Date(), today = iso(now), hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     setSlots(all.flat().filter((x) => date !== today || x.time > hhmm).sort((a, z) => a.time.localeCompare(z.time) || a.sv.name.localeCompare(z.sv.name)));
     setNote(dn.data?.closed ? 'Κλειστά αυτή τη μέρα' : dn.data?.note ?? null);
-  }, [layout, services, service, date, id]);
+  }, [layout, services, service, date, id, packKey]);
 
   const reload = useCallback(async () => { await Promise.all([loadMine(), loadDay()]).catch(() => say('Δεν φορτώθηκε το πρόγραμμα')); }, [loadMine, loadDay]);
   useEffect(() => { setSlots(null); loadDay().catch(() => say('Δεν φορτώθηκε το πρόγραμμα')); }, [loadDay]);
@@ -178,7 +188,7 @@ function useStoreData(id: string) {
   const unwait = (sl: Slot) => leave({ service_id: sl.sv.id, date, time: sl.time });
 
   return {
-    id, biz, st, layout, services, hours, days, date, setDate, service, setService, slots, note, busy,
+    id, biz, st, layout, services, schedServices, packOnly, hours, days, date, setDate, service, setService, slots, note, busy,
     packages, pendingPack, choosePack, cancelPack,
     upcoming, past, waits, pack, packInfo: packCard, membership, messages, state, waitAt, book, wait, cancel, unwait, cancelBooking, leave, reload,
   };

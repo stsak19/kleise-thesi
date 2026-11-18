@@ -36,6 +36,7 @@ export function StorePacks({ title = 'Πακέτα' }: { title?: string }) {
               </View>
               <Text style={{ color: readable(color), fontWeight: '900', fontSize: 22, letterSpacing: -0.5 }}>{p.price_cents ? price(p.price_cents) : 'Δωρεάν'}</Text>
             </View>
+            {!!p.service_ids?.length && <Text style={{ color: C.mute, fontSize: 13.5 }}>Για: {S.services.filter((x) => p.service_ids!.includes(x.id)).map((x) => x.name).join(', ')}</Text>}
             {!!p.note && <Text style={{ color: C.mute, fontSize: 13.5, lineHeight: 19 }}>{p.note}</Text>}
             {asked ? (
               <View style={[s.row, { gap: 10, marginTop: 2 }]}>

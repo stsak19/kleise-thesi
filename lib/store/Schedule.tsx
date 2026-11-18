@@ -20,7 +20,7 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
   const wide = useWide();
   const insets = useSafeAreaInsets();
   if (!open) return null;
-  const multi = S.services.length > 1;
+  const multi = S.schedServices.length > 1;
   const d = new Date(S.date + 'T00:00');
   const today = S.days[0];
   const ink = readable(S.st?.color ?? C.text); // ώρες και σήματα στο χρώμα του καταστήματος
@@ -93,7 +93,7 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
           {/* υπηρεσίες: φίλτρο στα μαθήματα, επιλογή στα ραντεβού */}
           {multi && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 20, paddingTop: 12 }}>
-              {[...(S.layout === 'classes' ? [{ id: null as string | null, name: 'Όλα' }] : []), ...S.services].map((x) => {
+              {[...(S.layout === 'classes' ? [{ id: null as string | null, name: 'Όλα' }] : []), ...S.schedServices].map((x) => {
                 const on = S.service === x.id;
                 return (
                   <Pressable key={x.id ?? 'all'} onPress={() => S.setService(x.id)}
@@ -113,6 +113,11 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
           </View>
         </View>
 
+        {!!S.packOnly && (
+          <View style={{ paddingHorizontal: 20, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.line }}>
+            <Text style={{ color: C.mute, fontSize: 13 }}>Βλέπεις τα μαθήματα του πακέτου σου: {S.schedServices.map((x) => x.name).join(', ')}.</Text>
+          </View>
+        )}
         {!!S.pack && S.pack.left <= 0 && (
           <View style={{ paddingHorizontal: 20, paddingVertical: 12, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.line }}>
             <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>Τελείωσε το πακέτο σου</Text>

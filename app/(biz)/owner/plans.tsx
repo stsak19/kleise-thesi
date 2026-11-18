@@ -15,11 +15,13 @@ export default function Plans() {
   const { list: clients } = useClients(biz);
   const [adding, setAdding] = useState(false);
   const [reqs, setReqs] = useState<any[]>([]);
-  const [f, setF] = useState({ name: '', kind: 'pack', price: '', sessions: '', days: '30' });
+  const [f, setF] = useState({ name: '', kind: 'pack', price: '', sessions: '', days: '30', only: [] as string[] });
+  const [svcs, setSvcs] = useState<{ id: string; name: string }[]>([]);
 
   const load = useCallback(() => {
     if (!biz) return;
     sb.from('packages').select('*').eq('business_id', biz.id).eq('active', true).then(({ data, error }) => setList(error ? [] : data ?? []));
+    sb.from('services').select('id,name').eq('business_id', biz.id).eq('active', true).order('name').then(({ data }) => setSvcs(data ?? []));
     rpc<any[]>('owner_package_requests', { p_business: biz.id }).then((x) => setReqs(x ?? [])).catch(() => setReqs([]));
   }, [biz?.id]);
   useFocusEffect(load);
@@ -36,10 +38,13 @@ export default function Plans() {
 
   const add = async () => {
     if (!f.name.trim() || !f.price.trim()) return say('Γράψε όνομα και τιμή');
-    const { error } = await sb.from('packages').insert({ business_id: biz.id, name: f.name.trim(), kind: f.kind, price_cents: Math.round(parseFloat(f.price.replace(',', '.')) * 100),
-      sessions: f.sessions ? +f.sessions : null, days: f.days ? +f.days : null, note: null, active: true });
+    const row: any = { business_id: biz.id, name: f.name.trim(), kind: f.kind, price_cents: Math.round(parseFloat(f.price.replace(',', '.')) * 100),
+      sessions: f.sessions ? +f.sessions : null, days: f.days ? +f.days : null, note: null, active: true };
+    // Για συγκεκριμένα μαθήματα (015_pack_services). Κενό = για όλα.
+    if (f.only.length && f.only.length < svcs.length) row.service_ids = f.only;
+    const { error } = await sb.from('packages').insert(row);
     if (error) return say('Δεν αποθηκεύτηκε', error.message);
-    setF({ name: '', kind: 'pack', price: '', sessions: '', days: '30' }); setAdding(false); load();
+    setF({ name: '', kind: 'pack', price: '', sessions: '', days: '30', only: [] }); setAdding(false); load();
   };
 
   return (
@@ -57,7 +62,8 @@ export default function Plans() {
         const n = holders(p.name);
         const asked = reqs.filter((r) => r.package_id === p.id).length;
         const line = [p.sessions ? `${p.sessions} ${p.sessions === 1 ? 'επίσκεψη' : 'επισκέψεις'}` : p.kind === 'sub' ? 'Απεριόριστα' : null,
-          p.days ? (p.days >= 365 ? 'ισχύει 1 χρόνο' : `ισχύει ${p.days} μέρες`) : null].filter(Boolean).join(' · ');
+          p.days ? (p.days >= 365 ? 'ισχύει 1 χρόνο' : `ισχύει ${p.days} μέρες`) : null,
+          p.service_ids?.length ? `για ${svcs.filter((x) => p.service_ids.includes(x.id)).map((x) => x.name).join(', ')}` : null].filter(Boolean).join(' · ');
         return (
           <Card key={p.id} style={{ gap: 8 }}>
             <View style={[s.row, { gap: 8 }]}>
@@ -91,6 +97,16 @@ export default function Plans() {
             <View style={{ flex: 1 }}><Input label="Επισκέψεις" keyboardType="number-pad" placeholder="—" value={f.sessions} onChangeText={(v) => setF({ ...f, sessions: v })} /></View>
             <View style={{ flex: 1 }}><Input label="Μέρες" keyboardType="number-pad" value={f.days} onChangeText={(v) => setF({ ...f, days: v })} /></View>
           </View>
+          {svcs.length > 1 && (
+            <View style={{ gap: 6 }}>
+              <Text style={{ color: C.mute, fontSize: 13, fontWeight: '700' }}>Ισχύει για</Text>
+              <View style={[s.row, { flexWrap: 'wrap', gap: 8 }]}>
+                <Chip label="Όλα" on={!f.only.length} onPress={() => setF({ ...f, only: [] })} />
+                {svcs.map((x) => <Chip key={x.id} label={x.name} on={f.only.includes(x.id)}
+                  onPress={() => setF({ ...f, only: f.only.includes(x.id) ? f.only.filter((y) => y !== x.id) : [...f.only, x.id] })} />)}
+              </View>
+            </View>
+          )}
           <View style={[s.row, { gap: 10 }]}>
             <Btn kind="ghost" title="Άκυρο" onPress={() => setAdding(false)} style={{ flex: 1 }} />
             <Btn title="Προσθήκη" onPress={add} style={{ flex: 1 }} />
