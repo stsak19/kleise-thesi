@@ -12,11 +12,11 @@ import { DeskPreview, PreviewPill, PreviewSheet } from '../lib/owner/LivePreview
 import { WIDE } from '../lib/wide';
 import { PagePreview, upper } from '../lib/owner/PagePreview';
 import { screenFor } from '../lib/bizscreen';
-import { THEMES, styleOf } from '../lib/presets';
+import { styleOf } from '../lib/presets';
 import { Btn, C, DAYS, TextBtn, Icon, Input, alpha, catEmoji, catLabel, price, s, shadow } from '../lib/ui';
 import { EMPTY_BIZ, Hours, Svc, WEEK, newKey, badHours, loadBusiness, presetData, saveBusiness } from '../lib/owner/save';
 import { AmountPick, DAY_UNITS, amountLabel } from '../lib/TimePick';
-import { ColorSample, HoursEditor, Swatches, ToggleCard, TypeGrid } from '../lib/owner/steps';
+import { ColorSample, HoursEditor, PAGE_COLORS, Swatches, ToggleCard, TypeGrid } from '../lib/owner/steps';
 import { ServiceBoard, ServiceFields, schedOf, withSched, type Sched } from '../lib/owner/services';
 import { blankFor, groupOf, svcKind } from '../lib/owner/svcKind';
 
@@ -37,7 +37,6 @@ const RAIL: Record<Step, (svc: string) => string> = {
   type: () => 'Είδος', name: () => 'Όνομα', place: () => 'Πού', look: () => 'Εικόνα',
   services: (x) => x, hours: () => 'Ωράριο', rules: () => 'Κανόνες', review: () => 'Έλεγχος',
 };
-const COLORS = Array.from(new Set(THEMES.map((t) => t.color)));
 const hrs = (m: number) => amountLabel(m);
 
 /* Νέο κατάστημα: ανοιχτή μόνο η Δευτέρα (με τις προτεινόμενες ώρες του είδους). Ο επιχειρηματίας τη φτιάχνει
@@ -249,7 +248,7 @@ export default function NewBusiness() {
           <PhotosEditor uid={uid} b={b} setB={setB} wide={wide} />
           <View style={{ gap: 10 }}>
             <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>Χρώμα σελίδας</Text>
-            <Swatches colors={COLORS} value={look.color} onPick={(c) => setB({ ...b, brand_color: c })} />
+            <Swatches colors={PAGE_COLORS} value={look.color} onPick={(c) => setB({ ...b, brand_color: c })} />
             <ColorSample color={look.color} category={cat} />
           </View>
         </View>

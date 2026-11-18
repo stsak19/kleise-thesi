@@ -159,13 +159,13 @@ export function HoursEditor({ hours, setHours }: { hours: Hours; setHours: (h: H
     setHours([...hours.filter((h) => !(h.svc === null && to.includes(h.weekday))), ...to.flatMap((w) => src.map((x) => ({ ...x, weekday: w })))]);
   };
   return (
-    <View style={{ gap: 10 }}>
-      {/* Κάθε μέρα στο δικό της πλαίσιο, με κενό ανάμεσα. */}
+    <View style={{ gap: 12 }}>
+      {/* Κάθε μέρα στο δικό της πλαίσιο, με κενό και σκιά από κάτω για βάθος. */}
       {WEEK.map((d) => {
         const rows = gen(d).sort((a, z) => a.h.opens.localeCompare(z.h.opens));
         const canCopy = rows.length > 0 && later(d).length > 0 && later(d).some((w) => key(w) !== key(d));
         return (
-          <View key={d} style={[s.card, shadow(1), { padding: 14, gap: 10 }]}>
+          <View key={d} style={[s.card, shadow(2), { padding: 14, gap: 10 }]}>
             <View style={s.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ color: C.text, fontWeight: '700', fontSize: 15 }}>{DAYNAME[d]}</Text>
@@ -233,9 +233,18 @@ export function ColorSample({ color, category }: { color: string; category?: str
 }
 
 /* Χρωματιστές βούλες για το χρώμα της σελίδας. */
+/* Χρώματα σελίδας: μόνο όσα διαβάζονται καλά πάνω σε λευκό (αντίθεση ≥ 4.5:1, π.χ. όχι κίτρινο ή ανοιχτό γαλάζιο).
+   Στη σκούρα εμφάνιση το readable() του theme.ts τα ανοίγει όπου χρειάζεται. Σειρά: κόκκινα → πορτοκαλί → πράσινα → μπλε → μωβ/ροζ → γκρι. */
+export const PAGE_COLORS = [
+  '#840b29', '#b91c1c', '#be185d', '#a21caf', '#8a5a64', '#a4552b',
+  '#c2410c', '#92400e', '#8a6a00', '#4d7c0f', '#15803d', '#047857',
+  '#0f766e', '#3f6b6a', '#0e7490', '#0369a1', '#2f5878', '#1d4ed8',
+  '#4338ca', '#6d28d9', '#7e22ce', '#6b5b73', '#334155', '#16161a',
+];
+
 export function Swatches({ colors, value, onPick }: { colors: string[]; value: string; onPick: (c: string) => void }) {
   return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
       {colors.map((c) => {
         const on = c.toLowerCase() === value.toLowerCase();
         return (

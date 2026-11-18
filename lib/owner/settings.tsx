@@ -5,7 +5,7 @@ import { Text } from '../Txt';
 import { say } from '../alert';
 import { sb } from '../supabase';
 import { useAuth } from '../auth';
-import { THEMES, styleOf } from '../presets';
+import { styleOf } from '../presets';
 import { DAYNAME, EMPTY_BIZ, HEX, Hours, Slot, Svc, WEEK, badHours, loadBusiness, newKey, nextSpan, presetData, saveBusiness } from './save';
 import { Btn, C, CATEGORIES, catLabel, Card, Chip, Group, Icon, Input, Section, SwitchRow, T, TextBtn, Toggle, alpha, catEmoji, s, shadow } from '../ui';
 import { AmountPick, DAY_UNITS, TimeBtn } from '../TimePick';
@@ -13,7 +13,7 @@ import { ServiceBoard, ServiceModal, draftFor, withSched, type Person, type SvcD
 import { groupOf, svcKind } from './svcKind';
 import { useActiveBizId } from './active';
 import { PhotosEditor } from './Photos';
-import { ColorSample, Swatches } from './steps';
+import { ColorSample, PAGE_COLORS, Swatches } from './steps';
 import { useWide } from '../wide';
 
 /* «Ρυθμίσεις καταστήματος»: Στοιχεία · Υπηρεσίες · Ωράριο · Κανόνες · Εμφάνιση.
@@ -197,10 +197,10 @@ function HoursSec({ st }: { st: St }) {
         <Group><SwitchRow label={own ? 'Δικό της ωράριο' : 'Ίδιο με το γενικό ωράριο'} sub="Αν η υπηρεσία γίνεται μόνο κάποιες ώρες" value={own} onChange={setOwn} last /></Group>
       )}
       {own && (
-        <View style={{ gap: 10 }}>
-          {/* Κάθε μέρα στο δικό της πλαίσιο, με κενό ανάμεσα. */}
+        <View style={{ gap: 12 }}>
+          {/* Κάθε μέρα στο δικό της πλαίσιο, με κενό και σκιά από κάτω για βάθος. */}
           {WEEK.map((d) => { const rows = dayRows(d); return (
-            <View key={d} style={[s.card, shadow(1), { padding: 14, gap: 10 }]}>
+            <View key={d} style={[s.card, shadow(2), { padding: 14, gap: 10 }]}>
               <View style={s.row}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: C.text, fontWeight: '700', fontSize: 15 }}>{DAYNAME[d]}</Text>
@@ -249,7 +249,6 @@ function Rules({ st }: { st: St }) {
 }
 
 /* ---------- Εμφάνιση: ίδια με το βήμα «Εμφάνιση» του οδηγού (εξώφυλλο, φωτογραφία προφίλ, χρώμα σελίδας) ---------- */
-const COLORS = Array.from(new Set(THEMES.map((t) => t.color)));
 function Look({ st }: { st: St }) {
   const { b, setB, uid } = st;
   const wide = useWide();
@@ -258,7 +257,7 @@ function Look({ st }: { st: St }) {
       <PhotosEditor uid={uid} b={b} setB={setB} wide={wide} />
       <View style={{ gap: 10 }}>
         <Text style={{ color: C.text, fontWeight: '800', fontSize: 15 }}>Χρώμα σελίδας</Text>
-        <Swatches colors={COLORS} value={styleOf(b).color} onPick={(c) => setB({ ...b, brand_color: c })} />
+        <Swatches colors={PAGE_COLORS} value={styleOf(b).color} onPick={(c) => setB({ ...b, brand_color: c })} />
         <ColorSample color={styleOf(b).color} category={b.category} />
       </View>
     </View>
