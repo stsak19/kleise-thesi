@@ -86,7 +86,8 @@ export default function StoreHome() {
   );
   const about = !!biz.description && <Text style={{ color: C.mute, fontSize: 15, lineHeight: 22 }}>{biz.description}</Text>;
 
-  const services = S.services.length > 0 && (
+  // Μαθήματα (γυμναστήριο, pilates): η λίστα των μαθημάτων είναι στην κράτηση (＋ / «Δες το πρόγραμμα»), όχι στο κατάστημα (2026-11-18).
+  const services = !classes && S.services.length > 0 && (
     <View>
       <Head c={ink} t={classes ? 'Μαθήματα' : 'Υπηρεσίες και τιμές'} />
       <Text style={{ color: C.mute, fontSize: 13, marginTop: 2, marginBottom: 10 }}>{classes ? 'Πάτα ένα μάθημα για να δεις τις ώρες του.' : 'Πάτα μια υπηρεσία για να κλείσεις.'}</Text>

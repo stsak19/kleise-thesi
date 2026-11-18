@@ -8,6 +8,7 @@ import { Seats } from './Seats';
 import { useBook } from './book';
 import { screenFor } from '../bizscreen';
 import { useWide } from '../wide';
+import { StorePacks } from './Packs';
 
 const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
 
@@ -44,6 +45,8 @@ export function ScheduleList({ bottom, onBook }: { bottom: number; onBook?: () =
   const S = useStore();
   const B = useBook();
   const multi = S.schedServices.length > 1;
+  // Γυμναστήριο με πακέτα και ο πελάτης δεν έχει ακόμα: πρώτα τα πακέτα, μετά το πρόγραμμα (που δουλεύει μόλις ενεργοποιηθεί το πακέτο).
+  const needPack = S.layout === 'classes' && !!S.biz?.uses_credits && !S.hasPack && S.packages.length > 0;
   const d = new Date(S.date + 'T00:00');
   const today = S.days[0];
   const ink = readable(S.st?.color ?? C.text); // ώρες και σήματα στο χρώμα του καταστήματος
@@ -84,7 +87,13 @@ export function ScheduleList({ bottom, onBook }: { bottom: number; onBook?: () =
   };
 
   return (
-        <ScrollView contentContainerStyle={{ paddingBottom: bottom }} stickyHeaderIndices={[0]}>
+        <ScrollView contentContainerStyle={{ paddingBottom: bottom }} stickyHeaderIndices={[needPack ? 1 : 0]}>
+        {needPack && (
+          <View style={{ paddingHorizontal: 20, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: C.line }}>
+            <StorePacks title="Πρώτα διάλεξε πακέτο" />
+            <Text style={{ color: C.mute, fontSize: 13, marginTop: 8, lineHeight: 19 }}>Μόλις το πληρώσεις στο κατάστημα, κλείνεις εδώ θέση στα μαθήματα του πακέτου.</Text>
+          </View>
+        )}
         <View style={{ backgroundColor: C.bg }}>
           {/* λωρίδα ημερών */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingTop: 14 }}>
@@ -103,7 +112,7 @@ export function ScheduleList({ bottom, onBook }: { bottom: number; onBook?: () =
           {/* υπηρεσίες: φίλτρο στα μαθήματα, επιλογή στα ραντεβού */}
           {multi && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 20, paddingTop: 12 }}>
-              {[...(S.layout === 'classes' ? [{ id: null as string | null, name: 'Όλα' }] : []), ...S.schedServices].map((x) => {
+              {[...(S.showAll ? [{ id: null as string | null, name: 'Όλα' }] : []), ...S.schedServices].map((x) => {
                 const on = S.service === x.id;
                 return (
                   <Pressable key={x.id ?? 'all'} onPress={() => S.setService(x.id)}
@@ -125,7 +134,7 @@ export function ScheduleList({ bottom, onBook }: { bottom: number; onBook?: () =
 
         {!!S.packOnly && (
           <View style={{ paddingHorizontal: 20, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.line }}>
-            <Text style={{ color: C.mute, fontSize: 13 }}>Βλέπεις τα μαθήματα του πακέτου σου: {S.schedServices.map((x) => x.name).join(', ')}.</Text>
+            <Text style={{ color: C.mute, fontSize: 13 }}>{S.schedServices.length === 1 ? `Το πακέτο σου είναι για ${S.schedServices[0].name}.` : `Βλέπεις τα μαθήματα του πακέτου σου: ${S.schedServices.map((x) => x.name).join(', ')}.`}</Text>
           </View>
         )}
         {!!S.pack && S.pack.left <= 0 && (

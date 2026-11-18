@@ -64,8 +64,6 @@ function useStoreData(id: string) {
 
   const st = biz ? styleOf(biz) : null;
   const layout: Layout | undefined = st?.layout;
-  // Στα ραντεβού διαλέγεις πάντα μία υπηρεσία· στα μαθήματα το φίλτρο ξεκινά από «Όλα».
-  useEffect(() => { if (layout && layout !== 'classes' && !service && services.length) setService(services[0].id); }, [layout, services]);
 
   const days = useMemo(() => {
     const n = biz?.max_days_ahead ?? 14, base = new Date();
@@ -85,8 +83,15 @@ function useStoreData(id: string) {
     && services.some((x) => myM.services.includes(x.id)) ? myM.services : null;
   const packKey = packOnly?.join(',') ?? '';
   const schedServices = packOnly ? services.filter((x) => packOnly.includes(x.id)) : services;
-  // Αν είχε διαλέξει μάθημα εκτός πακέτου (π.χ. από τη λίστα του καταστήματος), το πρόγραμμα γυρίζει στα «Όλα» του πακέτου.
-  useEffect(() => { if (packOnly && service && !packOnly.includes(service)) setService(null); }, [packKey, service]);
+  /* «Όλα» στο πρόγραμμα μόνο όταν ο πελάτης έχει πακέτο που καλύπτει δύο ή περισσότερα μαθήματα μαζί (2026-11-18).
+     Αλλιώς διαλέγει ένα μάθημα τη φορά (και στα ραντεβού πάντα μία υπηρεσία). */
+  const hasPack = layout === 'classes' && !!biz?.uses_credits && myM?.status === 'approved' && ((myM?.credits ?? 0) > 0 || !!myM?.unlimited || myM?.total != null);
+  const showAll = hasPack && schedServices.length >= 2;
+  useEffect(() => {
+    if (!layout || !schedServices.length) return;
+    if (service && !schedServices.some((x) => x.id === service)) setService(showAll ? null : schedServices[0].id);
+    else if (!service && !showAll) setService(schedServices[0].id);
+  }, [layout, packKey, showAll, service, services.length]);
 
   const loadDay = useCallback(async () => {
     if (!layout) return;
@@ -188,7 +193,7 @@ function useStoreData(id: string) {
   const unwait = (sl: Slot) => leave({ service_id: sl.sv.id, date, time: sl.time });
 
   return {
-    id, biz, st, layout, services, schedServices, packOnly, hours, days, date, setDate, service, setService, slots, note, busy,
+    id, biz, st, layout, services, schedServices, packOnly, showAll, hasPack, hours, days, date, setDate, service, setService, slots, note, busy,
     packages, pendingPack, choosePack, cancelPack,
     upcoming, past, waits, pack, packInfo: packCard, membership, messages, state, waitAt, book, wait, cancel, unwait, cancelBooking, leave, reload,
   };

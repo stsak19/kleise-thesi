@@ -40,7 +40,9 @@ export default function Plans() {
     if (!f.name.trim() || !f.price.trim()) return say('Γράψε όνομα και τιμή');
     const row: any = { business_id: biz.id, name: f.name.trim(), kind: f.kind, price_cents: Math.round(parseFloat(f.price.replace(',', '.')) * 100),
       sessions: f.sessions ? +f.sessions : null, days: f.days ? +f.days : null, note: null, active: true };
-    // Για συγκεκριμένα μαθήματα (015_pack_services). Κενό = για όλα.
+    /* Για ποια μαθήματα (015_pack_services): ο ιδιοκτήτης διαλέγει ένα ή περισσότερα. Με ένα ο πελάτης βλέπει μόνο εκείνο·
+       με δύο ή περισσότερα (π.χ. Crossfit + Pilates μαζί) του δείχνει και «Όλα». Όλα επιλεγμένα = κενό (ισχύει και για νέα μαθήματα). */
+    if (svcs.length > 1 && !f.only.length) return say('Διάλεξε μάθημα', 'Πάτα σε ποιο μάθημα ισχύει το πακέτο. Μπορείς να διαλέξεις και περισσότερα μαζί.');
     if (f.only.length && f.only.length < svcs.length) row.service_ids = f.only;
     const { error } = await sb.from('packages').insert(row);
     if (error) return say('Δεν αποθηκεύτηκε', error.message);
@@ -100,10 +102,12 @@ export default function Plans() {
           {svcs.length > 1 && (
             <View style={{ gap: 6 }}>
               <Text style={{ color: C.mute, fontSize: 13, fontWeight: '700' }}>Ισχύει για</Text>
+              <Text style={{ color: C.mute, fontSize: 12.5 }}>Διάλεξε ένα μάθημα ή περισσότερα μαζί.</Text>
               <View style={[s.row, { flexWrap: 'wrap', gap: 8 }]}>
-                <Chip label="Όλα" on={!f.only.length} onPress={() => setF({ ...f, only: [] })} />
                 {svcs.map((x) => <Chip key={x.id} label={x.name} on={f.only.includes(x.id)}
                   onPress={() => setF({ ...f, only: f.only.includes(x.id) ? f.only.filter((y) => y !== x.id) : [...f.only, x.id] })} />)}
+                <Chip label={f.only.length === svcs.length ? 'Κανένα' : 'Όλα μαζί'} on={false}
+                  onPress={() => setF({ ...f, only: f.only.length === svcs.length ? [] : svcs.map((x) => x.id) })} />
               </View>
             </View>
           )}
