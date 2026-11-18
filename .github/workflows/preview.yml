@@ -1,0 +1,40 @@
+name: Προεπισκόπηση PR
+
+# Κάθε PR (από branch αυτού του repo) ανεβαίνει ζωντανά στο
+#   https://stsak19.github.io/kleise-thesi/pr-preview/pr-<αριθμός>/
+# και ο σύνδεσμος γράφεται σε σχόλιο στο PR. Με κάθε νέο commit ενημερώνεται· όταν το PR κλείσει, σβήνεται.
+# ΠΡΟΣΟΧΗ: η προεπισκόπηση μιλάει με την κανονική βάση Supabase (αληθινοί λογαριασμοί και κρατήσεις).
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency: preview-${{ github.event.number }}
+
+jobs:
+  preview:
+    # PR από fork δεν έχουν δικαίωμα να γράψουν στο gh-pages.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        if: github.event.action != 'closed'
+        with: { node-version: 22, cache: npm }
+      - if: github.event.action != 'closed'
+        run: npm ci
+      - name: Build για web
+        if: github.event.action != 'closed'
+        run: npx expo export --platform web --output-dir web
+        env:
+          EXPO_BASE_URL: /kleise-thesi/pr-preview/pr-${{ github.event.number }}
+      - uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: web
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: auto

@@ -1,21 +1,21 @@
 name: Web (GitHub Pages)
 
+# Η κανονική σελίδα (https://stsak19.github.io/kleise-thesi/) από το main, στο branch gh-pages.
+# Ο φάκελος pr-preview/ του gh-pages ανήκει στις προεπισκοπήσεις των PR (preview.yml) και δεν πειράζεται εδώ.
+# Ρύθμιση στο GitHub: Settings → Pages → Source «Deploy from a branch» → gh-pages / (root).
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency: { group: pages, cancel-in-progress: true }
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: { name: github-pages, url: '${{ steps.d.outputs.page_url }}' }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,8 +23,10 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npx expo export --platform web --output-dir web
-      - run: cp web/index.html web/404.html && touch web/.nojekyll
-      - uses: actions/upload-pages-artifact@v3
-        with: { path: web }
-      - id: d
-        uses: actions/deploy-pages@v4
+      - run: cp .github/pages/404.html web/404.html && touch web/.nojekyll
+      - uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: web
+          branch: gh-pages
+          clean-exclude: pr-preview/
+          force: false
