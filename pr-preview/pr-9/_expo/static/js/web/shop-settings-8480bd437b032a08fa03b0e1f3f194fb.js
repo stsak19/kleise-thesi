@@ -1,1 +1,0 @@
-__d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return c}});var t=r(d[0]),n=r(d[1]),s=r(d[2]);function c(){const{s:c}=(0,t.useLocalSearchParams)(),u=n.SECTIONS.some(t=>t.key===c)?c:'services';return(0,s.jsx)(n.SettingsDesk,{section:u},u)}},761,[806,824,6]);
