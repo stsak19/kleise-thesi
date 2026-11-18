@@ -65,6 +65,7 @@ function Gate() {
       <Stack.Screen name="(biz)" />
       <Stack.Screen name="new-business" />
       <Stack.Screen name="booked" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="paid" />
     </Stack>
   );
 }

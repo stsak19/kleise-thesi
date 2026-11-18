@@ -1,12 +1,12 @@
 import { View } from 'react-native';
 import { Text } from '../Txt';
-import { Btn, C, Card, Pill, price, s } from '../ui';
+import { Btn, C, Card, Pill, TextBtn, price, s } from '../ui';
 import { PLAN_KIND } from '../owner/kinds';
 import { readable } from '../theme';
 import { useStore, type Package } from './data';
 
-/* Τα πακέτα του καταστήματος, όπως τα έφτιαξε ο ιδιοκτήτης. Ο πελάτης πατά «Το θέλω» και το κατάστημα
-   το ενεργοποιεί όταν πληρωθεί (στο κατάστημα). Ένα αίτημα τη φορά· το ζητημένο δείχνει «Απόσυρση». */
+/* Τα πακέτα του καταστήματος, όπως τα έφτιαξε ο ιδιοκτήτης. Ο πελάτης πατά «Το θέλω»: αν το κατάστημα δέχεται
+   πληρωμή στην εφαρμογή (Viva) πληρώνει εκείνη τη στιγμή, αλλιώς το κατάστημα το ενεργοποιεί όταν πληρωθεί εκεί. Ένα αίτημα τη φορά· το ζητημένο δείχνει «Απόσυρση». */
 export const packLine = (p: Package) => [
   p.sessions ? `${p.sessions} ${p.sessions === 1 ? 'επίσκεψη' : 'επισκέψεις'}` : p.kind === 'sub' ? 'Απεριόριστα' : null,
   p.days ? (p.days >= 365 ? 'ισχύει 1 χρόνο' : `ισχύει ${p.days} μέρες`) : null,
@@ -44,7 +44,12 @@ export function StorePacks({ title = 'Πακέτα' }: { title?: string }) {
                 <Btn size="sm" kind="ghost" title="Απόσυρση" onPress={S.cancelPack} />
               </View>
             ) : (
-              <Btn size="sm" color={color} title="Το θέλω" onPress={() => S.choosePack(p)} style={{ marginTop: 2 }} />
+              <View style={{ gap: 6, marginTop: 2 }}>
+                <Btn size="sm" color={color} title="Το θέλω" onPress={() => S.choosePack(p)} />
+                {S.payOnline && p.price_cents > 0 && (
+                  <View style={{ alignItems: 'center' }}><TextBtn title="ή πλήρωσέ το στο κατάστημα" color={C.mute} onPress={() => S.choosePack(p, 'store')} /></View>
+                )}
+              </View>
             )}
           </Card>
         );

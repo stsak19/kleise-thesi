@@ -14,7 +14,7 @@ export const BACK = '#back';
 /* Οι σελίδες που ανοίγουν χωρίς λογαριασμό: η αρχική, η αρχική ενός καταστήματος (στοιχεία και κράτηση),
    και οι Κρατήσεις του καταστήματος (εκεί δείχνει «Συνδέσου»), ώστε ο επισκέπτης να μη βγαίνει από το κατάστημα. */
 /* Το απόρρητο ανοίγει πάντα χωρίς λογαριασμό (το ζητούν τα stores). */
-export const openToGuests = (path: string) => path === '/privacy' || GUEST_OK && (path === '/' || /^\/store\/[^/]+(\/bookings|\/book)?\/?$/.test(path));
+export const openToGuests = (path: string) => path === '/privacy' || path === '/paid' || GUEST_OK && (path === '/' || /^\/store\/[^/]+(\/bookings|\/book)?\/?$/.test(path));
 
 let back: string | null = null;
 export const setReturnTo = (path: string | null) => { back = path; };

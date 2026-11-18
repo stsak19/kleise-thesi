@@ -3,7 +3,7 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text } from '../Txt';
 import { say } from '../alert';
-import { sb } from '../supabase';
+import { rpc, sb } from '../supabase';
 import { useAuth } from '../auth';
 import { styleOf } from '../presets';
 import { DAYNAME, EMPTY_BIZ, HEX, Hours, Slot, Svc, WEEK, badHours, loadBusiness, newKey, nextSpan, presetData, saveBusiness } from './save';
@@ -241,6 +241,43 @@ function Rules({ st }: { st: St }) {
         <SwitchRow label="Έγκριση νέων πελατών" sub="Ο νέος πελάτης κλείνει μόνο αφού τον εγκρίνεις" value={!!b.requires_approval} onChange={(v) => setB({ ...b, requires_approval: v })} />
         <SwitchRow label="Πακέτα κρατήσεων (καρνέ)" sub="Κάθε κράτηση χρεώνεται από το πακέτο του πελάτη. Τα πακέτα (τιμή, επισκέψεις, μέρες) είναι στο Κατάστημα → Πακέτα." value={!!b.uses_credits} onChange={(v) => setB({ ...b, uses_credits: v })} last />
       </Group>
+      {!!b.id && <OnlinePay bizId={b.id} />}
+    </View>
+  );
+}
+
+/* Πληρωμή πακέτων μέσα στην εφαρμογή (Viva). Ο ιδιοκτήτης γράφει τον κωδικό εμπόρου (Merchant ID) του λογαριασμού
+   Viva του καταστήματος και ανοίγει τον διακόπτη. Αποθηκεύεται αμέσως (rpc owner_set_payments, migration 018). */
+function OnlinePay({ bizId }: { bizId: string }) {
+  const [st, setSt] = useState<{ pay_online: boolean; viva_merchant_id: string | null; commission_pct: number } | null>(null);
+  const [mid, setMid] = useState('');
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    rpc<any>('owner_payment_settings', { p_business: bizId }).then((r) => { setSt(r); setMid(r?.viva_merchant_id ?? ''); }).catch(() => setSt(null));
+  }, [bizId]);
+  if (!st) return null; // η migration 018 δεν έχει τρέξει ακόμα
+  const save = async (on: boolean) => {
+    setBusy(true);
+    try {
+      const r = await rpc<any>('owner_set_payments', { p_business: bizId, p_merchant: mid, p_on: on });
+      if (r?.ok === false) say('Δεν αποθηκεύτηκε', r.error);
+      else setSt({ ...st, pay_online: on, viva_merchant_id: mid.trim() || null });
+    } catch (e: any) { say('Δεν αποθηκεύτηκε', e.message); }
+    setBusy(false);
+  };
+  const pct = Number(st.commission_pct ?? 0).toLocaleString('el-GR');
+  return (
+    <View style={{ gap: 10 }}>
+      <Text style={{ color: C.text, fontWeight: '800', fontSize: 15, marginTop: 6 }}>Πληρωμή στην εφαρμογή</Text>
+      <Group>
+        <SwitchRow label="Οι πελάτες πληρώνουν τα πακέτα online" value={st.pay_online} onChange={(v) => !busy && save(v)}
+          sub={`Με κάρτα, Apple Pay ή Google Pay μέσω Viva. Τα χρήματα πάνε στον λογαριασμό Viva του καταστήματος· η πλατφόρμα κρατά ${pct}%. Το πακέτο ενεργοποιείται μόνο του.`} last />
+      </Group>
+      <Card style={{ gap: 10 }}>
+        <Input label="Κωδικός εμπόρου Viva (Merchant ID)" value={mid} onChangeText={setMid} autoCapitalize="none" autoCorrect={false}
+          placeholder="π.χ. 1a2b3c4d-5e6f-…" onBlur={() => mid.trim() !== (st.viva_merchant_id ?? '') && save(st.pay_online && !!mid.trim())} />
+        <T mute>Τον βρίσκεις στη Viva → Ρυθμίσεις → API Access. Ο λογαριασμός πρέπει να είναι συνδεδεμένος με την εφαρμογή (ISV).</T>
+      </Card>
     </View>
   );
 }

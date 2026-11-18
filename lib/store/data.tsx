@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { rpc, sb } from '../supabase';
+import { payPackage } from '../pay';
 import { say } from '../alert';
 import { styleOf, type Layout } from '../presets';
 import { fmtLong, iso } from '../ui';
@@ -184,8 +185,15 @@ function useStoreData(id: string) {
     run(w.service_id + w.time, () => rpc('leave_waitlist', { p_service: w.service_id, p_date: w.date, p_time: w.time.slice(0, 5) + ':00' }), 'Η δήλωση αποσύρθηκε');
   /* Πακέτα: ο πελάτης διαλέγει ένα, το κατάστημα το ενεργοποιεί όταν πληρωθεί. */
   const pendingPack: { id: string; name: string } | null = membership?.pending_package ?? null;
-  const choosePack = (pk: Package) => {
+  const payOnline = !!biz?.pay_online;
+  const choosePack = (pk: Package, where?: 'store') => {
     if (!signedIn) return askLogin(`/store/${id}`);
+    // Πληρωμή στην εφαρμογή (Viva): ανοίγει η σελίδα πληρωμής, και μόλις πληρωθεί το πακέτο ενεργοποιείται μόνο του.
+    if (payOnline && pk.price_cents > 0 && where !== 'store') {
+      const pay = () => run('pack' + pk.id, () => payPackage(pk.id), '', undefined, () => {});
+      return say(`«${pk.name}»`, `Τιμή ${(pk.price_cents / 100).toLocaleString('el-GR')}€. Πληρώνεις τώρα με κάρτα και το πακέτο ενεργοποιείται αμέσως.`,
+        [{ text: 'Άκυρο', style: 'cancel' }, { text: 'Πληρωμή τώρα', onPress: pay }]);
+    }
     const go = () => run('pack' + pk.id, () => rpc('request_package', { p_package: pk.id }), 'Το ζήτησες ✓',
       `Το κατάστημα θα ενεργοποιήσει το «${pk.name}» όταν το πληρώσεις εκεί. Θα σου έρθει ειδοποίηση.`);
     say(`«${pk.name}»`, [pk.price_cents ? `Τιμή ${(pk.price_cents / 100).toLocaleString('el-GR')}€, πληρώνεται στο κατάστημα.` : 'Δωρεάν.',
@@ -197,7 +205,7 @@ function useStoreData(id: string) {
 
   return {
     id, biz, st, layout, services, schedServices, packOnly, showAll, hasPack, preview, hours, days, date, setDate, service, setService, slots, note, busy,
-    packages, pendingPack, choosePack, cancelPack,
+    packages, pendingPack, choosePack, cancelPack, payOnline,
     upcoming, past, waits, pack, packInfo: packCard, membership, messages, state, waitAt, book, wait, cancel, unwait, cancelBooking, leave, reload,
   };
 }
