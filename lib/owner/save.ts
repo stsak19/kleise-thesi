@@ -45,6 +45,14 @@ export async function loadBusiness(uid: string) {
   };
 }
 
+/* Νέο διάστημα μετά το τελευταίο της ημέρας (για το «+ Διάλειμμα», όσες φορές θέλει):
+   ξεκινά μισή ώρα μετά και κρατά δύο ώρες, χωρίς να περνά τα μεσάνυχτα. */
+export function nextSpan(last?: { closes: string }): { opens: string; closes: string } {
+  const m = (t: string) => +t.slice(0, 2) * 60 + +t.slice(3, 5);
+  const t = (x: number) => `${String(Math.floor(x / 60)).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}`;
+  const start = Math.min(last && TIME.test(last.closes) ? m(last.closes) + 30 : 9 * 60, 23 * 60);
+  return { opens: t(start), closes: t(Math.min(start + 120, 23 * 60 + 59)) };
+}
 /* Πρώτο λάθος στο ωράριο, ως κείμενο για τον χρήστη (ή null). */
 export function badHours(hours: Hours) {
   const bad = hours.find((h) => !TIME.test(h.opens) || !TIME.test(h.closes) || h.closes <= h.opens);

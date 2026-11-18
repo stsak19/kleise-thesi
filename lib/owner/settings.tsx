@@ -7,7 +7,7 @@ import { pickAndUpload } from '../upload';
 import { sb } from '../supabase';
 import { useAuth } from '../auth';
 import { LAYOUTS, styleOf } from '../presets';
-import { DAYNAME, EMPTY_BIZ, HEX, Hours, Slot, Svc, WEEK, badHours, loadBusiness, newKey, presetData, saveBusiness } from './save';
+import { DAYNAME, EMPTY_BIZ, HEX, Hours, Slot, Svc, WEEK, badHours, loadBusiness, newKey, nextSpan, presetData, saveBusiness } from './save';
 import { Btn, C, CATEGORIES, catLabel, Card, Chip, Group, Icon, Input, Section, SwitchRow, T, TextBtn, Toggle, alpha, catEmoji, s, shadow } from '../ui';
 import { AmountPick, DAY_UNITS, TimeBtn } from '../TimePick';
 import { ServiceBoard, ServiceModal, draftFor, withSched, type Person, type SvcDraft } from './services';
@@ -196,8 +196,7 @@ function HoursSec({ st }: { st: St }) {
     : setHours([...hours, { weekday: d, opens: '09:00', closes: '17:00', svc: edit }]);
   const addBreak = (d: number) => {
     const last = dayRows(d).map(({ h }) => h).sort((a, z) => a.closes.localeCompare(z.closes)).pop();
-    const hh = Math.min(22, parseInt(last ? last.closes : '09:00', 10) + 1);
-    setHours([...hours, { weekday: d, opens: `${String(hh).padStart(2, '0')}:00`, closes: `${String(Math.min(23, hh + 4)).padStart(2, '0')}:00`, svc: edit }]);
+    setHours([...hours, { weekday: d, ...nextSpan(last), svc: edit }]);
   };
   const setOwn = (on: boolean) => setHours(on
     ? [...hours, ...hours.filter((h) => h.svc === null).map((h) => ({ ...h, svc: edit }))]

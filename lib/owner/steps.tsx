@@ -3,7 +3,7 @@ import { Text } from '../Txt';
 import { C, CATEGORIES, Card, Icon, Input, Toggle, alpha, onColor, s, shadow } from '../ui';
 import { screenFor } from '../bizscreen';
 import { TimeBtn } from '../TimePick';
-import { DAYNAME, Hours, Svc, WEEK, newKey } from './save';
+import { DAYNAME, Hours, Svc, WEEK, newKey, nextSpan } from './save';
 
 /* Τα κομμάτια του οδηγού «Νέα επιχείρηση»: ένα για κάθε βήμα. */
 
@@ -146,8 +146,7 @@ export function HoursEditor({ hours, setHours }: { hours: Hours; setHours: (h: H
   };
   const addBreak = (d: number) => {
     const last = gen(d).map(({ h }) => h).sort((a, z) => a.closes.localeCompare(z.closes)).pop();
-    const hh = Math.min(22, parseInt(last ? last.closes : '09:00', 10) + 1);
-    setHours([...hours, { weekday: d, opens: `${String(hh).padStart(2, '0')}:00`, closes: `${String(Math.min(23, hh + 4)).padStart(2, '0')}:00`, svc: null }]);
+    setHours([...hours, { weekday: d, ...nextSpan(last), svc: null }]);
   };
   return (
     <View style={[s.card, shadow(1), { padding: 0, gap: 0, overflow: 'hidden' }]}>
@@ -173,7 +172,7 @@ export function HoursEditor({ hours, setHours }: { hours: Hours; setHours: (h: H
                   <Icon name="close" size={14} color={C.bad} /></Pressable>}
               </View>
             ))}
-            {rows.length > 0 && rows.length < 3 && (
+            {rows.length > 0 && (
               <Pressable onPress={() => addBreak(d)} hitSlop={6} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, alignSelf: 'flex-start' })}>
                 <Text style={{ color: C.tint, fontWeight: '700', fontSize: 14 }}>+ Διάλειμμα</Text>
               </Pressable>
