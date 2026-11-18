@@ -1,3 +1,4 @@
+import { packBar } from '../../../lib/bookings/cards';
 import { useCallback, useEffect, useState } from 'react';
 import { Linking, ScrollView, View } from 'react-native';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -106,7 +107,7 @@ export default function Client() {
           </View>
           {pk.total > 0 && (
             <View style={{ height: 6, borderRadius: 3, backgroundColor: C.soft, overflow: 'hidden' }}>
-              <View style={{ width: `${(pk.left / pk.total) * 100}%`, height: 6, backgroundColor: pk.left <= 1 ? C.bad : C.btn }} />
+              <View style={{ width: `${(pk.left / pk.total) * 100}%`, height: 6, borderRadius: 3, backgroundColor: packBar(pk.left) }} />
             </View>
           )}
         </Card>
