@@ -6,16 +6,18 @@ import { say } from '../../../lib/alert';
 import { rpc, sb } from '../../../lib/supabase';
 import { PLAN_KIND, kindOf } from '../../../lib/owner/kinds';
 import { NoBiz, useClients, useMyBiz } from '../../../lib/owner/hub';
-import { Btn, C, Card, Chip, Empty, Input, Pill, T, price, s } from '../../../lib/ui';
+import { Btn, C, Card, Empty, Pill, T, price, s } from '../../../lib/ui';
+import { PackFields, blankPack, packMissing, savePack, toForm, type PackForm } from '../../../lib/owner/packs';
 
-/* «Πακέτα / Συνδρομές / Κάρτες»: ό,τι πουλάει η επιχείρηση πέρα από μία επίσκεψη, με πόσους το έχουν τώρα. */
+/* «Πακέτα / Συνδρομές / Κάρτες»: ό,τι πουλάει η επιχείρηση πέρα από μία επίσκεψη, με πόσους το έχουν τώρα.
+   Ανοίγει από το Κατάστημα και από τους Πελάτες. Κάθε πακέτο αλλάζει («Αλλαγή») ή αφαιρείται. */
 export default function Plans() {
   const biz = useMyBiz();
   const [list, setList] = useState<any[] | null>(null);
   const { list: clients } = useClients(biz);
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(false); // νέο πακέτο ή αλλαγή υπάρχοντος (f.id)
   const [reqs, setReqs] = useState<any[]>([]);
-  const [f, setF] = useState({ name: '', kind: 'pack', price: '', sessions: '', days: '30', only: [] as string[] });
+  const [f, setF] = useState<PackForm>(blankPack());
   const [svcs, setSvcs] = useState<{ id: string; name: string }[]>([]);
 
   const load = useCallback(() => {
@@ -37,17 +39,28 @@ export default function Plans() {
     { text: 'Αφαίρεση', style: 'destructive', onPress: async () => { const { error } = await sb.from('packages').update({ active: false }).eq('id', p.id); if (error) say('Δεν έγινε', error.message); load(); } }]);
 
   const add = async () => {
-    if (!f.name.trim() || !f.price.trim()) return say('Γράψε όνομα και τιμή');
-    const row: any = { business_id: biz.id, name: f.name.trim(), kind: f.kind, price_cents: Math.round(parseFloat(f.price.replace(',', '.')) * 100),
-      sessions: f.sessions ? +f.sessions : null, days: f.days ? +f.days : null, note: null, active: true };
-    /* Για ποια μαθήματα (015_pack_services): ο ιδιοκτήτης διαλέγει ένα ή περισσότερα. Με ένα ο πελάτης βλέπει μόνο εκείνο·
-       με δύο ή περισσότερα (π.χ. Crossfit + Pilates μαζί) του δείχνει και «Όλα». Όλα επιλεγμένα = κενό (ισχύει και για νέα μαθήματα). */
+    const bad = packMissing(f);
+    if (bad) return say(bad);
+    /* Για ποια μαθήματα (015_pack_services): με ένα ο πελάτης βλέπει μόνο εκείνο· με δύο ή περισσότερα του δείχνει και «Όλα».
+       Όλα επιλεγμένα = κενό (ισχύει και για νέα μαθήματα). */
     if (svcs.length > 1 && !f.only.length) return say('Διάλεξε μάθημα', 'Πάτα σε ποιο μάθημα ισχύει το πακέτο. Μπορείς να διαλέξεις και περισσότερα μαζί.');
-    if (f.only.length && f.only.length < svcs.length) row.service_ids = f.only;
-    const { error } = await sb.from('packages').insert(row);
-    if (error) return say('Δεν αποθηκεύτηκε', error.message);
-    setF({ name: '', kind: 'pack', price: '', sessions: '', days: '30', only: [] }); setAdding(false); load();
+    const err = await savePack(f, biz.id, svcs.length);
+    if (err) return say('Δεν αποθηκεύτηκε', err);
+    setF(blankPack()); setAdding(false); load();
   };
+  const edit = (p: any) => { const x = toForm(p); setF(x.only.length ? x : { ...x, only: svcs.map((y) => y.id) }); setAdding(true); };
+
+  const form = (
+    <Card style={{ gap: 10 }}>
+      {!!f.id && <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }}>Αλλαγή «{f.name}»</Text>}
+      <PackFields f={f} setF={setF} svcs={svcs} />
+      {!!f.id && <T mute style={{ fontSize: 13 }}>Όσοι έχουν ήδη αυτό το πακέτο το κρατούν όπως το πήραν.</T>}
+      <View style={[s.row, { gap: 10 }]}>
+        <Btn kind="ghost" title="Άκυρο" onPress={() => { setAdding(false); setF(blankPack()); }} style={{ flex: 1 }} />
+        <Btn title={f.id ? 'Αποθήκευση' : 'Προσθήκη'} onPress={add} style={{ flex: 1 }} />
+      </View>
+    </Card>
+  );
 
   return (
     <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingBottom: 40 }]}>
@@ -67,7 +80,7 @@ export default function Plans() {
           p.days ? (p.days >= 365 ? 'ισχύει 1 χρόνο' : `ισχύει ${p.days} μέρες`) : null,
           p.service_ids?.length ? `για ${svcs.filter((x) => p.service_ids.includes(x.id)).map((x) => x.name).join(', ')}` : null].filter(Boolean).join(' · ');
         return (
-          <Card key={p.id} style={{ gap: 8 }}>
+          adding && f.id === p.id ? <View key={p.id}>{form}</View> : <Card key={p.id} style={{ gap: 8 }}>
             <View style={[s.row, { gap: 8 }]}>
               <Pill text={PLAN_KIND[p.kind] ?? 'Πακέτο'} />
               {p.popular && <Pill text="Το πιο δημοφιλές" tone="accent" />}
@@ -82,41 +95,14 @@ export default function Plans() {
             {!!p.note && <T style={{ fontSize: 14 }}>{p.note}</T>}
             <View style={[s.row, { borderTopWidth: 1, borderTopColor: C.line, paddingTop: 8, marginTop: 2, gap: 10 }]}>
               <T mute style={{ fontSize: 13, flex: 1 }}>{[n > 0 ? `${n} ${n === 1 ? 'πελάτης το έχει' : 'πελάτες το έχουν'} τώρα` : '', asked > 0 ? `${asked} το ζήτησαν` : ''].filter(Boolean).join(' · ') || 'Κανείς ακόμα'}</T>
+              <Btn size="sm" kind="ghost" title="Αλλαγή" onPress={() => edit(p)} />
               <Btn size="sm" kind="danger" title="Αφαίρεση" onPress={() => remove(p)} />
             </View>
           </Card>
         );
       })}
 
-      {adding ? (
-        <Card style={{ gap: 10 }}>
-          <View style={[s.row, { flexWrap: 'wrap', gap: 8 }]}>
-            {Object.entries(PLAN_KIND).map(([key, label]) => <Chip key={key} label={label} on={f.kind === key} onPress={() => setF({ ...f, kind: key })} />)}
-          </View>
-          <Input label="Όνομα" placeholder="π.χ. 10 επισκέψεις" value={f.name} onChangeText={(name) => setF({ ...f, name })} />
-          <View style={[s.row, { gap: 10 }]}>
-            <View style={{ flex: 1 }}><Input label="Τιμή €" keyboardType="decimal-pad" value={f.price} onChangeText={(v) => setF({ ...f, price: v })} /></View>
-            <View style={{ flex: 1 }}><Input label="Επισκέψεις" keyboardType="number-pad" placeholder="—" value={f.sessions} onChangeText={(v) => setF({ ...f, sessions: v })} /></View>
-            <View style={{ flex: 1 }}><Input label="Μέρες" keyboardType="number-pad" value={f.days} onChangeText={(v) => setF({ ...f, days: v })} /></View>
-          </View>
-          {svcs.length > 1 && (
-            <View style={{ gap: 6 }}>
-              <Text style={{ color: C.mute, fontSize: 13, fontWeight: '700' }}>Ισχύει για</Text>
-              <Text style={{ color: C.mute, fontSize: 12.5 }}>Διάλεξε ένα μάθημα ή περισσότερα μαζί.</Text>
-              <View style={[s.row, { flexWrap: 'wrap', gap: 8 }]}>
-                {svcs.map((x) => <Chip key={x.id} label={x.name} on={f.only.includes(x.id)}
-                  onPress={() => setF({ ...f, only: f.only.includes(x.id) ? f.only.filter((y) => y !== x.id) : [...f.only, x.id] })} />)}
-                <Chip label={f.only.length === svcs.length ? 'Κανένα' : 'Όλα μαζί'} on={false}
-                  onPress={() => setF({ ...f, only: f.only.length === svcs.length ? [] : svcs.map((x) => x.id) })} />
-              </View>
-            </View>
-          )}
-          <View style={[s.row, { gap: 10 }]}>
-            <Btn kind="ghost" title="Άκυρο" onPress={() => setAdding(false)} style={{ flex: 1 }} />
-            <Btn title="Προσθήκη" onPress={add} style={{ flex: 1 }} />
-          </View>
-        </Card>
-      ) : <Btn kind="ghost" icon="plus" title="Νέο πακέτο" onPress={() => setAdding(true)} />}
+      {adding && !f.id ? form : !adding && <Btn kind="ghost" icon="plus" title="Νέο πακέτο" onPress={() => { setF(blankPack()); setAdding(true); }} />}
     </ScrollView>
   );
 }

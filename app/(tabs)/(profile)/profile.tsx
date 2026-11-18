@@ -9,6 +9,7 @@ import { useSwitchTo } from '../../../lib/SwitchMode';
 import { C, Group, Row, Section, T, s } from '../../../lib/ui';
 import { useWide } from '../../../lib/wide';
 import { DeskProfile } from '../../../lib/profile/Desk';
+import { useMyWork } from '../../../lib/staff';
 
 /* Προφίλ: ταυτότητα στο κέντρο και καθαρές ομάδες, όπως οι ρυθμίσεις του κινητού.
    Τα στοιχεία αλλάζουν στο /me, οι ρυθμίσεις της εφαρμογής (εμφάνιση κ.λπ.) στο /settings.
@@ -21,6 +22,7 @@ export default function Profile() {
   const { hasBiz } = useProfileExtras(person.uid);
   const me = () => router.push('/me');
   const switchTo = useSwitchTo();
+  const work = useMyWork().list ?? []; // υπάλληλος σε ομάδα (016)
 
   // Υπολογιστής: σελίδα λογαριασμού με ενότητες αριστερά και φόρμα δεξιά (lib/profile/Desk).
   if (wide) return <DeskProfile />;
@@ -41,6 +43,7 @@ export default function Profile() {
 
       <Section title="Για επιχειρήσεις" />
       <Group>
+        {work.length > 0 && <Row icon="calendar" title="Η δουλειά μου" sub={`Το πρόγραμμά σου · ${work.map((w) => w.business).join(', ')}`} onPress={() => router.push('/work')} />}
         {hasBiz === false
           ? <Row icon="store" title="Έχω επιχείρηση" sub="Φτιάξε τη σελίδα σου βήμα-βήμα, σε λίγα λεπτά" onPress={() => router.push('/new-business')} last />
           : <Row icon="store" title="Λειτουργία επιχείρησης" sub="Πρόγραμμα, κρατήσεις, μηνύματα και σελίδα" onPress={() => switchTo('biz')} last />}

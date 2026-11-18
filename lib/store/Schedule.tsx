@@ -46,26 +46,21 @@ export function ScheduleList({ bottom, onBook, onPacks }: { bottom: number; onBo
   const S = useStore();
   const B = useBook();
   const multi = S.schedServices.length > 1;
-  /* Γυμναστήριο με πακέτα και ο πελάτης δεν έχει ακόμα πακέτο: κανένα πρόγραμμα, μόνο «Χρειάζεσαι πακέτο» και κουμπί προς τα πακέτα
-     (στο Κατάστημα). Μόλις ενεργοποιηθεί το πακέτο, εδώ εμφανίζεται το πρόγραμμα του πακέτου (2026-11-18). */
-  if (S.layout === 'classes' && !!S.biz?.uses_credits && !S.hasPack) {
-    const asked = S.pendingPack;
-    return (
-      <View style={{ paddingHorizontal: 28, paddingTop: 48, paddingBottom: bottom, alignItems: 'center', gap: 12 }}>
-        <Text style={{ fontSize: 40 }}>{asked ? '⏳' : '🎟️'}</Text>
-        <Text style={{ color: C.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.4, textAlign: 'center' }}>
-          {asked ? `Ζήτησες το «${asked.name}»` : 'Πρώτα αγόρασε πακέτο'}
-        </Text>
-        <Text style={{ color: C.mute, fontSize: 14.5, lineHeight: 21, textAlign: 'center' }}>
-          {asked ? 'Μόλις το πληρώσεις στο κατάστημα, εδώ θα δεις το πρόγραμμα του πακέτου σου και θα κλείνεις θέση.'
-            : S.packages.length ? 'Για να δεις το πρόγραμμα και να κλείσεις θέση χρειάζεσαι πακέτο. Διάλεξε ένα στο Κατάστημα.'
-            : 'Το κατάστημα δεν έχει βάλει ακόμα πακέτα.'}
-        </Text>
-        {!!S.packages.length && <Btn title={asked ? 'Τα πακέτα' : 'Δες τα πακέτα'} kind={asked ? 'ghost' : undefined} color={asked ? undefined : S.st?.color}
-          onPress={() => (onPacks ? onPacks() : router.navigate(`/store/${S.id}` as any))} style={{ alignSelf: 'stretch', marginTop: 6 }} />}
-      </View>
-    );
-  }
+  /* Γυμναστήριο με πακέτα και ο πελάτης δεν έχει ακόμα πακέτο: βλέπει το πρόγραμμα για να διαλέξει, χωρίς κουμπιά κράτησης,
+     και από πάνω «Για να κλείσεις θέση χρειάζεσαι πακέτο» με κουμπί προς τα πακέτα (στο Κατάστημα). Μόλις ενεργοποιηθεί το πακέτο,
+     εδώ εμφανίζεται το πρόγραμμα του πακέτου με «Κράτηση» (2026-11-18). */
+  const asked = S.pendingPack;
+  const gate = S.preview && (
+    <View style={{ marginHorizontal: 20, marginTop: 14, padding: 16, borderRadius: 18, backgroundColor: C.card, gap: 6 }}>
+      <Text style={{ color: C.text, fontSize: 16, fontWeight: '800' }}>{asked ? `⏳ Ζήτησες το «${asked.name}»` : '🎟️ Για να κλείσεις θέση χρειάζεσαι πακέτο'}</Text>
+      <Text style={{ color: C.mute, fontSize: 13.5, lineHeight: 19 }}>
+        {asked ? 'Μόλις το πληρώσεις στο κατάστημα, θα κλείνεις θέση από εδώ. Ως τότε δες τις ώρες.'
+          : S.packages.length ? 'Δες τις ώρες και διάλεξε ένα πακέτο στο Κατάστημα.' : 'Το κατάστημα δεν έχει βάλει ακόμα πακέτα. Δες τις ώρες.'}
+      </Text>
+      {!!S.packages.length && <Btn size="sm" title={asked ? 'Τα πακέτα' : 'Δες τα πακέτα'} kind={asked ? 'ghost' : undefined} color={asked ? undefined : S.st?.color}
+        onPress={() => (onPacks ? onPacks() : router.navigate(`/store/${S.id}` as any))} style={{ alignSelf: 'flex-start', marginTop: 4 }} />}
+    </View>
+  );
   const d = new Date(S.date + 'T00:00');
   const today = S.days[0];
   const ink = readable(S.st?.color ?? C.text); // ώρες και σήματα στο χρώμα του καταστήματος
@@ -97,7 +92,7 @@ export function ScheduleList({ bottom, onBook, onPacks }: { bottom: number; onBo
           {tag}
           {seats && <Seats taken={sl.taken} capacity={sl.capacity} />}
         </View>
-        {st === 'mine' ? <Btn size="sm" kind="danger" title="Ακύρωση" disabled={dis} onPress={() => S.cancel(sl)} />
+        {S.preview && st !== 'mine' ? null : st === 'mine' ? <Btn size="sm" kind="danger" title="Ακύρωση" disabled={dis} onPress={() => S.cancel(sl)} />
           : st === 'wait' ? <Btn size="sm" kind="ghost" title="Απόσυρση" disabled={dis} onPress={() => S.unwait(sl)} />
           : st === 'full' ? <Btn size="sm" kind="ghost" title="Αναμονή" disabled={dis} onPress={() => S.wait(sl)} />
           : <Btn size="sm" title="Κράτηση" color={S.st?.color} disabled={dis || (!!S.pack && S.pack.left <= 0)} onPress={() => { onBook?.(); B.confirmClass(sl); }} />}
@@ -145,6 +140,7 @@ export function ScheduleList({ bottom, onBook, onPacks }: { bottom: number; onBo
           </View>
         </View>
 
+        {gate}
         {!!S.packOnly && (
           <View style={{ paddingHorizontal: 20, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.line }}>
             <Text style={{ color: C.mute, fontSize: 13 }}>{S.schedServices.length === 1 ? `Το πακέτο σου είναι για ${S.schedServices[0].name}.` : `Βλέπεις τα μαθήματα του πακέτου σου: ${S.schedServices.map((x) => x.name).join(', ')}.`}</Text>

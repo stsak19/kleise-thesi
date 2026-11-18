@@ -5,7 +5,7 @@ import { Text } from '../../lib/Txt';
 import { C, catLabel, s } from '../../lib/ui';
 import { useWide } from '../../lib/wide';
 import { rpc } from '../../lib/supabase';
-import { ago, daysLeft, nameOf, rating, useAdmin } from '../../lib/admin/data';
+import { RATINGS, ago, daysLeft, nameOf, rating, useAdmin } from '../../lib/admin/data';
 import { Box, Cols, Kpi, Lead, Line, Loading, Page, Person, Search, ShopTag, Small } from '../../lib/admin/parts';
 
 const DAYS = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
@@ -29,7 +29,7 @@ export default function Overview() {
             <Kpi n={n(o.businesses)} label="Καταστήματα" extra={o.businesses_week ? `+${o.businesses_week} εβδ.` : undefined} />
             <Kpi n={n(o.users)} label="Λογαριασμοί" extra={o.users_week ? `+${o.users_week} εβδ.` : undefined} />
             <Kpi n={n(o.bookings_today)} label="Κρατήσεις σήμερα" />
-            <Kpi n={rating(o.rating_avg)} label="Μέση βαθμολογία" />
+            {RATINGS && <Kpi n={rating(o.rating_avg)} label="Μέση βαθμολογία" />}
             <Kpi n={o.attention?.length ?? 0} label="Θέλουν προσοχή" bad={(o.attention?.length ?? 0) > 0} />
           </View>
           <Cols

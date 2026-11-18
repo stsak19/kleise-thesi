@@ -139,7 +139,7 @@ function useBookState() {
      μαθήματα → ανοίγει το πρόγραμμα· ραντεβού → ανοίγει τα βήματα της κράτησης. */
   const [sched, setSched] = useState(false);
   const scr = screenFor(S.biz?.category);
-  const cta = classes ? 'Κλείσε θέση' : scr.hero === 'profile' || scr.hero === 'clinic' ? scr.cta : 'Κλείσε ώρα';
+  const cta = classes ? (S.preview ? 'Πρόγραμμα' : 'Κλείσε θέση') : scr.hero === 'profile' || scr.hero === 'clinic' ? scr.cta : 'Κλείσε ώρα';
   const go = () => (classes ? (wide ? setSched(true) : toPage()) : start());
   const next = () => { const i = steps.indexOf(step); if (i >= 0 && i < steps.length - 1) setStep(steps[i + 1]); };
   const back = () => { const i = steps.indexOf(step); if (i > 0) setStep(steps[i - 1]); else close(); };
@@ -163,7 +163,7 @@ function useBookState() {
       if (person && team.length > 1) { if (keep) setFav({ staff: person.id, service: service.id }); else if (fav?.staff === person.id) setFav(null); }
       const withWho = r?.staff ? ` · με ${withArticle(r.staff)}` : person ? ` · με ${withArticle(person.name)}` : '';
       close(); setTime(null);
-      showBooked({ biz: S.biz?.name ?? '', service: `${service.name}${withWho}`, date, time, color: S.st?.color, pending: !!S.biz?.requires_approval });
+      showBooked({ biz: S.biz?.name ?? '', service: `${service.name}${withWho}`, date, time, color: S.st?.color, pending: !!S.biz?.requires_approval, store: S.id });
     } catch (e: any) { say('Κάτι πήγε στραβά', e.message); }
     setBusy(false); S.reload();
   };
@@ -175,11 +175,14 @@ function useBookState() {
     if (!favStaff || !usualService || classes) { setUsualNext(undefined); return; }
     let live = true; setUsualNext(undefined);
     (async () => {
-      for (const d of days.slice(0, 21)) {
-        const r = await fetchSlots(usualService, d, favStaff.id).catch(() => []);
-        const f = r.find((x) => x.free > 0);
+      // Μία εβδομάδα τη φορά, όλες οι μέρες μαζί (όχι 21 ερωτήσεις στη σειρά, που άργωνε το άνοιγμα του καταστήματος).
+      const list = days.slice(0, 21);
+      for (let i = 0; i < list.length; i += 7) {
+        const week = list.slice(i, i + 7);
+        const rs = await Promise.all(week.map((d) => fetchSlots(usualService, d, favStaff.id).catch(() => [] as TimeSlot[])));
         if (!live) return;
-        if (f) { setUsualNext({ date: d, time: f.time }); return; }
+        const k = rs.findIndex((r) => r.some((x) => x.free > 0));
+        if (k >= 0) { setUsualNext({ date: week[k], time: rs[k].find((x) => x.free > 0)!.time }); return; }
       }
       if (live) setUsualNext(null);
     })();

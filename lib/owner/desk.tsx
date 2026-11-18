@@ -7,7 +7,6 @@ import { rpc, sb } from '../supabase';
 import { useAuth } from '../auth';
 import { styleOf } from '../presets';
 import { usePerson } from '../profile/data';
-import { useSwitchTo } from '../SwitchMode';
 import { BizLogo } from '../bookings/parts';
 import { Avatar, Btn, C, Icon, Input, alpha, catLabel, iso, price, s } from '../ui';
 import type { IconName } from '../Icon';
@@ -30,7 +29,6 @@ export function Sidebar({ items, state, navigateToTab }: { items: SideItems; sta
   const [list, setList] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const person = usePerson();
-  const switchTo = useSwitchTo();
   useEffect(() => { fetchMyBizList(session!.user.id).then(setList); }, [session, active]);
   const biz = pickActive(list);
   const k = kindOf(biz?.category);
@@ -65,6 +63,10 @@ export function Sidebar({ items, state, navigateToTab }: { items: SideItems; sta
                 </Pressable>
               );
             })}
+            <Pressable key="plans" onPress={() => router.push('/owner/plans' as any)}
+              style={({ pressed, hovered }: any) => ({ paddingVertical: 9, paddingHorizontal: 12, borderRadius: 12, backgroundColor: pressed || hovered ? alpha(C.text, 0.04) : 'transparent' })}>
+              <Text style={{ color: C.mute, fontWeight: '700', fontSize: 14.5 }}>{k.plans}</Text>
+            </Pressable>
             <Pressable key="team" onPress={() => router.navigate('/team' as any)}
               style={({ pressed, hovered }: any) => ({ paddingVertical: 9, paddingHorizontal: 12, borderRadius: 12,
                 backgroundColor: sub === 'team' ? C.soft : pressed || hovered ? alpha(C.text, 0.04) : 'transparent' })}>
@@ -81,11 +83,6 @@ export function Sidebar({ items, state, navigateToTab }: { items: SideItems; sta
           </Pressable>), settings];
       })}
       <View style={{ flex: 1 }} />
-      <Pressable onPress={() => switchTo('client')} style={({ pressed }) => [s.row, { gap: 8, justifyContent: 'center', paddingVertical: 11, borderRadius: 12,
-        borderWidth: 1, borderColor: C.btn2Line, backgroundColor: pressed ? C.soft : C.bg }]}>
-        <Icon name="search" size={15} color={C.text} />
-        <Text style={{ color: C.text, fontWeight: '700', fontSize: 14 }}>Μετάβαση σε πελάτη</Text>
-      </Pressable>
       <View style={[s.row, { gap: 10, paddingTop: 12, marginTop: 8, borderTopWidth: 1, borderTopColor: C.line }]}>
         <Pressable onPress={() => router.push('/account')} style={[s.row, { gap: 10, flex: 1, minWidth: 0 }]}>
           <Avatar name={person.initials} size={34} />

@@ -228,6 +228,7 @@ export default function StoreHome() {
           <Notice />
           {!classes && <UsualCard />}
           {classes && S.hasPack && <Btn title="Το πρόγραμμά σου" icon="calendar" color={color} onPress={go} style={{ marginTop: 4 }} />}
+          {classes && S.preview && S.services.length > 0 && <Btn kind="ghost" title="Δες τις ώρες των μαθημάτων" icon="calendar" onPress={go} style={{ marginTop: 4 }} />}
           {services}
           {classes && !S.packages.length ? (
             <Text style={{ color: C.mute, fontSize: 14, marginTop: 14, lineHeight: 20 }}>Το κατάστημα δεν έχει βάλει ακόμα πακέτα.</Text>

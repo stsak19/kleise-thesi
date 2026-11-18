@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Text } from '../../../lib/Txt';
 import { C, catLabel, price } from '../../../lib/ui';
 import { useWide } from '../../../lib/wide';
-import { STATUS, adminActions, ago, longDate, nameOf, short, rating, useAdmin } from '../../../lib/admin/data';
+import { RATINGS, STATUS, adminActions, ago, longDate, nameOf, short, rating, useAdmin } from '../../../lib/admin/data';
 import { Box, Cols, KV, Lead, Line, Loading, Page, ShopTag, Small, Tag } from '../../../lib/admin/parts';
 
 /* Καρτέλα καταστήματος: στοιχεία, ιδιοκτήτης, ενέργειες, τελευταίες κρατήσεις, κριτικές, ιστορικό admin. */
@@ -41,8 +41,8 @@ export default function Shop() {
             <Box title="Αριθμοί" style={{ flex: 1 }}>
               <KV k="Κρατήσεις 30 ημ." v={String(b.bookings_30)} />
               <KV k="Ακυρώσεις 30 ημ." v={total ? `${rate}%` : '–'} color={rate >= 30 ? C.bad : undefined} />
-              <KV k="Πελάτες" v={String(b.clients)} />
-              <KV k="Βαθμολογία" v={b.rating_avg != null ? `${rating(b.rating_avg)} ★ (${b.rating_count ?? 0})` : '–'} last />
+              <KV k="Πελάτες" v={String(b.clients)} last={!RATINGS} />
+              {RATINGS && <KV k="Βαθμολογία" v={b.rating_avg != null ? `${rating(b.rating_avg)} ★ (${b.rating_count ?? 0})` : '–'} last />}
             </Box>
           </View>
           <Box title="Τελευταίες κρατήσεις">
@@ -67,13 +67,13 @@ export default function Shop() {
             ))}
             {(b.staff ?? []).length > 0 && <Text style={{ color: C.mute, fontWeight: '600', fontSize: 13, marginTop: 8 }}>Ομάδα: {(b.staff ?? []).map((x: any) => x.name).join(', ')}</Text>}
           </Box>
-          <Box title="Κριτικές">
+          {RATINGS && <Box title="Κριτικές">
             {(b.reviews ?? []).length === 0 && <Text style={{ color: C.mute, paddingVertical: 6 }}>Καμία κριτική.</Text>}
             {(b.reviews ?? []).slice(0, 10).map((r: any, i: number, a: any[]) => (
               <Line key={r.id} last={i === a.length - 1} title={`★ ${r.stars} · ${r.user ?? 'Πελάτης'}`} sub={r.comment ? `«${r.comment}»` : ago(r.created_at)}
                 right={<Small title="Διαγραφή" danger onPress={() => adminActions.deleteReview(r, reload)} />} />
             ))}
-          </Box>
+          </Box>}
           {(b.log ?? []).length > 0 && (
             <Box title="Ιστορικό ενεργειών admin">
               {b.log.map((l: any, i: number) => <Line key={i} last={i === b.log.length - 1} title={l.action} sub={[l.note, ago(l.created_at)].filter(Boolean).join(' · ')} />)}

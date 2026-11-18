@@ -64,7 +64,7 @@ export const TYPE_PRESETS: Record<string, TypePreset> = {
   massage_spa: { layout: 'menu', theme: 'calm', rules: { max_days_ahead: 30, cancel_before_min: 360, requires_approval: false, uses_credits: false },
     services: [{ name: 'Χαλαρωτικό μασάζ', duration_min: 60, price: 45, capacity: 1 }, { name: 'Θεραπευτικό μασάζ', duration_min: 45, price: 40, capacity: 1 }],
     hours: [{ days: [0, 1, 2, 3, 4, 5, 6], spans: [['11:00', '21:00']] }] },
-  physio: { layout: 'appointment', theme: 'fresh', rules: { max_days_ahead: 21, cancel_before_min: 720, requires_approval: false, uses_credits: true },
+  physio: { layout: 'appointment', theme: 'fresh', rules: { max_days_ahead: 21, cancel_before_min: 720, requires_approval: false, uses_credits: false },
     services: [{ name: 'Συνεδρία φυσικοθεραπείας', duration_min: 45, price: 30, capacity: 1 }, { name: 'Αξιολόγηση', duration_min: 30, price: 25, capacity: 1 }],
     hours: [{ days: WEEKDAYS, spans: [['08:00', '15:00'], ['17:00', '20:00']] }] },
   medical: { layout: 'appointment', theme: 'clinic', rules: { max_days_ahead: 30, cancel_before_min: 1440, requires_approval: false, uses_credits: false },

@@ -25,9 +25,10 @@ export const endOf = (t: string, min: number) => {
   const [h, m] = t.split(':').map(Number); const e = h * 60 + m + min;
   return `${String(Math.floor(e / 60) % 24).padStart(2, '0')}:${String(e % 60).padStart(2, '0')}`;
 };
-/* Η οθόνη «Κλείστηκε!» μετά από κάθε κράτηση (app/booked). */
-export const showBooked = (o: { biz: string; service: string; date: string; time: string; color?: string; pending?: boolean }) =>
-  router.push({ pathname: '/booked', params: { ...o, color: o.color ?? '', pending: o.pending ? '1' : '' } } as any);
+/* Η οθόνη «Κλείστηκε!» μετά από κάθε κράτηση (app/booked).
+   store: το κατάστημα όπου έγινε η κράτηση· το «Δες τις κρατήσεις μου» ανοίγει τις Κρατήσεις του, όχι όλες. */
+export const showBooked = (o: { biz: string; service: string; date: string; time: string; color?: string; pending?: boolean; store?: string }) =>
+  router.push({ pathname: '/booked', params: { ...o, color: o.color ?? '', pending: o.pending ? '1' : '', store: o.store ?? '' } } as any);
 /* Κράτηση χωρίς διαθέσιμες επισκέψεις: πάμε τον πελάτη στα πακέτα του καταστήματος. */
 export const askPack = (id: string, msg?: string) => say('Χρειάζεσαι πακέτο', msg ?? 'Δεν σου έμειναν κρατήσεις. Διάλεξε ένα πακέτο από το κατάστημα.', [
   { text: 'Όχι τώρα', style: 'cancel' }, { text: 'Δες τα πακέτα', onPress: () => router.navigate(`/store/${id}` as any) }]);
@@ -86,7 +87,9 @@ function useStoreData(id: string) {
   /* «Όλα» στο πρόγραμμα μόνο όταν ο πελάτης έχει πακέτο που καλύπτει δύο ή περισσότερα μαθήματα μαζί (2026-11-18).
      Αλλιώς διαλέγει ένα μάθημα τη φορά (και στα ραντεβού πάντα μία υπηρεσία). */
   const hasPack = layout === 'classes' && !!biz?.uses_credits && myM?.status === 'approved' && ((myM?.credits ?? 0) > 0 || !!myM?.unlimited || myM?.total != null);
-  const showAll = hasPack && schedServices.length >= 2;
+  /* Γυμναστήριο με πακέτα, χωρίς πακέτο ακόμα: το πρόγραμμα φαίνεται μόνο για να δει τις ώρες (χωρίς κράτηση) — έλεγχος 2026-11-18. */
+  const preview = layout === 'classes' && !!biz?.uses_credits && !hasPack;
+  const showAll = (hasPack || preview) && schedServices.length >= 2;
   useEffect(() => {
     if (!layout || !schedServices.length) return;
     if (service && !schedServices.some((x) => x.id === service)) setService(showAll ? null : schedServices[0].id);
@@ -156,7 +159,7 @@ function useStoreData(id: string) {
     const open = waits.find((w) => w.service_id === sl.sv.id && w.date === date && w.time !== sl.time);
     const go = (backup: string | null) => run(sl.sv.id + sl.time, () => rpc('create_booking', { p_service: sl.sv.id, p_date: date, p_time: sl.time, p_backup_for: backup }),
       'Κλείστηκε! 🎉', undefined,
-      () => showBooked({ biz: biz?.name ?? '', service: sl.sv.name, date, time: sl.time, color: st?.color, pending: !!biz?.requires_approval }));
+      () => showBooked({ biz: biz?.name ?? '', service: sl.sv.name, date, time: sl.time, color: st?.color, pending: !!biz?.requires_approval, store: id }));
     if (!open) return go(null);
     say('Είναι εναλλακτική;', `Έχεις δηλώσει ενδιαφέρον για τις ${open.time}. Αν ελευθερωθεί θέση εκεί, να ακυρωθεί αυτόματα η κράτηση των ${sl.time};`,
       [{ text: 'Ναι, εναλλακτική', onPress: () => go(open.id) }, { text: 'Όχι, θέλω και τις δύο', onPress: () => go(null) }]);
@@ -193,7 +196,7 @@ function useStoreData(id: string) {
   const unwait = (sl: Slot) => leave({ service_id: sl.sv.id, date, time: sl.time });
 
   return {
-    id, biz, st, layout, services, schedServices, packOnly, showAll, hasPack, hours, days, date, setDate, service, setService, slots, note, busy,
+    id, biz, st, layout, services, schedServices, packOnly, showAll, hasPack, preview, hours, days, date, setDate, service, setService, slots, note, busy,
     packages, pendingPack, choosePack, cancelPack,
     upcoming, past, waits, pack, packInfo: packCard, membership, messages, state, waitAt, book, wait, cancel, unwait, cancelBooking, leave, reload,
   };

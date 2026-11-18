@@ -99,4 +99,7 @@ export const STATUS: Record<string, { label: string; tone: 'ok' | 'bad' | 'mute'
 };
 export const nameOf = (u: { name?: string | null; email?: string | null } | null | undefined) => u?.name || u?.email || 'Χωρίς όνομα';
 export const initials = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+/* Οι βαθμολογίες (κλάδος vathmologies, βάση 007) δεν έχουν μπει ακόμα στην εφαρμογή: μέχρι τότε το admin δεν δείχνει
+   ενότητα, δείκτη ή κουτιά βαθμολογιών, που θα ήταν πάντα άδεια (έλεγχος 2026-11-18). Όταν μπουν στο main, γίνεται true. */
+export const RATINGS = false;
 export const rating = (v: any) => (v == null || v === '' ? '–' : Number(v).toFixed(1).replace('.', ','));

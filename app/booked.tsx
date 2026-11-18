@@ -9,7 +9,13 @@ import { Btn, C, Icon, alpha, fmtLong, onColor, shadow } from '../lib/ui';
    pending=1: το κατάστημα εγκρίνει τις κρατήσεις, άρα «Το αίτημα στάλθηκε». */
 export default function Booked() {
   const router = useRouter();
-  const p = useLocalSearchParams<{ biz: string; service: string; date: string; time: string; color?: string; pending?: string }>();
+  const p = useLocalSearchParams<{ biz: string; service: string; date: string; time: string; color?: string; pending?: string; store?: string }>();
+  // Μέσα σε κατάστημα: κλείνει αυτή η οθόνη και ανοίγει η καρτέλα Κρατήσεις του καταστήματος (έλεγχος 2026-11-18).
+  const mine = () => {
+    if (!p.store) return router.replace('/bookings');
+    if (router.canGoBack()) router.back();
+    setTimeout(() => router.navigate(`/store/${p.store}/bookings` as any), 0);
+  };
   const color = p.color || C.tint;
   const pending = p.pending === '1';
   const a = useRef(new Animated.Value(0)).current;
@@ -49,7 +55,7 @@ export default function Booked() {
         </Animated.View>
       </View>
       <View style={{ gap: 12 }}>
-        <Btn title="Δες τις κρατήσεις μου" color={color} onPress={() => router.replace('/bookings')} />
+        <Btn title="Δες τις κρατήσεις μου" color={color} onPress={mine} />
         <Btn kind="ghost" title="Πίσω στο κατάστημα" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
       </View>
     </View>
