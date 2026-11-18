@@ -146,7 +146,7 @@ function AmountSheet({ value, units, title, sub, max, onClose, onPick }:
   );
 }
 
-/* Έτοιμες επιλογές + «+ Άλλο». Δική τιμή που δεν είναι στις έτοιμες εμφανίζεται ως επιλεγμένο κουμπί με ✎. */
+/* Έτοιμες επιλογές + «+ Άλλο». Δική τιμή που δεν είναι στις έτοιμες γράφεται πάνω στο «+ Άλλο», που φαίνεται επιλεγμένο. */
 export function AmountPick({ label, sub, options, value, onPick, units = MIN_UNITS, sheetTitle, sheetSub, max, bare }:
   { label?: string; sub?: string; options: number[]; value: number; onPick: (v: number) => void; units?: Unit[];
     sheetTitle?: string; sheetSub?: string; max?: number; bare?: boolean }) {
@@ -162,8 +162,8 @@ export function AmountPick({ label, sub, options, value, onPick, units = MIN_UNI
   const row = (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {options.map((v) => chip(String(v), amountLabel(v, units), v === value, () => onPick(v)))}
-      {custom && chip('custom', `${amountLabel(value, units)} ✎`, true, () => setOpen(true))}
-      {chip('more', '+ Άλλο', false, () => setOpen(true), true)}
+      {/* Δική τιμή: φαίνεται πάνω στο ίδιο το «+ Άλλο» (επιλεγμένο), όχι σε ξεχωριστό κουμπί. */}
+      {custom ? chip('more', amountLabel(value, units), true, () => setOpen(true)) : chip('more', '+ Άλλο', false, () => setOpen(true), true)}
       {open && <AmountSheet value={value || options[0]} units={units} title={sheetTitle ?? label ?? 'Δική σου τιμή'} sub={sheetSub ?? sub} max={max}
         onClose={() => setOpen(false)} onPick={onPick} />}
     </View>
