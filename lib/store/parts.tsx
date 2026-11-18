@@ -123,7 +123,7 @@ export function ShareButton({ size = 34 }: { size?: number }) {
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
   if (!S.biz) return null;
   const name = String(S.biz.name ?? '');
-  const url = storeLink(String(S.id));
+  const url = storeLink(String(S.biz.slug || S.id)); // με το όνομα (slug), όταν υπάρχει
   const flash = () => { if (timer.current) clearTimeout(timer.current); setCopied(true); timer.current = setTimeout(() => setCopied(false), 1800); };
   const press = async () => {
     const text = `${name} στο SpotOn · κλείσε ραντεβού online`;
