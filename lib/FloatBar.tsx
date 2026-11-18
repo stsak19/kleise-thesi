@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Text } from './Txt';
-import { Animated, PanResponder, Pressable, View } from 'react-native';
+import { Animated, PanResponder, Pressable, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { isLight } from './theme';
@@ -30,7 +30,12 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
   const gap = labels ? 6 : 14, step = ICON + gap;
   // Πλάτος της λέξης κάθε καρτέλας (μετριέται μία φορά από αόρατο κείμενο).
   const [textW, setTextW] = useState<Record<string, number>>({});
-  const widthOf = (i: number) => (labels && i === idx && textW[shown[i]?.name] ? ICON + textW[shown[i].name] + 14 : ICON);
+  // Αν η λέξη της ενεργής καρτέλας δεν χωράει (στενό κινητό + ξεχωριστός κύκλος), μένουν μόνο εικονίδια.
+  const screenW = useWindowDimensions().width;
+  const labelW = textW[shown[idx]?.name] ? textW[shown[idx].name] + 14 : 0;
+  const need = 2 * PAD + shown.length * ICON + (shown.length - 1) * gap + labelW + (extra ? (extra.apart ? 62 : ICON + gap + 1) : 0) + 32;
+  const lab = !!labels && need <= screenW;
+  const widthOf = (i: number) => (lab && i === idx && textW[shown[i]?.name] ? ICON + textW[shown[i].name] + 14 : ICON);
   const leftOf = (i: number) => { let x = 0; for (let j = 0; j < i; j++) x += widthOf(j) + gap; return x; };
   const drv = !labels; // με λέξεις αλλάζουν πλάτη/θέσεις, που δεν τα κινεί ο native driver
   const ws = useRef(shown.map((_, i) => new Animated.Value(widthOf(i)))).current;
@@ -44,7 +49,7 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
       Animated.sequence([Animated.timing(stretch, { toValue: labels ? 1.12 : 1.35, duration: 120, useNativeDriver: drv }),
         Animated.spring(stretch, { toValue: 1, useNativeDriver: drv, friction: 4, tension: 120 })]),
     ]).start();
-  }, [idx, textW]);
+  }, [idx, textW, lab]);
   const onIn = () => Animated.spring(press, { toValue: labels ? 1.06 : 1.15, useNativeDriver: drv, speed: 40 }).start();
   const onOut = () => Animated.spring(press, { toValue: 1, useNativeDriver: drv, friction: 4 }).start();
   /* Σύρσιμο του δαχτύλου πάνω στη μπάρα: η καρτέλα κάτω από το δάχτυλο ανοίγει αμέσως (η σελίδα γλιστράει)
@@ -94,7 +99,7 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
               <Animated.View style={{ width: labels ? ws[i] : ICON, height: ICON, borderRadius: ICON / 2, overflow: 'hidden', flexDirection: 'row', alignItems: 'center',
                 justifyContent: labels ? 'flex-start' : 'center', paddingLeft: labels ? 10.5 : 0, gap: 6 }}>
                 <Icon name={it.icon} size={19} color={fg(on)} />
-                {labels && on && <Text numberOfLines={1} style={{ color: fg(true), fontWeight: '700', fontSize: 14 }}>{it.label}</Text>}
+                {lab && on && <Text numberOfLines={1} style={{ color: fg(true), fontWeight: '700', fontSize: 14 }}>{it.label}</Text>}
               </Animated.View>
             </Pressable>
           );

@@ -22,7 +22,7 @@ export const unstable_settings = { initialRouteName: 'today' };
 export default function BizTabs() {
   const wide = useWide();
   const switchTo = useSwitchTo();
-  const extra = { icon: 'swap' as const, label: 'Μετάβαση σε πελάτη', onPress: () => switchTo('client') };
+  const extra = { icon: 'swap' as const, label: 'Μετάβαση σε πελάτη', onPress: () => switchTo('client'), apart: true };
   return (
     <Tabs tabBar={(p) => (wide ? <Sidebar items={ICONS} {...p} /> : <FloatBar items={ICONS} {...p} labels extra={extra} />)}
       screenLayout={wide ? ({ children }) => (
