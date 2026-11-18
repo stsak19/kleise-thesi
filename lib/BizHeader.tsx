@@ -11,7 +11,7 @@ import { Photo, Scrim } from './Photo';
 export function BizHeader({ biz, header, color, radius, full = true }:
   { biz: any; header: Header; color: string; radius: number; full?: boolean }) {
   const logo = (size: number, onBrand = false) => (
-    <View style={{ width: size, height: size, borderRadius: radius + 4, backgroundColor: '#ffffff', padding: onBrand ? 2 : 4, ...(onBrand ? {} : shadow(2)) }}>
+    <View style={biz.logo_url ? { width: size, height: size } : { width: size, height: size, borderRadius: radius + 4, backgroundColor: '#ffffff', padding: onBrand ? 2 : 4, ...(onBrand ? {} : shadow(2)) }}>
       <Photo uri={biz.logo_url} color={color} letter={(biz.name || 'Κ').slice(0, 1)} style={{ borderRadius: radius }} />
     </View>
   );
@@ -39,7 +39,7 @@ export function BizHeader({ biz, header, color, radius, full = true }:
   );
   if (header === 'minimal') return (
     <View style={{ gap: 12, paddingTop: 4 }}>
-      {!!biz.cover_url && <View style={{ height: full ? 150 : 100, borderRadius: radius + 6, overflow: 'hidden', backgroundColor: color }}><Photo uri={biz.cover_url} color={color} /></View>}
+      {!!biz.cover_url && <View style={{ height: full ? 150 : 100, borderRadius: radius + 6, overflow: 'hidden', backgroundColor: color }}><Photo uri={biz.cover_url} color={color} cat={biz.category} /></View>}
       <View style={[s.row, { gap: 14 }]}>
         {logo(64)}
         <View style={{ flex: 1 }}>{name(C.text, 24)}</View>
@@ -50,7 +50,7 @@ export function BizHeader({ biz, header, color, radius, full = true }:
   return (
     <View style={{ gap: 12 }}>
       <View style={{ height: full ? 210 : 130, backgroundColor: color, borderRadius: radius + 10, overflow: 'hidden' }}>
-        <Photo uri={biz.cover_url} color={color} />
+        <Photo uri={biz.cover_url} color={color} cat={biz.category} />
         <Scrim strength={0.25} photo={biz.cover_url} />
       </View>
       <View style={{ marginTop: full ? -56 : -48, marginLeft: 6 }}>{logo(full ? 84 : 68)}</View>

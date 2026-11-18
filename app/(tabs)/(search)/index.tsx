@@ -12,7 +12,7 @@ import { useAuth } from '../../../lib/auth';
 import { styleOf } from '../../../lib/presets';
 import { Photo } from '../../../lib/Photo';
 import { CAT_ART } from '../../../lib/catArt';
-import { useWide } from '../../../lib/wide';
+import { SITE, useWide } from '../../../lib/wide';
 import { useHomeQuery } from '../../../lib/client/desk';
 import { FavRow } from '../../../lib/client/FavRow';
 import { searchFilters } from '../../../lib/client/search';
@@ -28,7 +28,7 @@ function BizCard({ b, onPress }: { b: Biz; onPress: () => void }) {
     <Pressable onPress={onPress} style={({ pressed }) => ({ borderRadius: 20, backgroundColor: C.card, opacity: pressed ? 0.88 : 1,
       boxShadow: `0px 10px 22px ${alpha('#000000', light ? 0.14 : 0.5)}, 0px 2px 6px ${alpha('#000000', light ? 0.07 : 0.3)}` })}>
       <View style={{ height: 150, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden', backgroundColor: '#0d0d0d' }}>
-        <Photo uri={b.cover_url} color={brand} />
+        <Photo uri={b.cover_url} color={brand} cat={b.category} />
       </View>
       <View style={{ paddingHorizontal: 14, paddingVertical: 12, gap: 2 }}>
         <View style={[s.row, { gap: 8 }]}>
@@ -49,9 +49,9 @@ function MiniCard({ b, onPress, width }: { b: Biz; onPress: () => void; width?: 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => ({ width, opacity: pressed ? 0.8 : 1 })}>
       <View style={{ height: 96, borderRadius: 16, overflow: 'hidden', backgroundColor: C.banner }}>
-        <Photo uri={b.cover_url} color={brand} />
+        <Photo uri={b.cover_url} color={brand} cat={b.category} />
       </View>
-      <View style={{ marginTop: -22, marginLeft: 10, width: 44, height: 44, borderRadius: 14, padding: 3, backgroundColor: C.bg }}>
+      <View style={{ marginTop: -22, marginLeft: 10, width: 44, height: 44, borderRadius: 14, padding: 3, backgroundColor: b.logo_url ? 'transparent' : C.bg }}>
         <View style={{ flex: 1, borderRadius: 11, overflow: 'hidden' }}>
           <Photo uri={b.logo_url} color={brand} letter={b.name.slice(0, 1)} />
         </View>
@@ -341,8 +341,8 @@ function DeskHome({ chips, sections, list, loaded, filtering, empty, cat, onOpen
     </View>
   );
   return (
-    <ScrollView style={s.screen} contentContainerStyle={{ paddingVertical: 26, paddingHorizontal: 40, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
-      <View style={{ width: '100%', maxWidth: 1320, alignSelf: 'center' }}>
+    <ScrollView style={s.screen} contentContainerStyle={{ paddingVertical: 26, paddingHorizontal: 32, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
+      <View style={{ width: '100%', maxWidth: SITE, alignSelf: 'center' }}>
         <View style={{ gap: 26 }} onLayout={(e) => setW(Math.floor(e.nativeEvent.layout.width))}>
           <FavRow pad={0} />
           {chips}

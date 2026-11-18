@@ -6,3 +6,5 @@ export const WIDE = 1000;
 export const useWide = () => useWindowDimensions().width >= WIDE;
 /* Στον υπολογιστή οι οθόνες-λίστες δεν απλώνονται σε όλο το πλάτος: μένουν σε μια άνετη στήλη στη μέση. */
 export const deskCol = (wide: boolean, max = 820): ViewStyle | null => (wide ? { width: '100%', maxWidth: max, alignSelf: 'center', paddingHorizontal: 32 } : null);
+/* Πλάτος σελίδας στον υπολογιστή: όπως οι περισσότερες ιστοσελίδες, το περιεχόμενο μένει σε στήλη στη μέση και δεν απλώνεται σε όλη την οθόνη. */
+export const SITE = 1120;

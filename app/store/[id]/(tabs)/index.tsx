@@ -7,7 +7,7 @@ import { readable } from '../../../../lib/theme';
 import { useStore } from '../../../../lib/store/data';
 import { useBook, firstName } from '../../../../lib/store/book';
 import { Face, UsualCard, dur } from '../../../../lib/store/BookUI';
-import { Credits, ExitPill, FavButton, MessageList, Notice, StoreLogo } from '../../../../lib/store/parts';
+import { Credits, ExitPill, FavButton, MessageList, Notice, ShareButton, StoreLogo } from '../../../../lib/store/parts';
 import { StorePacks } from '../../../../lib/store/Packs';
 import { screenFor } from '../../../../lib/bizscreen';
 import { useWide } from '../../../../lib/wide';
@@ -177,11 +177,11 @@ export default function StoreHome() {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 22, paddingBottom: 48 }}>
         <View style={{ height: 210, borderRadius: 26, overflow: 'hidden', backgroundColor: color }}>
-          <Photo uri={biz.cover_url} color={color} />
+          <Photo uri={biz.cover_url} color={color} cat={biz.category} />
         </View>
         <View style={{ flexDirection: 'row', gap: 36, alignItems: 'flex-start' }}>
           <View style={{ flex: 1, minWidth: 0, gap: 12, paddingHorizontal: 12 }}>
-            <View style={{ marginTop: -44 }}><View style={[{ alignSelf: 'flex-start', borderRadius: 26, borderWidth: 4, borderColor: C.bg }, shadow(2)]}><StoreLogo size={84} /></View></View>
+            <View style={{ marginTop: -44 }}><View style={[{ alignSelf: 'flex-start', borderRadius: 26 }, !biz.logo_url && [{ borderWidth: 4, borderColor: C.bg }, shadow(2)]]}><StoreLogo size={84} /></View></View>
             {title}
             {chips}
             <Notice />
@@ -214,11 +214,12 @@ export default function StoreHome() {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <ScrollView contentContainerStyle={{ paddingBottom: TAB_SPACE }}>
         <View style={{ height: 190 + top, backgroundColor: color }}>
-          <Photo uri={biz.cover_url} color={color} />
+          <Photo uri={biz.cover_url} color={color} cat={biz.category} />
           <View style={{ position: 'absolute', top: top + 8, left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <ExitPill />
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <InfoButton onPress={() => setInfo(true)} />
+              <ShareButton />
               <FavButton />
             </View>
           </View>
