@@ -197,9 +197,10 @@ function HoursSec({ st }: { st: St }) {
         <Group><SwitchRow label={own ? 'Δικό της ωράριο' : 'Ίδιο με το γενικό ωράριο'} sub="Αν η υπηρεσία γίνεται μόνο κάποιες ώρες" value={own} onChange={setOwn} last /></Group>
       )}
       {own && (
-        <Group>
-          {WEEK.map((d, di) => { const rows = dayRows(d); return (
-            <View key={d} style={[{ padding: 14, gap: 10 }, di < WEEK.length - 1 && { borderBottomWidth: 1, borderBottomColor: C.line }]}>
+        <View style={{ gap: 10 }}>
+          {/* Κάθε μέρα στο δικό της πλαίσιο, με κενό ανάμεσα. */}
+          {WEEK.map((d) => { const rows = dayRows(d); return (
+            <View key={d} style={[s.card, shadow(1), { padding: 14, gap: 10 }]}>
               <View style={s.row}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: C.text, fontWeight: '700', fontSize: 15 }}>{DAYNAME[d]}</Text>
@@ -219,7 +220,7 @@ function HoursSec({ st }: { st: St }) {
               ))}
               {rows.length > 0 && <TextBtn title="+ Διάλειμμα" onPress={() => addBreak(d)} />}
             </View>); })}
-        </Group>
+        </View>
       )}
     </View>
   );

@@ -159,12 +159,13 @@ export function HoursEditor({ hours, setHours }: { hours: Hours; setHours: (h: H
     setHours([...hours.filter((h) => !(h.svc === null && to.includes(h.weekday))), ...to.flatMap((w) => src.map((x) => ({ ...x, weekday: w })))]);
   };
   return (
-    <View style={[s.card, shadow(1), { padding: 0, gap: 0, overflow: 'hidden' }]}>
-      {WEEK.map((d, di) => {
+    <View style={{ gap: 10 }}>
+      {/* Κάθε μέρα στο δικό της πλαίσιο, με κενό ανάμεσα. */}
+      {WEEK.map((d) => {
         const rows = gen(d).sort((a, z) => a.h.opens.localeCompare(z.h.opens));
         const canCopy = rows.length > 0 && later(d).length > 0 && later(d).some((w) => key(w) !== key(d));
         return (
-          <View key={d} style={[{ padding: 14, gap: 10 }, di < WEEK.length - 1 && { borderBottomWidth: 1, borderBottomColor: C.bg }]}>
+          <View key={d} style={[s.card, shadow(1), { padding: 14, gap: 10 }]}>
             <View style={s.row}>
               <View style={{ flex: 1 }}>
                 <Text style={{ color: C.text, fontWeight: '700', fontSize: 15 }}>{DAYNAME[d]}</Text>
