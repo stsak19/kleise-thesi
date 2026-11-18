@@ -2,7 +2,7 @@ import { Stack, Redirect, usePathname, useRouter, useSegments } from 'expo-route
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../lib/auth';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { C } from '../lib/ui';
 import { isDark, loadTheme, onTheme } from '../lib/theme';
 import Intro, { useIntroSeen } from '../lib/Intro';
@@ -10,7 +10,7 @@ import { useFonts } from 'expo-font';
 import { FONTS } from '../lib/Txt';
 import { BIZ_HOME, getMode, useMode } from '../lib/mode';
 import { SwitchOverlay } from '../lib/SwitchMode';
-import { GUEST_OK, askLogin, openToGuests, setReturnTo, getReturnTo } from '../lib/guest';
+import { BACK, GUEST_OK, WEB, askLogin, openToGuests, setReturnTo, getReturnTo } from '../lib/guest';
 import { LoginModal } from '../lib/login/LoginModal';
 
 // Η εφαρμογή ξεκινά πάντα από τον πελάτη· η λειτουργία επιχείρησης (biz) ανοίγει μόνο όταν την επιλέξεις.
@@ -44,13 +44,13 @@ function Gate() {
   }, [session]);
   // Ο επισκέπτης συνδέθηκε επειδή πήγε να κλείσει θέση (ή να ανοίξει Κρατήσεις κ.λπ.): γυρίζει εκεί που ήταν.
   const back = session && seg[0] === 'login' && getMode() !== 'biz' ? getReturnTo() : null;
-  useEffect(() => { if (back) { setReturnTo(null); router.replace(back as any); } }, [back]);
+  useEffect(() => { if (back) { setReturnTo(null); if (back === BACK) (router.canGoBack() ? router.back() : router.replace('/')); else router.replace(back as any); } }, [back]);
   const [introSeen, setIntroSeen, introAsked] = useIntroSeen();
   const { loaded } = useMode();
   if (!ready || introSeen === null || !loaded) return null;
   // Στην ιστοσελίδα ο επισκέπτης βλέπει πρώτα τα καταστήματα: χωρίς ξενάγηση και χωρίς σύνδεση (lib/guest).
   // Αν όμως πατήσει «Δες ξανά την ξενάγηση», ανοίγει κι εκεί.
-  if (!introSeen && (!GUEST_OK || introAsked)) return <Intro onDone={setIntroSeen} />;
+  if (!introSeen && (Platform.OS !== 'web' || introAsked)) return <Intro onDone={setIntroSeen} />;
   if (!session && seg[0] !== 'login' && !openToGuests(path)) {
     // Ιστοσελίδα: μένει στην αρχική και ανοίγει το παράθυρο σύνδεσης· μετά τη σύνδεση πάει εκεί που ήθελε.
     if (GUEST_OK) { setTimeout(() => askLogin(path, path === '/new-business' ? 'up' : 'in'), 0); return <Redirect href="/" />; }
@@ -78,7 +78,7 @@ export default function Root() {
   return (
     <AuthProvider>
       <StatusBar style={isDark() ? 'light' : 'dark'} />
-      <View key={v} style={{ flex: 1, backgroundColor: C.bg }}><Gate /><SwitchOverlay />{GUEST_OK && <LoginModal />}</View>
+      <View key={v} style={{ flex: 1, backgroundColor: C.bg }}><Gate /><SwitchOverlay />{WEB && <LoginModal />}</View>
     </AuthProvider>
   );
 }

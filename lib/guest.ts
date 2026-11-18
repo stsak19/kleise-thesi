@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
+import { router } from 'expo-router';
 
-/* Επισκέπτης χωρίς λογαριασμό (μόνο στην ιστοσελίδα): βλέπει την αρχική και τα καταστήματα.
-   Σύνδεση ζητιέται μόνο όταν πάει να κλείσει θέση ή να ανοίξει Κρατήσεις/Πακέτα/Προφίλ: ανοίγει παράθυρο στη μέση
-   (lib/login/LoginModal) και μετά τη σύνδεση γυρίζει εκεί που ήθελε να πάει.
-   Στην εφαρμογή του κινητού η σύνδεση χρειάζεται από την αρχή, όπως πριν. */
-export const GUEST_OK = Platform.OS === 'web';
+/* Επισκέπτης χωρίς λογαριασμό (ιστοσελίδα ΚΑΙ εφαρμογή κινητού, από 2026-11-18): βλέπει την αρχική και τα καταστήματα.
+   Σύνδεση ζητιέται μόνο όταν πάει να κλείσει θέση ή να ανοίξει Κρατήσεις/Πακέτα/Προφίλ.
+   Ιστοσελίδα: παράθυρο στη μέση (lib/login/LoginModal). Κινητό: η οθόνη σύνδεσης ανοίγει από πάνω και μετά τη σύνδεση κλείνει,
+   ώστε ο πελάτης να γυρίσει ακριβώς εκεί που ήταν (π.χ. στην επιβεβαίωση της ώρας που διάλεξε). */
+export const GUEST_OK = true;
+export const WEB = Platform.OS === 'web';
+/* Τιμή του «πού να γυρίσει» που σημαίνει «κλείσε την οθόνη σύνδεσης και μείνε στη σελίδα που ήσουν». */
+export const BACK = '#back';
 
 /* Οι σελίδες που ανοίγουν χωρίς λογαριασμό: η αρχική, η αρχική ενός καταστήματος (στοιχεία και κράτηση). */
 /* Το απόρρητο ανοίγει πάντα χωρίς λογαριασμό (το ζητούν τα stores). */
@@ -30,8 +34,9 @@ export function useLoginOpen() {
    want: με ποια καρτέλα ανοίγει (π.χ. «Εγγραφή» όταν πάει να προσθέσει την επιχείρησή του, άρα μάλλον είναι καινούργιος). */
 let want: 'in' | 'up' = 'in';
 export const loginWant = () => want;
-export function askLogin(returnTo?: string, mode: 'in' | 'up' = 'in') {
-  back = returnTo ?? null;
+export function askLogin(returnTo?: string, mode: 'in' | 'up' = 'in', stay = false) {
   want = mode;
-  setLoginOpen(true);
+  if (WEB) { back = returnTo ?? null; setLoginOpen(true); return; }
+  back = stay ? BACK : returnTo ?? null;
+  router.push('/login');
 }

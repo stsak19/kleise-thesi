@@ -103,7 +103,7 @@ function useBookState() {
   const days = S.days;
   /* Άνοιγμα του φύλλου: από την αρχή, από μια υπηρεσία, ή κατευθείαν στην ώρα/επιβεβαίωση («Το συνηθισμένο σου»). */
   const start = (o: { service?: Service; who?: string; at?: Step; date?: string; time?: string } = {}) => {
-    setClassSlot(null);
+    setClassSlot(null); setResume(false);
     if (o.service) pickService(o.service); else if (S.services.length > 1) { setServiceSel(null); setWho(null); setTime(null); }
     if (o.who) setWho(o.who);
     setDate(o.date ?? (days.includes(date) ? date : days[0] ?? iso(new Date())));
@@ -113,9 +113,15 @@ function useBookState() {
   };
   /* Μαθήματα: το «Κράτηση» του προγράμματος ανοίγει κατευθείαν την επιβεβαίωση. */
   const confirmClass = (sl: Slot) => {
-    if (!signedIn) return askLogin(`/store/${S.id}`);
-    setClassSlot(sl); setServiceSel(sl.sv); setWho(null); setDate(S.date); setTime(sl.time); setStep('confirm'); setOpen(true);
+    setClassSlot(sl); setServiceSel(sl.sv); setWho(null); setDate(S.date); setTime(sl.time); setStep('confirm');
+    if (!signedIn) return needLogin();
+    setOpen(true);
   };
+  /* Επισκέπτης: κρατάμε ό,τι διάλεξε (υπηρεσία, άτομο, μέρα, ώρα) και ζητάμε σύνδεση.
+     Μόλις συνδεθεί, το παράθυρο ξανανοίγει στην επιβεβαίωση, χωρίς να ξαναδιαλέξει τίποτα. */
+  const [resume, setResume] = useState(false);
+  const needLogin = () => { setOpen(false); setResume(true); askLogin(`/store/${S.id}`, 'in', true); };
+  useEffect(() => { if (signedIn && resume) { setResume(false); setStep('confirm'); setOpen(true); } }, [signedIn, resume]);
   const close = () => { setOpen(false); setClassSlot(null); };
   const next = () => { const i = steps.indexOf(step); if (i >= 0 && i < steps.length - 1) setStep(steps[i + 1]); };
   const back = () => { const i = steps.indexOf(step); if (i > 0) setStep(steps[i - 1]); else close(); };
@@ -127,7 +133,7 @@ function useBookState() {
   };
 
   const submit = async () => {
-    if (!signedIn) { close(); return askLogin(`/store/${S.id}`); }
+    if (!signedIn) return needLogin();
     if (classSlot) { close(); return S.book(classSlot); }
     if (!service || !time) return;
     setBusy(true);
