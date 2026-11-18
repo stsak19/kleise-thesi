@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Modal, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { Text } from '../Txt';
 import { Btn, C, Icon, Input, Toggle, alpha, s } from '../ui';
 import { Seats } from '../store/Seats';
@@ -267,11 +267,7 @@ export function ServiceFields({ svc, onChange, category, groups = [], staff = []
                 <Text style={{ flex: 1, color: C.mute, fontWeight: '700', fontSize: 13 }} numberOfLines={1}>{row.days.length ? daysText(row.days) : 'Διάλεξε μέρες'}</Text>
               </View>
               {/* Κόκκινο κυκλάκι με λευκό ✕ πάνω στη δεξιά γωνία του πλαισίου. */}
-              <Pressable onPress={() => onSched(sched!.filter((_, j) => j !== i))} hitSlop={8} accessibilityLabel="Αφαίρεση ώρας"
-                style={({ pressed }) => ({ position: 'absolute', top: -7, right: -7, width: 22, height: 22, borderRadius: 11, backgroundColor: C.bad,
-                  alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.75 : 1, zIndex: 2 })}>
-                <Icon name="close" size={10} color={C.onBad} />
-              </Pressable>
+              <RemoveDot onPress={() => onSched(sched!.filter((_, j) => j !== i))} />
               <View style={{ flexDirection: 'row', gap: 5, flexWrap: 'wrap' }}>
                 {WEEKDAYS.map((d) => {
                   const on = row.days.includes(d);
@@ -306,6 +302,34 @@ export function ServiceFields({ svc, onChange, category, groups = [], staff = []
         <Input label={`${k.note} (προαιρετικό)`} placeholder="π.χ. Φέρτε προηγούμενες εξετάσεις" multiline value={svc.note ?? ''} onChangeText={(v) => onChange({ note: v })} />
       )}
     </View>
+  );
+}
+/* Κόκκινο κυκλάκι με λευκό ✕: τρέμει λίγο, κάνει μια πλήρη στροφή 360° και ξεκουράζεται, ξανά και ξανά. */
+const ND = Platform.OS !== 'web';
+function RemoveDot({ onPress }: { onPress: () => void }) {
+  const shake = useRef(new Animated.Value(0)).current;
+  const spin = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const t = (v: Animated.Value, to: number, duration: number) => Animated.timing(v, { toValue: to, duration, easing: Easing.inOut(Easing.quad), useNativeDriver: ND });
+    const loop = Animated.loop(Animated.sequence([
+      t(shake, 1, 60), t(shake, -1, 60), t(shake, 1, 60), t(shake, -1, 60), t(shake, 0, 60),
+      t(spin, 1, 520),
+      Animated.timing(spin, { toValue: 0, duration: 0, useNativeDriver: ND }),
+      Animated.delay(1400),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, [shake, spin]);
+  const rotate = Animated.add(shake.interpolate({ inputRange: [-1, 1], outputRange: [-14, 14] }), spin.interpolate({ inputRange: [0, 1], outputRange: [0, 360] }))
+    .interpolate({ inputRange: [-360, 720], outputRange: ['-360deg', '720deg'] });
+  const translateX = shake.interpolate({ inputRange: [-1, 1], outputRange: [-1.5, 1.5] });
+  return (
+    <Animated.View style={{ position: 'absolute', top: -7, right: -7, zIndex: 2, transform: [{ translateX }, { rotate }] }}>
+      <Pressable onPress={onPress} hitSlop={8} accessibilityLabel="Αφαίρεση ώρας"
+        style={({ pressed }) => ({ width: 22, height: 22, borderRadius: 11, backgroundColor: C.bad, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.75 : 1 })}>
+        <Icon name="close" size={10} color={C.onBad} />
+      </Pressable>
+    </Animated.View>
   );
 }
 const Step = ({ label, onPress }: { label: string; onPress: () => void }) => (
