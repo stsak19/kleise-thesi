@@ -57,7 +57,7 @@ export default function StoreBookings() {
         ]} />
 
         {tab === 'b' ? <>
-          <RateCard R={R} items={past} store={false} />
+          <RateCard R={R} items={[...S.upcoming, ...past]} store={false} />
           {n === 0 && <Empty text="Δεν έχεις κλείσει ώρα εδώ ακόμα. Πάτα το κουμπί στη μέση της μπάρας." />}
           {S.upcoming.map((b) => <BannerCard key={b.id} b={{ ...b, business: b.business ?? name } as any} biz={S.biz} color={color} onCancel={() => S.cancelBooking(b)} />)}
           {S.waits.map((w) => <WaitRow key={w.id} w={w} onLeave={() => S.leave(w)} />)}

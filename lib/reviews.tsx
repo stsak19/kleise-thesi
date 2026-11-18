@@ -189,7 +189,8 @@ export function RateButton({ R, b }: { R: MyReviews; b: RateTarget & { status: s
 export function RateCard({ R, items, store = true }: { R: MyReviews; items: (RateTarget & { status: string; time?: string })[]; store?: boolean }) {
   if (!R.ready) return null;
   const d = new Date(); d.setDate(d.getDate() - 14); const since = iso(d);
-  const all = items.filter((b) => canRate(b) && !R.mine[b.id] && b.date >= since);
+  const all = items.filter((b) => canRate(b) && !R.mine[b.id] && b.date >= since)
+    .sort((a, z) => `${z.date} ${z.time ?? ''}`.localeCompare(`${a.date} ${a.time ?? ''}`)); // η πιο πρόσφατη πρώτη
   const b = all[0];
   if (!b) return null;
   return (
@@ -204,7 +205,8 @@ export function RateCard({ R, items, store = true }: { R: MyReviews; items: (Rat
   );
 }
 
-/* Οι κριτικές ενός καταστήματος: μέσος όρος, κατανομή και τα σχόλια. Χωρίς κριτικές (ή χωρίς το 016) δεν δείχνει τίποτα. */
+/* Οι κριτικές ενός καταστήματος: μέσος όρος, κατανομή και τα σχόλια.
+   Χωρίς κριτικές: μικρή κάρτα «Καμία κριτική ακόμα». Χωρίς το 016 στη βάση (η RPC δεν υπάρχει): τίποτα. */
 export function Reviews({ businessId, reload = 0, head }: { businessId?: string; reload?: number; head: (t: string) => React.ReactNode }) {
   const [d, setD] = useState<any>(null);
   const [all, setAll] = useState(false);
@@ -212,7 +214,16 @@ export function Reviews({ businessId, reload = 0, head }: { businessId?: string;
     if (!businessId) return;
     rpc('business_reviews', { p_business: businessId }).then(setD).catch(() => setD(null));
   }, [businessId, reload]);
-  if (!d?.count) return null;
+  if (!d) return null;
+  if (!d.count) return (
+    <View style={{ gap: 12 }}>
+      {head('Κριτικές')}
+      <View style={{ borderRadius: 18, backgroundColor: C.card, padding: 16, gap: 4 }}>
+        <Text style={{ color: C.text, fontWeight: '700', fontSize: 15 }}>Καμία κριτική ακόμα</Text>
+        <Text style={{ color: C.mute, fontSize: 13.5, lineHeight: 19 }}>Οι πελάτες βαθμολογούν από τις Κρατήσεις τους, μετά την επίσκεψη.</Text>
+      </View>
+    </View>
+  );
   const items: any[] = d.items ?? [];
   const shown = all ? items : items.filter((x) => x.comment).slice(0, 3);
   return (

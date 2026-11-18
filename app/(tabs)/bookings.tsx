@@ -50,7 +50,7 @@ export default function Bookings() {
           <Card><Empty emoji="📅" title="Καμία επερχόμενη κράτηση" text="Βρες ένα κατάστημα και κλείσε θέση σε λίγα δευτερόλεπτα."
             action="Βρες κατάστημα" onAction={D.find} /></Card>
         )}
-        <RateCard R={R} items={D.past} />
+        <RateCard R={R} items={[...D.upcoming, ...D.past]} />
         {n > 0 && <Upcoming D={D} />}
         <Extras D={D} />
         <HistoryBox title="Ιστορικό κρατήσεων" sub={D.past.length ? `${D.past.length} ${D.past.length === 1 ? 'παλιά κράτηση' : 'παλιές κρατήσεις'}` : 'Καμία παλιά κράτηση ακόμα'}>
