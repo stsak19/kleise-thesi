@@ -35,7 +35,7 @@ export default function Clients() {
   return (
     <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0, paddingBottom: TAB_SPACE }, deskCol(wide)]} keyboardShouldPersistTaps="handled">
       <View style={{ marginHorizontal: -20 }}>
-        <ScreenHeader title={wide ? k.clients : undefined} right={wide ? undefined : <View style={{ width: 40 }} />} sub={list ? `${all.length} στην καρτέλα` : undefined} />
+        <ScreenHeader title={wide ? k.clients : undefined} sub={list ? `${all.length} στην καρτέλα` : undefined} />
       </View>
       <Group>
         <Row icon="pack" title={k.plans} sub={`${all.filter((c) => c.pack).length} ενεργά · πακέτα, συνδρομές, δωροκάρτες`} onPress={() => router.push('/owner/plans')} last />

@@ -1,13 +1,14 @@
 import { useCallback, useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { Pressable } from 'react-native';
 import { Text } from '../../../lib/Txt';
 import { say } from '../../../lib/alert';
 import { rpc, sb } from '../../../lib/supabase';
 import { styleOf } from '../../../lib/presets';
 import { kindOf } from '../../../lib/owner/kinds';
 import { Face, NoBiz, useMyBiz, useStaff } from '../../../lib/owner/hub';
-import { Btn, C, Card, DAYS, Empty, Input, Pill, ScreenHeader, T, TAB_SPACE, iso, s } from '../../../lib/ui';
+import { Btn, C, Card, DAYS, Empty, Icon, Input, Pill, ScreenHeader, T, TAB_SPACE, iso, s } from '../../../lib/ui';
 import { deskCol, useWide } from '../../../lib/owner/desk';
 import { InviteSheet, accessLabel } from '../../../lib/owner/Invite';
 
@@ -24,6 +25,7 @@ export default function Team() {
   const [role, setRole] = useState('');
   const [inv, setInv] = useState<any>(null);
   const wide = useWide();
+  const router = useRouter();
 
   useFocusEffect(useCallback(() => {
     if (!biz) return;
@@ -48,7 +50,12 @@ export default function Team() {
   return (
     <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0, paddingBottom: TAB_SPACE }, deskCol(wide)]}>
       <View style={{ marginHorizontal: -20 }}>
-        <ScreenHeader title={wide ? k.team : undefined} right={wide ? undefined : <View style={{ width: 40 }} />} sub={staff.length > 1 ? `${staff.length} άτομα · ${Object.values(today).reduce((a, b) => a + b, 0)} ραντεβού σήμερα` : k.solo} />
+        <ScreenHeader title={k.team} eyebrow={wide ? undefined : (
+          <Pressable onPress={() => router.navigate('/page')} hitSlop={8} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 }}>
+            <Icon name="back" size={18} color={C.mute} />
+            <Text style={{ color: C.mute, fontSize: 14, fontWeight: '700' }}>Κατάστημα</Text>
+          </Pressable>
+        )} sub={staff.length > 1 ? `${staff.length} άτομα · ${Object.values(today).reduce((a, b) => a + b, 0)} ραντεβού σήμερα` : k.solo} />
       </View>
 
       {staff.length === 0 && <Card><Empty icon="user" title="Δεν έχεις προσθέσει ομάδα" text="Πρόσθεσε όσους δουλεύουν μαζί σου, ώστε ο καθένας να έχει το δικό του πρόγραμμα." /></Card>}

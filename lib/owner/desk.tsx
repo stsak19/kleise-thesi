@@ -37,8 +37,8 @@ export function Sidebar({ items, state, navigateToTab }: { items: SideItems; sta
   const label = (name: string) => (name === 'clients' ? k.clients : name === 'team' ? k.team : items[name].label);
   const activeKey = state.routes[state.index]?.key;
   const activeRoute: any = state.routes[state.index];
-  const inSettings = activeRoute?.name === 'shop-settings';
-  const sub = inSettings ? (activeRoute.params?.s ?? 'services') : null;
+  const inSettings = activeRoute?.name === 'shop-settings' || activeRoute?.name === 'team';
+  const sub = activeRoute?.name === 'team' ? 'team' : inSettings ? (activeRoute.params?.s ?? 'services') : null;
   return (
     <View style={{ width: 248, backgroundColor: alpha(C.text, 0.02), borderRightWidth: 1, borderRightColor: C.line, paddingVertical: 20, paddingHorizontal: 14, gap: 4 }}>
       {biz && (
@@ -65,6 +65,11 @@ export function Sidebar({ items, state, navigateToTab }: { items: SideItems; sta
                 </Pressable>
               );
             })}
+            <Pressable key="team" onPress={() => router.navigate('/team' as any)}
+              style={({ pressed, hovered }: any) => ({ paddingVertical: 9, paddingHorizontal: 12, borderRadius: 12,
+                backgroundColor: sub === 'team' ? C.soft : pressed || hovered ? alpha(C.text, 0.04) : 'transparent' })}>
+              <Text style={{ color: sub === 'team' ? C.text : C.mute, fontWeight: sub === 'team' ? '800' : '700', fontSize: 14.5 }}>{k.team}</Text>
+            </Pressable>
           </View>
         );
         return [(

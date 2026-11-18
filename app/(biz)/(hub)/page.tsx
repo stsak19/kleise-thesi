@@ -6,7 +6,8 @@ import { say } from '../../../lib/alert';
 import { sb } from '../../../lib/supabase';
 import type { IconName } from '../../../lib/Icon';
 import { PagePreview } from '../../../lib/owner/PagePreview';
-import { NoBiz, useMyBiz } from '../../../lib/owner/hub';
+import { NoBiz, useMyBiz, useStaff } from '../../../lib/owner/hub';
+import { kindOf } from '../../../lib/owner/kinds';
 import { C, Card, Group, Row, ScreenHeader, Section, SwitchRow, T, TAB_SPACE, catLabel, s } from '../../../lib/ui';
 import { signOut, usePerson } from '../../../lib/profile/data';
 import { Initials } from '../../../lib/profile/parts';
@@ -32,6 +33,7 @@ export default function Page() {
   const [published, setPublished] = useState<boolean | null>(null);
   const wide = useWide();
   const person = usePerson();
+  const { staff } = useStaff(biz);
   useEffect(() => { if (biz) setPublished(!!biz.is_published); }, [biz]);
 
   if (biz === undefined) return <View style={s.screen} />;
@@ -46,7 +48,7 @@ export default function Page() {
   return (
     <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0, paddingBottom: TAB_SPACE }, deskCol(wide)]}>
       <View style={{ marginHorizontal: -20 }}>
-        <ScreenHeader title={wide ? 'Κατάστημα' : undefined} right={wide ? undefined : <View style={{ width: 40 }} />} sub={[catLabel(biz.category), biz.city].filter(Boolean).join(' · ')} />
+        <ScreenHeader title={wide ? 'Κατάστημα' : undefined} sub={[catLabel(biz.category), biz.city].filter(Boolean).join(' · ')} />
       </View>
       <PagePreview biz={{ ...biz, is_published: published }} />
 
@@ -62,6 +64,8 @@ export default function Page() {
           <Row key={key} icon={ICON[key]} title={sectionLabel(key, biz.category)} sub={SUB_ROW[key](biz)}
             onPress={() => router.push(wide ? `/shop-settings?s=${key}` : `/owner/setup?s=${key}`)} />
         ))}
+        <Row icon="team" title={kindOf(biz.category).team} sub={staff.length > 1 ? `${staff.length} άτομα · ωράρια, υπηρεσίες, προσκλήσεις` : 'Πρόσθεσε άτομα που δουλεύουν μαζί σου'}
+          onPress={() => router.push('/team')} />
         <Row icon="store" title="Δες τη σελίδα σαν πελάτης" sub="Έτσι τη βλέπουν όσοι κλείνουν θέση" onPress={() => router.push(`/store/${biz.id}`)} last />
       </Group>
       <Text style={{ color: C.mute, fontSize: 13, textAlign: 'center', marginTop: 4 }}>Οι αλλαγές φαίνονται αμέσως στους πελάτες.</Text>

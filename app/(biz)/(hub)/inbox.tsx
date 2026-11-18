@@ -72,7 +72,7 @@ export default function Messages() {
   return (
     <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0 }, deskCol(wide)]} keyboardShouldPersistTaps="handled">
       <View style={{ marginHorizontal: -20 }}>
-        <ScreenHeader title="Μηνύματα" sub="Σε όλους τους πελάτες σου ή σε έναν" right={wide ? undefined : <View style={{ width: 40 }} />} />
+        <ScreenHeader title="Μηνύματα" sub="Σε όλους τους πελάτες σου ή σε έναν" />
       </View>
       <Section title="Προς" />
       <View style={{ flexDirection: 'row', backgroundColor: C.soft, borderRadius: 14, padding: 4 }}>
