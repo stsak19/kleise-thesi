@@ -148,10 +148,19 @@ export function HoursEditor({ hours, setHours }: { hours: Hours; setHours: (h: H
     const last = gen(d).map(({ h }) => h).sort((a, z) => a.closes.localeCompare(z.closes)).pop();
     setHours([...hours, { weekday: d, ...nextSpan(last), svc: null }]);
   };
+  /* Περνά το ωράριο της d σε όλες τις επόμενες μέρες της εβδομάδας (μετά κλείνει όποια θέλει). */
+  const key = (d: number) => gen(d).map(({ h }) => `${h.opens}-${h.closes}`).sort().join(',');
+  const later = (d: number) => WEEK.slice(WEEK.indexOf(d) + 1);
+  const copyOn = (d: number) => {
+    const src = gen(d).map(({ h }) => h);
+    const to = later(d);
+    setHours([...hours.filter((h) => !(h.svc === null && to.includes(h.weekday))), ...to.flatMap((w) => src.map((x) => ({ ...x, weekday: w })))]);
+  };
   return (
     <View style={[s.card, shadow(1), { padding: 0, gap: 0, overflow: 'hidden' }]}>
       {WEEK.map((d, di) => {
         const rows = gen(d).sort((a, z) => a.h.opens.localeCompare(z.h.opens));
+        const canCopy = rows.length > 0 && later(d).length > 0 && later(d).some((w) => key(w) !== key(d));
         return (
           <View key={d} style={[{ padding: 14, gap: 10 }, di < WEEK.length - 1 && { borderBottomWidth: 1, borderBottomColor: C.bg }]}>
             <View style={s.row}>
@@ -175,6 +184,12 @@ export function HoursEditor({ hours, setHours }: { hours: Hours; setHours: (h: H
             {rows.length > 0 && (
               <Pressable onPress={() => addBreak(d)} hitSlop={6} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, alignSelf: 'flex-start' })}>
                 <Text style={{ color: C.tint, fontWeight: '700', fontSize: 14 }}>+ Διάλειμμα</Text>
+              </Pressable>
+            )}
+            {canCopy && (
+              <Pressable onPress={() => copyOn(d)} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, backgroundColor: C.text, borderRadius: 12,
+                paddingVertical: 11, paddingHorizontal: 14, alignItems: 'center' })}>
+                <Text style={{ color: C.bg, fontWeight: '800', fontSize: 14 }}>Ίδιο ωράριο και στις επόμενες μέρες</Text>
               </Pressable>
             )}
           </View>

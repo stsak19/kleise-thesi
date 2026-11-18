@@ -40,6 +40,15 @@ const RAIL: Record<Step, (svc: string) => string> = {
 const COLORS = Array.from(new Set(THEMES.map((t) => t.color)));
 const hrs = (m: number) => amountLabel(m);
 
+/* Νέο κατάστημα: ανοιχτή μόνο η Δευτέρα (με τις προτεινόμενες ώρες του είδους). Ο επιχειρηματίας τη φτιάχνει
+   και με «Ίδιο ωράριο και στις επόμενες μέρες» την περνά στις υπόλοιπες. Τα προγράμματα μαθημάτων μένουν ως έχουν. */
+function onlyMonday(h: Hours): Hours {
+  const gen = h.filter((x) => x.svc === null);
+  const src = gen.some((x) => x.weekday === 1) ? 1 : WEEK.find((d) => gen.some((x) => x.weekday === d));
+  const mon = src == null ? [{ weekday: 1, opens: '09:00', closes: '17:00', svc: null }] : gen.filter((x) => x.weekday === src).map((x) => ({ ...x, weekday: 1 }));
+  return [...h.filter((x) => x.svc !== null), ...mon];
+}
+
 export default function NewBusiness() {
   const router = useRouter();
   const { session } = useAuth();
@@ -146,7 +155,7 @@ export default function NewBusiness() {
     const p = presetData(k);
     setB((x: any) => ({ ...x, category: k, layout: null, theme: null, brand_color: null, ...p.rules }));
     setRemoved((r) => [...r, ...svcs.filter((x) => x.id).map((x) => x.id!)]);
-    setSvcs(p.svcs); setHours(p.hours);
+    setSvcs(p.svcs); setHours(onlyMonday(p.hours));
   };
 
   /* Τι λείπει για να πας στο επόμενο βήμα (κενό = όλα καλά). */
@@ -205,7 +214,7 @@ export default function NewBusiness() {
     place: { title: 'Πού σε βρίσκουμε;', sub: 'Η πόλη χρειάζεται για την αναζήτηση. Τα υπόλοιπα βοηθούν τον πελάτη να έρθει.' },
     look: { title: 'Δώσε της πρόσωπο', sub: 'Ανέβασε εξώφυλλο και φωτογραφία προφίλ. Μπορείς να τα βάλεις και αργότερα.' },
     services: { title: `${scr.services}`, sub: `${svcKind(cat).badge}. Σου βάλαμε μερικές για αρχή. Πάτα μία για να την αλλάξεις ή να τη σβήσεις, ή πρόσθεσε καινούργια.` },
-    hours: { title: 'Πότε είσαι ανοιχτά;', sub: 'Άνοιξε ή κλείσε κάθε μέρα. Για μεσημεριανό κενό πάτα «+ Διάλειμμα».' },
+    hours: { title: 'Πότε είσαι ανοιχτά;', sub: 'Φτιάξε τη Δευτέρα και πάτα «Ίδιο ωράριο και στις επόμενες μέρες». Μετά κλείσε όποια μέρα δεν δουλεύεις.' },
     rules: { title: 'Πώς κλείνουν θέση;', sub: 'Λίγοι κανόνες για τις κρατήσεις σου. Οι προτάσεις ταιριάζουν στο είδος σου.' },
     review: { title: 'Όλα έτοιμα;', sub: 'Ρίξε μια ματιά. Πάτα σε ό,τι θέλεις να αλλάξεις.' },
   };
