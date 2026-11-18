@@ -46,7 +46,7 @@ export default function Page() {
   return (
     <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0, paddingBottom: TAB_SPACE }, deskCol(wide)]}>
       <View style={{ marginHorizontal: -20 }}>
-        <ScreenHeader title="Κατάστημα" sub={[catLabel(biz.category), biz.city].filter(Boolean).join(' · ')} />
+        <ScreenHeader title={wide ? 'Κατάστημα' : undefined} right={wide ? undefined : <View style={{ width: 40 }} />} sub={[catLabel(biz.category), biz.city].filter(Boolean).join(' · ')} />
       </View>
       <PagePreview biz={{ ...biz, is_published: published }} />
 

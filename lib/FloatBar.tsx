@@ -26,18 +26,21 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
   const light = isLight(C.bg);
   const shown = state.routes.filter((r) => items[r.name]);
   const activeKey = state.routes[state.index]?.key;
-  const idx = Math.max(0, shown.findIndex((r) => r.key === activeKey));
+  // none: η ανοιχτή καρτέλα δεν είναι στη μπάρα (π.χ. Μηνύματα από τη σαΐτα πάνω δεξιά) → καμία επιλεγμένη
+  const found = shown.findIndex((r) => r.key === activeKey), none = found < 0, idx = Math.max(0, found);
   const gap = labels ? 6 : 14, step = ICON + gap;
   // Πλάτος της λέξης κάθε καρτέλας (μετριέται μία φορά από αόρατο κείμενο).
   const [textW, setTextW] = useState<Record<string, number>>({});
   // Αν η λέξη της ενεργής καρτέλας δεν χωράει (στενό κινητό + ξεχωριστός κύκλος), μένουν μόνο εικονίδια.
   const screenW = useWindowDimensions().width;
-  const labelW = textW[shown[idx]?.name] ? textW[shown[idx].name] + 14 : 0;
+  const labelW = Math.max(0, ...shown.map((r) => (textW[r.name] ? textW[r.name] + 14 : 0)));
   // Η μπάρα μένει πάντα στη μέση· ο ξεχωριστός κύκλος (apart) «κρέμεται» δεξιά της χωρίς να τη μετακινεί,
   // άρα η μισή μπάρα + κύκλος πρέπει να χωράνε στο μισό πλάτος της οθόνης.
   const barW = 2 * PAD + shown.length * ICON + (shown.length - 1) * gap + labelW + (extra && !extra.apart ? ICON + gap + 1 : 0);
-  const lab = !!labels && (extra?.apart ? barW / 2 + APART + 8 + 10 <= screenW / 2 : barW + 16 <= screenW);
-  const widthOf = (i: number) => (lab && i === idx && textW[shown[i]?.name] ? ICON + textW[shown[i].name] + 14 : ICON);
+  const lab = !!labels && (extra?.apart ? barW + APART + 8 + 16 <= screenW : barW + 16 <= screenW);
+  // Στη μέση όταν χωράει· αλλιώς μετακινείται αριστερά μόνο όσο χρειάζεται για να χωρέσει ο κύκλος.
+  const shift = extra?.apart ? Math.max(0, (lab ? barW : barW - labelW) / 2 + APART + 8 + 8 - screenW / 2) : 0;
+  const widthOf = (i: number) => (lab && !none && i === idx && textW[shown[i]?.name] ? ICON + textW[shown[i].name] + 14 : ICON);
   const leftOf = (i: number) => { let x = 0; for (let j = 0; j < i; j++) x += widthOf(j) + gap; return x; };
   const drv = !labels; // με λέξεις αλλάζουν πλάτη/θέσεις, που δεν τα κινεί ο native driver
   const ws = useRef(shown.map((_, i) => new Animated.Value(widthOf(i)))).current;
@@ -82,7 +85,7 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
         </View>
       )}
       {/* Η μπάρα στη μέση· ο ξεχωριστός κύκλος κρέμεται δεξιά της (left: 100%) χωρίς να αλλάζει το κέντρο */}
-      <View>
+      <View style={{ marginRight: shift * 2 }}>
       <View ref={bar} {...pan.panHandlers} onLayout={() => bar.current?.measureInWindow((bx: number) => { barX.current = bx; })}>
       <BlurView intensity={light ? 40 : 30} tint={light ? 'light' : 'dark'} experimentalBlurMethod="dimezisBlurView"
         style={{ height: 52, borderRadius: 26, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap, paddingHorizontal: PAD,
@@ -90,12 +93,12 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
           boxShadow: `0px 10px 30px ${alpha(C.shade, light ? 0.12 : 0.4)}, inset 0px 1px 0px ${alpha('#ffffff', light ? 0.9 : 0.08)}` }}>
         {/* Γυάλινη «σταγόνα» (σαν το Liquid Glass): γλιστράει με ελατήριο στην ενεργή καρτέλα,
             τεντώνει όσο κινείται και φουσκώνει λίγο όταν πατάς. */}
-        <Animated.View pointerEvents="none" style={{ position: 'absolute', left: PAD, top: 5, width: labels ? bw : ICON, height: ICON, borderRadius: ICON / 2,
+        <Animated.View pointerEvents="none" style={{ position: 'absolute', left: PAD, top: 5, opacity: none ? 0 : 1, width: labels ? bw : ICON, height: ICON, borderRadius: ICON / 2,
           transform: [{ translateX: x }, { scaleX: Animated.multiply(stretch, press) }, { scaleY: Animated.multiply(Animated.divide(1, stretch), press) }],
           backgroundColor: light ? alpha('#d8d8de', 0.55) : alpha('#ffffff', 0.14), borderWidth: 1, borderColor: light ? alpha('#000000', 0.06) : alpha('#ffffff', 0.12),
           boxShadow: `0px 6px 16px ${alpha('#000000', light ? 0.14 : 0.45)}, inset 0px -2px 6px ${alpha(light ? '#000000' : '#ffffff', 0.06)}` }} />
         {shown.map((r, i) => {
-          const on = r.key === activeKey, it = items[r.name];
+          const on = !none && r.key === activeKey, it = items[r.name];
           return (
             <Pressable key={r.key} onPress={() => navigateToTab(r.key)} onPressIn={onIn} onPressOut={onOut}
               accessibilityRole="tab" accessibilityLabel={it.label} accessibilityState={{ selected: on }}>

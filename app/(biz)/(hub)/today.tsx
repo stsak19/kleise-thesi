@@ -56,7 +56,7 @@ export default function Today() {
     <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0 }]} stickyHeaderIndices={[2]}
       refreshControl={<RefreshControl refreshing={D.loading} onRefresh={reload} />}>
       <View style={{ marginHorizontal: -20 }}>
-        <ScreenHeader eyebrow={<BizSwitcher biz={biz} />} title="Πρόγραμμα" />
+        <ScreenHeader eyebrow={<BizSwitcher biz={biz} />} title={wide ? 'Πρόγραμμα' : undefined} right={wide ? undefined : <View style={{ width: 40 }} />} />
       </View>
 
       <View style={{ gap: 12 }}>

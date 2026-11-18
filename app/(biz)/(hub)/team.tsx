@@ -48,7 +48,7 @@ export default function Team() {
   return (
     <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingTop: 0, paddingBottom: TAB_SPACE }, deskCol(wide)]}>
       <View style={{ marginHorizontal: -20 }}>
-        <ScreenHeader title={k.team} sub={staff.length > 1 ? `${staff.length} άτομα · ${Object.values(today).reduce((a, b) => a + b, 0)} ραντεβού σήμερα` : k.solo} />
+        <ScreenHeader title={wide ? k.team : undefined} right={wide ? undefined : <View style={{ width: 40 }} />} sub={staff.length > 1 ? `${staff.length} άτομα · ${Object.values(today).reduce((a, b) => a + b, 0)} ραντεβού σήμερα` : k.solo} />
       </View>
 
       {staff.length === 0 && <Card><Empty icon="user" title="Δεν έχεις προσθέσει ομάδα" text="Πρόσθεσε όσους δουλεύουν μαζί σου, ώστε ο καθένας να έχει το δικό του πρόγραμμα." /></Card>}

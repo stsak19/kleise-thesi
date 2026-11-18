@@ -3,7 +3,7 @@ import { C } from './theme';
 
 /* Μικρά εικονίδια γραμμής, φτιαγμένα μόνο με View (χωρίς βιβλιοθήκη εικονιδίων).
    Παίρνουν το χρώμα τους από το θέμα, οπότε αλλάζουν μαζί με το 🎨. */
-export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack' | 'home' | 'chat' | 'team' | 'swap';
+export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack' | 'home' | 'chat' | 'team' | 'swap' | 'send';
 
 export function Icon({ name, size = 22, color = C.text, style }: { name: IconName; size?: number; color?: string; style?: ViewStyle }) {
   const s = size, w = Math.max(1.6, Math.round(s * 0.09 * 10) / 10);
@@ -93,6 +93,16 @@ export function Icon({ name, size = 22, color = C.text, style }: { name: IconNam
       body = <>{bar(s * 0.5, s * 0.5, s * 0.64, 0)}{bar(s * 0.5, s * 0.5, s * 0.64, 90)}</>; break;
     case 'close':
       body = <>{bar(s * 0.5, s * 0.5, s * 0.64, 45)}{bar(s * 0.5, s * 0.5, s * 0.64, -45)}</>; break;
+    case 'send': {
+      // Σαΐτα (χάρτινο αεροπλανάκι) με γραμμές ανάμεσα σε σημεία
+      const seg = (x1: number, y1: number, x2: number, y2: number) => {
+        const dx = (x2 - x1) * s, dy = (y2 - y1) * s;
+        return bar(((x1 + x2) / 2) * s, ((y1 + y2) / 2) * s, Math.hypot(dx, dy) + w * 0.6, (Math.atan2(dy, dx) * 180) / Math.PI);
+      };
+      body = <>
+        {seg(0.1, 0.46, 0.9, 0.1)}{seg(0.9, 0.1, 0.56, 0.9)}{seg(0.56, 0.9, 0.44, 0.56)}{seg(0.44, 0.56, 0.1, 0.46)}{seg(0.44, 0.56, 0.9, 0.1)}
+      </>; break;
+    }
     case 'mail':
       body = <>
         <View style={abs(s * 0.08, s * 0.2, { width: s * 0.84, height: s * 0.6, borderRadius: s * 0.12, borderWidth: w, borderColor: color })} />
