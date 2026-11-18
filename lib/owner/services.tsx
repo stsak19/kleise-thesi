@@ -282,9 +282,7 @@ export function ServiceFields({ svc, onChange, category, groups = [], staff = []
               </View>
             </View>
           ))}
-          <Pressable onPress={() => onSched([...(sched ?? []), nextRow(sched ?? [])])} hitSlop={6} style={{ alignSelf: 'flex-start' }}>
-            <Text style={{ color: C.tint, fontWeight: '700', fontSize: 14 }}>+ Πρόσθεσε ώρα</Text>
-          </Pressable>
+          <Btn size="sm" kind="ghost" title="+ Πρόσθεσε ώρα" style={{ alignSelf: 'flex-start' }} onPress={() => onSched([...(sched ?? []), nextRow(sched ?? [])])} />
         </View>
       )}
 
@@ -345,9 +343,7 @@ export function ServiceModal({ draft, category, groups, staff, onClose, onSave, 
           </ScrollView>
           <View style={[s.row, { paddingHorizontal: 22, paddingVertical: 14, gap: 12, borderTopWidth: 1, borderTopColor: C.line }]}>
             {!d.fresh && (
-              <Pressable onPress={() => onDelete(d)} hitSlop={8}>
-                <Text style={{ color: C.bad, fontWeight: '800', fontSize: 14.5 }}>Διαγραφή</Text>
-              </Pressable>
+              <Btn size="sm" kind="danger" title="Διαγραφή" onPress={() => onDelete(d)} />
             )}
             <View style={{ flex: 1 }} />
             <Pressable onPress={onClose} style={({ pressed }) => ({ paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, opacity: pressed ? 0.7 : 1 })}>

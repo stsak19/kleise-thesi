@@ -248,7 +248,7 @@ export default function NewBusiness() {
         ? <View style={{ gap: 22 }}>
             <ServiceFields svc={editing} onChange={patchSvc} category={cat} groups={[...new Set(svcs.map((x) => groupOf(svcKind(cat), x)))]}
               sched={sched} onSched={(x) => { setSched(x); setHours((h) => withSched(h, editing.key, x, +editing.duration_min)); }} />
-            {!svcEdit?.fresh && <TextBtn title="Διαγραφή" color={C.bad} onPress={() => { dropSvc(editing.key); dir.current = -1; setSvcEdit(null); }} />}
+            {!svcEdit?.fresh && <Btn size="sm" kind="danger" title="Διαγραφή" style={{ alignSelf: 'flex-start' }} onPress={() => { dropSvc(editing.key); dir.current = -1; setSvcEdit(null); }} />}
           </View>
         : <ServiceBoard svcs={svcs} category={cat} hours={hours} onOpen={openSvc} onAdd={addSvc} />;
       case 'hours': return <HoursEditor hours={hours} setHours={setHours} />;
