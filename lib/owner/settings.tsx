@@ -83,6 +83,7 @@ type St = ReturnType<typeof useStoreSettings>;
 /* ---------- Στοιχεία ---------- */
 function Details({ st }: { st: St }) {
   const { b, setB, svcs, setSvcs, setHours, setRemoved, uid } = st;
+  const [picking, setPicking] = useState(false);
   const applyPreset = (cat: string) => {
     const p = presetData(cat);
     setB((x: any) => ({ ...x, category: cat, layout: null, theme: null, brand_color: null, ...p.rules }));
@@ -101,10 +102,18 @@ function Details({ st }: { st: St }) {
         <Input label="Όνομα" placeholder="π.χ. Κομμωτήριο Ελένη" value={b.name} onChangeText={(v) => setB({ ...b, name: v })} />
         <View style={{ gap: 8 }}>
           <Text style={s.label}>Τι επιχείρηση είναι</Text>
-          <View style={[s.row, { flexWrap: 'wrap' }]}>
-            {CATEGORIES.map((c) => <Chip key={c.key} emoji={c.emoji} label={c.label} on={b.category === c.key} onPress={() => pickCategory(c.key)} />)}
-          </View>
-          <T mute style={{ fontSize: 13 }}>Από το είδος εξαρτάται πώς στήνονται οι {svcKind(b.category).many}: {svcKind(b.category).badge.toLowerCase()}.</T>
+          {/* Μαζεμένο: φαίνεται μόνο το είδος που έχεις· οι επιλογές ανοίγουν με «Αλλαγή». */}
+          <Pressable onPress={() => setPicking((v) => !v)} accessibilityRole="button" accessibilityState={{ expanded: picking }}
+            style={({ pressed }) => [s.row, { gap: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 14, backgroundColor: pressed ? alpha(C.text, 0.06) : C.soft }]}>
+            <Text style={{ fontSize: 22 }}>{catEmoji(b.category)}</Text>
+            <Text style={{ flex: 1, color: C.text, fontWeight: '700', fontSize: 15 }} numberOfLines={1}>{b.category ? catLabel(b.category) : 'Διάλεξε είδος'}</Text>
+            <Text style={{ color: C.mute, fontWeight: '700', fontSize: 14 }}>{picking ? 'Κλείσιμο' : 'Αλλαγή'}</Text>
+          </Pressable>
+          {picking && (
+            <View style={[s.row, { flexWrap: 'wrap' }]}>
+              {CATEGORIES.filter((c) => c.key !== b.category).map((c) => <Chip key={c.key} emoji={c.emoji} label={c.label} onPress={() => { setPicking(false); pickCategory(c.key); }} />)}
+            </View>
+          )}
         </View>
         <View style={[s.row, { gap: 10 }]}>
           <View style={{ flex: 1 }}><Input label="Πόλη" placeholder="Αθήνα" value={b.city} onChangeText={(v) => setB({ ...b, city: v })} /></View>
