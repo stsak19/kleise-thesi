@@ -34,12 +34,11 @@ export function FloatBar({ items, state, navigateToTab, labels, extra }: { items
   // Αν η λέξη της ενεργής καρτέλας δεν χωράει (στενό κινητό + ξεχωριστός κύκλος), μένουν μόνο εικονίδια.
   const screenW = useWindowDimensions().width;
   const labelW = Math.max(0, ...shown.map((r) => (textW[r.name] ? textW[r.name] + 14 : 0)));
-  // Η μπάρα μένει πάντα στη μέση· ο ξεχωριστός κύκλος (apart) «κρέμεται» δεξιά της χωρίς να τη μετακινεί,
-  // άρα η μισή μπάρα + κύκλος πρέπει να χωράνε στο μισό πλάτος της οθόνης.
+  // Μπάρα + ξεχωριστός κύκλος (apart) είναι ένα σύνολο που κάθεται στη μέση της οθόνης.
   const barW = 2 * PAD + shown.length * ICON + (shown.length - 1) * gap + labelW + (extra && !extra.apart ? ICON + gap + 1 : 0);
   const lab = !!labels && (extra?.apart ? barW + APART + 8 + 16 <= screenW : barW + 16 <= screenW);
-  // Στη μέση όταν χωράει· αλλιώς μετακινείται αριστερά μόνο όσο χρειάζεται για να χωρέσει ο κύκλος.
-  const shift = extra?.apart ? Math.max(0, (lab ? barW : barW - labelW) / 2 + APART + 8 + 8 - screenW / 2) : 0;
+  // Η μπάρα πάει αριστερά κατά το μισό του κύκλου (+ κενό), ώστε μπάρα και κύκλος μαζί να είναι στη μέση.
+  const shift = extra?.apart ? (APART + 8) / 2 : 0;
   const widthOf = (i: number) => (lab && !none && i === idx && textW[shown[i]?.name] ? ICON + textW[shown[i].name] + 14 : ICON);
   const leftOf = (i: number) => { let x = 0; for (let j = 0; j < i; j++) x += widthOf(j) + gap; return x; };
   const drv = !labels; // με λέξεις αλλάζουν πλάτη/θέσεις, που δεν τα κινεί ο native driver
