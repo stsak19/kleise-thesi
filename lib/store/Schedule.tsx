@@ -8,7 +8,7 @@ import { Seats } from './Seats';
 import { useBook } from './book';
 import { screenFor } from '../bizscreen';
 import { useWide } from '../wide';
-import { StorePacks } from './Packs';
+import { useRouter } from 'expo-router';
 
 const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
 
@@ -33,7 +33,7 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
             <Text style={{ color: C.mute, fontWeight: '800', fontSize: 15 }}>✕</Text>
           </Pressable>
         </View>
-        <ScheduleList bottom={insets.bottom + 24} onBook={onClose} />
+        <ScheduleList bottom={insets.bottom + 24} onBook={onClose} onPacks={onClose} />
       </View>
     </Modal>
   );
@@ -41,12 +41,31 @@ export function ScheduleSheet({ open, onClose }: { open: boolean; onClose: () =>
 
 /* Το περιεχόμενο του προγράμματος (ημέρες, φίλτρο, ώρες). Μπαίνει στο παράθυρο του υπολογιστή (ScheduleSheet)
    και ως κανονική σελίδα στο κινητό (app/store/[id]/(tabs)/book.tsx, το ＋ της μπάρας). */
-export function ScheduleList({ bottom, onBook }: { bottom: number; onBook?: () => void }) {
+export function ScheduleList({ bottom, onBook, onPacks }: { bottom: number; onBook?: () => void; onPacks?: () => void }) {
+  const router = useRouter();
   const S = useStore();
   const B = useBook();
   const multi = S.schedServices.length > 1;
-  // Γυμναστήριο με πακέτα και ο πελάτης δεν έχει ακόμα: πρώτα τα πακέτα, μετά το πρόγραμμα (που δουλεύει μόλις ενεργοποιηθεί το πακέτο).
-  const needPack = S.layout === 'classes' && !!S.biz?.uses_credits && !S.hasPack && S.packages.length > 0;
+  /* Γυμναστήριο με πακέτα και ο πελάτης δεν έχει ακόμα πακέτο: κανένα πρόγραμμα, μόνο «Χρειάζεσαι πακέτο» και κουμπί προς τα πακέτα
+     (στο Κατάστημα). Μόλις ενεργοποιηθεί το πακέτο, εδώ εμφανίζεται το πρόγραμμα του πακέτου (2026-11-18). */
+  if (S.layout === 'classes' && !!S.biz?.uses_credits && !S.hasPack) {
+    const asked = S.pendingPack;
+    return (
+      <View style={{ paddingHorizontal: 28, paddingTop: 48, paddingBottom: bottom, alignItems: 'center', gap: 12 }}>
+        <Text style={{ fontSize: 40 }}>{asked ? '⏳' : '🎟️'}</Text>
+        <Text style={{ color: C.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.4, textAlign: 'center' }}>
+          {asked ? `Ζήτησες το «${asked.name}»` : 'Πρώτα αγόρασε πακέτο'}
+        </Text>
+        <Text style={{ color: C.mute, fontSize: 14.5, lineHeight: 21, textAlign: 'center' }}>
+          {asked ? 'Μόλις το πληρώσεις στο κατάστημα, εδώ θα δεις το πρόγραμμα του πακέτου σου και θα κλείνεις θέση.'
+            : S.packages.length ? 'Για να δεις το πρόγραμμα και να κλείσεις θέση χρειάζεσαι πακέτο. Διάλεξε ένα στο Κατάστημα.'
+            : 'Το κατάστημα δεν έχει βάλει ακόμα πακέτα.'}
+        </Text>
+        {!!S.packages.length && <Btn title={asked ? 'Τα πακέτα' : 'Δες τα πακέτα'} kind={asked ? 'ghost' : undefined} color={asked ? undefined : S.st?.color}
+          onPress={() => (onPacks ? onPacks() : router.navigate(`/store/${S.id}` as any))} style={{ alignSelf: 'stretch', marginTop: 6 }} />}
+      </View>
+    );
+  }
   const d = new Date(S.date + 'T00:00');
   const today = S.days[0];
   const ink = readable(S.st?.color ?? C.text); // ώρες και σήματα στο χρώμα του καταστήματος
@@ -87,13 +106,7 @@ export function ScheduleList({ bottom, onBook }: { bottom: number; onBook?: () =
   };
 
   return (
-        <ScrollView contentContainerStyle={{ paddingBottom: bottom }} stickyHeaderIndices={[needPack ? 1 : 0]}>
-        {needPack && (
-          <View style={{ paddingHorizontal: 20, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: C.line }}>
-            <StorePacks title="Πρώτα διάλεξε πακέτο" />
-            <Text style={{ color: C.mute, fontSize: 13, marginTop: 8, lineHeight: 19 }}>Μόλις το πληρώσεις στο κατάστημα, κλείνεις εδώ θέση στα μαθήματα του πακέτου.</Text>
-          </View>
-        )}
+        <ScrollView contentContainerStyle={{ paddingBottom: bottom }} stickyHeaderIndices={[0]}>
         <View style={{ backgroundColor: C.bg }}>
           {/* λωρίδα ημερών */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingTop: 14 }}>

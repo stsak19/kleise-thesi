@@ -7,10 +7,12 @@ import { readable } from '../../../../lib/theme';
 import { useStore } from '../../../../lib/store/data';
 import { useBook, firstName } from '../../../../lib/store/book';
 import { Face, UsualCard, dur } from '../../../../lib/store/BookUI';
-import { AccountButton, Credits, ExitPill, FavButton, MessageList, Notice, StoreLogo } from '../../../../lib/store/parts';
+import { Credits, ExitPill, FavButton, MessageList, Notice, StoreLogo } from '../../../../lib/store/parts';
 import { StorePacks } from '../../../../lib/store/Packs';
 import { screenFor } from '../../../../lib/bizscreen';
 import { useWide } from '../../../../lib/wide';
+import { useState } from 'react';
+import { DragSheet, InfoButton } from '../../../../lib/DragSheet';
 
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
 const DAY_FULL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
@@ -31,6 +33,7 @@ export default function StoreHome() {
   const wide = useWide();
   const top = useSafeAreaInsets().top;
   const { cta, go } = B;
+  const [info, setInfo] = useState(false);
   const biz = S.biz ?? {};
   const color = S.st?.color ?? C.accent;
   const ink = readable(color); // το χρώμα του καταστήματος σε τίτλους, τιμές και ώρες (εκδοχή Γ)
@@ -197,8 +200,9 @@ export default function StoreHome() {
   );
 
   /* ---------- κινητό ---------- */
-  /* Πρώτα οι πληροφορίες (εκδοχή Β, 2026-11-18): όνομα, ανοιχτά/κλήση/οδηγίες, περιγραφή, ωράριο, επικοινωνία και κανόνες,
-     μετά υπηρεσίες, πακέτα, ομάδα και ανακοινώσεις. Η κράτηση ανοίγει από το «Κλείσε ώρα» στη μέση της κάτω μπάρας (lib/store/StoreBar). */
+  /* 2026-11-18 (επιλογή χρήστη): μπαίνεις και βλέπεις το κατάστημα, καθαρό. Πάνω δεξιά ⓘ (όλες οι πληροφορίες σε φύλλο) και ♥·
+     όχι λογαριασμός (υπάρχει ήδη το Προφίλ του SpotOn). Μαθήματα (γυμναστήριο, pilates): μόνο τα πακέτα, από εδώ τα αγοράζεις·
+     το πρόγραμμα είναι στο ＋ και ανοίγει μόλις έχεις πακέτο. Ραντεβού: υπηρεσίες και πακέτα. */
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <ScrollView contentContainerStyle={{ paddingBottom: TAB_SPACE }}>
@@ -207,25 +211,34 @@ export default function StoreHome() {
           <View style={{ position: 'absolute', top: top + 8, left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <ExitPill />
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <InfoButton onPress={() => setInfo(true)} />
               <FavButton />
-              <AccountButton />
             </View>
           </View>
         </View>
         <View style={{ paddingHorizontal: 20, paddingTop: 18, gap: 12 }}>
           {title}
-          {chips}
-          {about}
           <Notice />
-          {hours}
-          <View style={{ gap: 8 }}><Head c={ink} t="Επικοινωνία και κανόνες" />{rules}</View>
           {!classes && <UsualCard />}
+          {classes && S.hasPack && <Btn title="Το πρόγραμμά σου" icon="calendar" color={color} onPress={go} style={{ marginTop: 4 }} />}
           {services}
-          <StorePacks />
-          {team}
-          {news}
+          {classes && !S.packages.length ? (
+            <Text style={{ color: C.mute, fontSize: 14, marginTop: 14, lineHeight: 20 }}>Το κατάστημα δεν έχει βάλει ακόμα πακέτα.</Text>
+          ) : <StorePacks title={classes ? 'Διάλεξε πακέτο' : 'Πακέτα'} />}
         </View>
       </ScrollView>
+      {info && (
+        <DragSheet title="Πληροφορίες" sub={biz.name} onClose={() => setInfo(false)}>
+          <View style={{ paddingHorizontal: 20, gap: 12, paddingBottom: 24 }}>
+            {chips}
+            {about}
+            {hours}
+            <View style={{ gap: 8 }}><Head c={ink} t="Επικοινωνία και κανόνες" />{rules}</View>
+            {team}
+            {news}
+          </View>
+        </DragSheet>
+      )}
     </View>
   );
 }

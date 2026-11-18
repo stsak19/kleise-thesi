@@ -56,7 +56,6 @@ export function StoreTop({ title, right }: { title: string; right?: React.ReactN
         <ExitPill />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <FavButton />
-          <AccountButton />
         </View>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
