@@ -28,6 +28,7 @@ export default function StoreTabsLayout() {
       ) : undefined}
       screenOptions={{ headerShown: false, tabBarPosition: wide ? 'top' : 'bottom', sceneStyle: { backgroundColor: C.bg } }}>
       <Tabs.Screen name="index" options={{ title: 'Κατάστημα' }} />
+      <Tabs.Screen name="book" options={{ title: 'Κράτηση' }} />
       <Tabs.Screen name="bookings" options={{ title: 'Οι κρατήσεις μου' }} />
     </Tabs>
   );
