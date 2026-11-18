@@ -264,9 +264,9 @@ export default function NewBusiness() {
       case 'rules': return (
         <View style={{ gap: 22 }}>
           <AmountPick label="Πόσο νωρίτερα κλείνουν;" sub="Μέχρι πόσες μέρες μπροστά βλέπουν ελεύθερες ώρες." units={DAY_UNITS} max={365}
-            options={[7, 14, 30, 60]} value={+b.max_days_ahead} onPick={(v) => setB({ ...b, max_days_ahead: v })} />
+            options={[15, 30]} value={+b.max_days_ahead} onPick={(v) => setB({ ...b, max_days_ahead: v })} />
           <AmountPick label="Μέχρι πότε ακυρώνουν;" sub="Πόση ώρα πριν από το ραντεβού μπορούν να το ακυρώσουν." max={60 * 1440}
-            options={[60, 120, 240, 720, 1440, 2880]} value={+b.cancel_before_min} onPick={(v) => setB({ ...b, cancel_before_min: v })} />
+            options={[60, 1440]} value={+b.cancel_before_min} onPick={(v) => setB({ ...b, cancel_before_min: v })} />
           <View style={{ gap: 10 }}>
             <ToggleCard title="Έγκριση νέων πελατών" sub="Ο νέος πελάτης κλείνει μόνο αφού τον εγκρίνεις." value={!!b.requires_approval} onChange={(v) => setB({ ...b, requires_approval: v })} />
             <ToggleCard title="Πακέτα κρατήσεων (καρνέ)" sub="Κάθε κράτηση χρεώνεται από το πακέτο του πελάτη." value={!!b.uses_credits} onChange={(v) => setB({ ...b, uses_credits: v })} />
