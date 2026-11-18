@@ -28,8 +28,8 @@ export default function Join() {
       const r = await rpc<{ ok: boolean; error?: string; business_id?: string }>('accept_staff_invite', { p_code: String(code).toUpperCase() });
       if (!r.ok) throw new Error(r.error);
       if (r.business_id) setActiveBiz(r.business_id);
-      say(`Καλώς ήρθες στην ομάδα!`, `Από εδώ και πέρα βλέπεις το πρόγραμμά σου στο «${info?.business}».`);
-      router.replace('/');
+      say(`Καλώς ήρθες στην ομάδα!`, `Το πρόγραμμά σου στο «${info?.business}» το βρίσκεις πάντα στο Προφίλ → «Η δουλειά μου».`);
+      router.replace('/work');
     } catch (e: any) { say('Δεν έγινε', e?.message); }
     setBusy(false);
   };

@@ -10,6 +10,7 @@ import { Btn, C, Icon, Toggle, s } from '../ui';
 import type { IconName } from '../Icon';
 import { signOut, usePerson, useProfileExtras } from './data';
 import { Initials, MeForm } from './parts';
+import { useMyWork } from '../staff';
 import { AdminRow, AppearancePicker, NotifyPrefs, PasswordForm } from './Settings';
 
 /* Το προφίλ σε υπολογιστή (εκδοχή Α): όνομα πάνω, ενότητες αριστερά και η φόρμα της επιλεγμένης δεξιά,
@@ -41,6 +42,7 @@ export function DeskProfile() {
   const person = usePerson();
   const { hasBiz } = useProfileExtras(person.uid);
   const switchTo = useSwitchTo();
+  const work = useMyWork().list ?? []; // υπάλληλος σε ομάδα (016)
   const prefs = usePrefs();
   const [sel, setSelS] = useState<Key>(last);
   const [pass, setPass] = useState(false);
@@ -71,11 +73,12 @@ export function DeskProfile() {
     </View>
   ) : sel === 'notify' ? (
     <NotifyPrefs bare />
-  ) : sel === 'biz' ? (
-    hasBiz === false
+  ) : sel === 'biz' ? (<View style={{ gap: 8 }}>
+    {work.length > 0 && <Line title="Η δουλειά μου" sub={`Το πρόγραμμά σου · ${work.map((w) => w.business).join(', ')}`} right={<Btn size="sm" title="Άνοιγμα" onPress={() => router.push('/work')} />} />}
+    {hasBiz === false
       ? <Line title="Έχω επιχείρηση" sub="Φτιάξε τη σελίδα σου βήμα-βήμα, σε λίγα λεπτά" right={<Btn size="sm" title="Ξεκίνα" onPress={() => router.push('/new-business')} />} />
-      : <Line title="Λειτουργία επιχείρησης" sub="Πρόγραμμα, κρατήσεις, μηνύματα και σελίδα" right={<Btn size="sm" title="Μετάβαση" onPress={() => switchTo('biz')} />} />
-  ) : (
+      : <Line title="Λειτουργία επιχείρησης" sub="Πρόγραμμα, κρατήσεις, μηνύματα και σελίδα" right={<Btn size="sm" title="Μετάβαση" onPress={() => switchTo('biz')} />} />}
+  </View>) : (
     <View>
       <Line title="Δες ξανά την ξενάγηση" sub="Τα 4 βήματα της πρώτης φοράς" right={<Btn size="sm" kind="ghost" title="Ξενάγηση" onPress={replayIntro} />} />
     </View>
