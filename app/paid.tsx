@@ -5,17 +5,19 @@ import { Text } from '../lib/Txt';
 import { Btn, C, Icon, alpha, onColor } from '../lib/ui';
 import { confirmPayment } from '../lib/pay';
 
-/* Η σελίδα επιστροφής από τη Viva (Success / Failure URL της πηγής πληρωμών): …/paid?s=<orderCode>&t=<transactionId>.
+/* Η σελίδα μετά την πληρωμή: από τη δοκιμαστική (?done=1) ή επιστροφή από τη Viva (Success / Failure URL της πηγής πληρωμών): …/paid?s=<orderCode>&t=<transactionId>.
    Επιβεβαιώνει την πληρωμή (viva-pay confirm) και δείχνει ότι το πακέτο ενεργοποιήθηκε.
    Χωρίς t (ο πελάτης ακύρωσε ή η κάρτα απορρίφθηκε) δείχνει «Η πληρωμή δεν ολοκληρώθηκε». */
 export default function Paid() {
   const router = useRouter();
-  const p = useLocalSearchParams<{ s?: string; t?: string }>();
+  const p = useLocalSearchParams<{ s?: string; t?: string; done?: string; store?: string; pkg?: string }>();
   const [res, setRes] = useState<{ ok: boolean; error?: string; business_id?: string; package?: string } | null>(null);
   useEffect(() => {
+    // Από τη δοκιμαστική πληρωμή (app/checkout.tsx): έχει ήδη ενεργοποιηθεί.
+    if (p.done === '1') { setRes({ ok: true, business_id: p.store, package: p.pkg }); return; }
     if (!p.s || !p.t) { setRes({ ok: false, error: 'Η πληρωμή ακυρώθηκε ή δεν έγινε. Δεν χρεώθηκες.' }); return; }
     confirmPayment(String(p.s), String(p.t)).then(setRes).catch(() => setRes({ ok: false, error: 'Δεν μπορέσαμε να ελέγξουμε την πληρωμή.' }));
-  }, [p.s, p.t]);
+  }, [p.s, p.t, p.done]);
 
   const color = res?.ok ? C.tint : C.mute;
   const toStore = () => (res?.business_id ? router.replace(`/store/${res.business_id}` as any) : router.replace('/'));
