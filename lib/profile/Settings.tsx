@@ -1,3 +1,4 @@
+import { openPrivacy } from '../privacy';
 import { PassInput, PassRules, passProblem } from '../password';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
@@ -158,7 +159,7 @@ export function AdminRow({ line }: { line?: (go: () => void) => React.ReactNode 
 /* Κάτω από την Αποσύνδεση, απλό κείμενο χωρίς πλαίσιο: Πολιτική απορρήτου (σύνδεσμος) και έκδοση της εφαρμογής. */
 export const AppVersion = () => (
   <View style={{ alignItems: 'center', gap: 6, marginTop: 14 }}>
-    <Pressable onPress={() => router.push('/privacy')} accessibilityRole="link" hitSlop={8}>
+    <Pressable onPress={openPrivacy} accessibilityRole="link" hitSlop={8}>
       <Text style={{ color: C.mute, fontSize: 13, fontWeight: '700', textDecorationLine: 'underline' }}>Πολιτική απορρήτου</Text>
     </Pressable>
     <Text style={{ color: C.mute, fontSize: 13 }}>Έκδοση {Constants.expoConfig?.version ?? '—'}</Text>

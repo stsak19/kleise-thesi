@@ -1,6 +1,6 @@
 import { rpc } from '../supabase';
 
-/* Σύνδεσμος καταστήματος: /store/<slug> (από το όνομα, migration 019) ή /store/<uuid>.
+/* Σύνδεσμος καταστήματος: /store/<slug> (από το όνομα, migration 020) ή /store/<uuid>.
    Το slug αλλάζει μαζί με το όνομα· ένα παλιό slug (ή ο κωδικός) ανοίγει το κατάστημα και η διεύθυνση γίνεται η νέα (app/store/[id]/_layout.tsx). */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (k: string) => UUID.test(k);

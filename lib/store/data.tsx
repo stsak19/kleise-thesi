@@ -1,7 +1,7 @@
 import { rememberSlug } from './key';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { rpc, sb } from '../supabase';
-import { payPackage } from '../pay';
+import { onPaid, payPackage } from '../pay';
 import { say } from '../alert';
 import { styleOf, type Layout } from '../presets';
 import { fmtLong, iso } from '../ui';
@@ -51,6 +51,7 @@ function useStoreData(id: string, path: string) {
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [packages, setPackages] = useState<Package[]>([]);
+  const [payMode, setPayMode] = useState<'test' | 'viva' | null>(null); // migration 019· null = δεν έχει τρέξει
 
   useEffect(() => {
     (async () => {
@@ -62,6 +63,7 @@ function useStoreData(id: string, path: string) {
       sb.from('packages').select('*').eq('business_id', id).eq('active', true).then(({ data, error }) =>
         setPackages(error ? [] : (data ?? []).sort((a: any, z: any) => (a.price_cents ?? 0) - (z.price_cents ?? 0))));
       if (b) rememberSlug(b);
+      rpc<'test' | 'viva'>('pay_mode').then(setPayMode).catch(() => setPayMode(null));
       setBiz(b); setHours((h ?? []).filter((x: Hours) => !x.service_id)); setServices(sv ?? []);
     })();
   }, [id]);
@@ -115,6 +117,7 @@ function useStoreData(id: string, path: string) {
   }, [layout, services, service, date, id, packKey]);
 
   const reload = useCallback(async () => { await Promise.all([loadMine(), loadDay()]).catch(() => say('Δεν φορτώθηκε το πρόγραμμα')); }, [loadMine, loadDay]);
+  useEffect(() => onPaid(() => { reload(); }), [reload]);
   useEffect(() => { setSlots(null); loadDay().catch(() => say('Δεν φορτώθηκε το πρόγραμμα')); }, [loadDay]);
   useEffect(() => { loadMine(); }, [loadMine]);
 
@@ -187,11 +190,14 @@ function useStoreData(id: string, path: string) {
     run(w.service_id + w.time, () => rpc('leave_waitlist', { p_service: w.service_id, p_date: w.date, p_time: w.time.slice(0, 5) + ':00' }), 'Η δήλωση αποσύρθηκε');
   /* Πακέτα: ο πελάτης διαλέγει ένα, το κατάστημα το ενεργοποιεί όταν πληρωθεί. */
   const pendingPack: { id: string; name: string } | null = membership?.pending_package ?? null;
-  const payOnline = !!biz?.pay_online;
+  // Δοκιμαστική πληρωμή (019): όλα τα καταστήματα «πληρώνονται» στην εφαρμογή, χωρίς χρέωση.
+  // Viva (018): μόνο όσα έχουν βάλει κωδικό εμπόρου και άνοιξαν τον διακόπτη.
+  const payOnline = payMode === 'test' || (payMode === 'viva' && !!biz?.pay_online);
   const choosePack = (pk: Package, where?: 'store') => {
     if (!signedIn) return askLogin(`/store/${path}`);
-    // Πληρωμή στην εφαρμογή (Viva): ανοίγει η σελίδα πληρωμής, και μόλις πληρωθεί το πακέτο ενεργοποιείται μόνο του.
     if (payOnline && pk.price_cents > 0 && where !== 'store') {
+      // Η οθόνη πληρωμής (app/checkout.tsx): κάρτα / Apple Pay / Google Pay → «Πληρώθηκε» → το πακέτο ενεργοποιείται.
+      if (payMode === 'test') return router.push({ pathname: '/checkout', params: { pkg: pk.id, store: id } } as any);
       const pay = () => run('pack' + pk.id, () => payPackage(pk.id), '', undefined, () => {});
       return say(`«${pk.name}»`, `Τιμή ${(pk.price_cents / 100).toLocaleString('el-GR')}€. Πληρώνεις τώρα με κάρτα και το πακέτο ενεργοποιείται αμέσως.`,
         [{ text: 'Άκυρο', style: 'cancel' }, { text: 'Πληρωμή τώρα', onPress: pay }]);

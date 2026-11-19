@@ -20,7 +20,7 @@ export const DateBlock = ({ date, color }: { date: string; color: string }) => {
 
 /* Λογότυπο καταστήματος (ή το αρχικό του γράμμα). */
 export const BizLogo = ({ biz, name, color, size = 44 }: { biz?: Biz; name: string; color: string; size?: number }) => (
-  <View style={{ width: size, height: size, borderRadius: size * 0.28, overflow: 'hidden', backgroundColor: '#ffffff' }}>
+  <View style={{ width: size, height: size, borderRadius: size * 0.28, overflow: 'hidden', backgroundColor: biz?.logo_url ? 'transparent' : '#ffffff' }}>
     <Photo uri={biz?.logo_url} color={color} letter={name.slice(0, 1)} style={{ borderRadius: size * 0.28 }} />
   </View>
 );

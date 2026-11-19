@@ -12,7 +12,7 @@ import { Btn, C, Card, Icon, IconBubble, Input, Toggle, alpha, catLabel, iso, s 
 
 /* Αίτηση αφαίρεσης επιχείρησης (μόνο ο ιδιοκτήτης, από Ρυθμίσεις καταστήματος → Στοιχεία).
    Η επιχείρηση αφαιρείται 7 μέρες μετά την αίτηση· ως τότε δουλεύει κανονικά και η αίτηση ακυρώνεται από εδώ.
-   Η αφαίρεση γίνεται από τη βάση (process_business_removals, migration 020). */
+   Η αφαίρεση γίνεται από τη βάση (process_business_removals, migration 021). */
 const GRACE = 7;
 const REASONS: { key: string; emoji: string; label: string; sub: string }[] = [
   { key: 'Έκλεισε η επιχείρηση', emoji: '🔒', label: 'Έκλεισε η επιχείρηση', sub: 'Σταματήσαμε να λειτουργούμε' },

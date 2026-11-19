@@ -1,3 +1,4 @@
+import { openPrivacy } from '../privacy';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -110,7 +111,7 @@ export function DeskProfile() {
               <Text style={{ color: C.bad, fontWeight: '700', fontSize: 14 }}>Αποσύνδεση</Text>
             </Pressable>
             <View style={{ paddingHorizontal: 12, marginTop: 10, gap: 6 }}>
-              <Pressable onPress={() => router.push('/privacy')} accessibilityRole="link" style={{ alignSelf: 'flex-start' }}>
+              <Pressable onPress={openPrivacy} accessibilityRole="link" style={{ alignSelf: 'flex-start' }}>
                 <Text style={{ color: C.mute, fontSize: 13, fontWeight: '700', textDecorationLine: 'underline' }}>Πολιτική απορρήτου</Text>
               </Pressable>
               <Text style={{ color: C.mute, fontSize: 13 }}>Έκδοση {Constants.expoConfig?.version ?? '—'}</Text>

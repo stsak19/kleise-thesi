@@ -1,3 +1,4 @@
+import { SITE } from '../wide';
 import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { BlurView } from 'expo-blur';
@@ -58,7 +59,8 @@ export function TopBar({ items, state, navigateToTab }: Nav) {
   const home = route('(search)'), profile = route('(profile)');
   const goHome = () => { if (home && home.key !== activeKey) navigateToTab(home.key); };
   return (
-    <View style={[s.row, { gap: 24, paddingVertical: 14, paddingHorizontal: 40, borderBottomWidth: 1, borderBottomColor: C.line, backgroundColor: C.bg, zIndex: 10 }]}>
+    <View style={{ borderBottomWidth: 1, borderBottomColor: C.line, backgroundColor: C.bg, zIndex: 10, paddingHorizontal: 32 }}>
+    <View style={[s.row, { gap: 24, paddingVertical: 14, width: '100%', maxWidth: SITE, alignSelf: 'center' }]}>
       <Pressable onPress={() => { setQ(''); goHome(); }} accessibilityRole="link" accessibilityLabel="SpotOn, αρχική" style={[s.row, { gap: 8 }]}>
         <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: C.text, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ color: C.bg, fontWeight: '800', fontSize: 15 }}>S</Text>
@@ -93,6 +95,7 @@ export function TopBar({ items, state, navigateToTab }: Nav) {
           <Initials text={person.initials} size={38} />
         </Pressable>
       )}
+    </View>
     </View>
   );
 }

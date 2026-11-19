@@ -12,7 +12,7 @@ import { knownId, resolveStore } from '../../../lib/store/key';
    χωρίς την κάτω μπάρα του SpotOn. Από πάνω ανοίγουν οι Ρυθμίσεις και τα στοιχεία του SpotOn, όπως είναι. */
 export const unstable_settings = { initialRouteName: '(tabs)' };
 
-/* Η διεύθυνση γράφει το slug του καταστήματος (/store/barber-nikos, migration 019) ή, σε παλιούς συνδέσμους, τον κωδικό του.
+/* Η διεύθυνση γράφει το slug του καταστήματος (/store/barber-nikos, migration 020) ή, σε παλιούς συνδέσμους, τον κωδικό του.
    Πρώτα βρίσκουμε τον κωδικό· τα δεδομένα φορτώνονται πάντα με αυτόν. */
 export default function StoreStack() {
   const { id: raw } = useLocalSearchParams<{ id: string }>();

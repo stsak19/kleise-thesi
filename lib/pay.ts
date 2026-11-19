@@ -19,3 +19,8 @@ export async function confirmPayment(orderCode: string, transactionId: string) {
   if (error) return { ok: false, error: 'Δεν μπορέσαμε να ελέγξουμε την πληρωμή. Αν χρεώθηκες, το πακέτο θα ενεργοποιηθεί σε λίγα λεπτά.' };
   return data as { ok: boolean; error?: string; pending?: boolean; business_id?: string; package?: string };
 }
+
+/* Μόλις πληρωθεί ένα πακέτο, τα ανοιχτά καταστήματα ξαναφορτώνουν (lib/store/data.tsx). */
+const paidListeners = new Set<() => void>();
+export const onPaid = (f: () => void) => { paidListeners.add(f); return () => { paidListeners.delete(f); }; };
+export const firePaid = () => paidListeners.forEach((f) => f());

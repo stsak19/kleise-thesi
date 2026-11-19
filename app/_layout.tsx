@@ -12,6 +12,7 @@ import { BIZ_HOME, getMode, useMode } from '../lib/mode';
 import { SwitchOverlay } from '../lib/SwitchMode';
 import { BACK, GUEST_OK, WEB, askLogin, openToGuests, setReturnTo, getReturnTo } from '../lib/guest';
 import { LoginModal } from '../lib/login/LoginModal';
+import { PrivacyModal } from '../lib/privacy';
 
 // Η εφαρμογή ξεκινά πάντα από τον πελάτη· η λειτουργία επιχείρησης (biz) ανοίγει μόνο όταν την επιλέξεις.
 export const unstable_settings = { initialRouteName: '(tabs)' };
@@ -79,7 +80,7 @@ export default function Root() {
   return (
     <AuthProvider>
       <StatusBar style={isDark() ? 'light' : 'dark'} />
-      <View key={v} style={{ flex: 1, backgroundColor: C.bg }}><Gate /><SwitchOverlay />{WEB && <LoginModal />}</View>
+      <View key={v} style={{ flex: 1, backgroundColor: C.bg }}><Gate /><SwitchOverlay />{WEB && <LoginModal />}<PrivacyModal /></View>
     </AuthProvider>
   );
 }

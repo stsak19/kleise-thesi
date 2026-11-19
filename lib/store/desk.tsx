@@ -1,3 +1,4 @@
+import { SITE } from '../wide';
 import { Pressable, View } from 'react-native';
 import { Text } from '../Txt';
 import { usePerson } from '../profile/data';
@@ -5,7 +6,7 @@ import { Initials } from '../profile/parts';
 import { C, Icon, s } from '../ui';
 import type { IconName } from '../Icon';
 import { useStore } from './data';
-import { ExitPill, FavButton, StoreLogo } from './parts';
+import { ExitPill, FavButton, ShareButton, StoreLogo } from './parts';
 import { askLogin } from '../guest';
 import { useRouter } from 'expo-router';
 
@@ -19,7 +20,8 @@ export function StoreTopBar({ items, state, navigateToTab }: { items: Record<str
   const activeKey = state.routes[state.index]?.key;
   const router = useRouter();
   return (
-    <View style={[s.row, { gap: 20, paddingVertical: 12, paddingHorizontal: 40, borderBottomWidth: 1, borderBottomColor: C.line, backgroundColor: C.bg }]}>
+    <View style={{ borderBottomWidth: 1, borderBottomColor: C.line, backgroundColor: C.bg, paddingHorizontal: 32 }}>
+    <View style={[s.row, { gap: 20, paddingVertical: 12, width: '100%', maxWidth: SITE, alignSelf: 'center' }]}>
       <ExitPill />
       <View style={[s.row, { gap: 10, flex: 1, minWidth: 0 }]}>
         <StoreLogo size={40} />
@@ -41,6 +43,7 @@ export function StoreTopBar({ items, state, navigateToTab }: { items: Record<str
           );
         })}
       </View>
+      <ShareButton size={38} />
       <FavButton size={38} />
       {P.guest ? (
         <Pressable onPress={() => askLogin()} accessibilityRole="button"
@@ -52,6 +55,7 @@ export function StoreTopBar({ items, state, navigateToTab }: { items: Record<str
           <Initials text={P.initials} size={38} />
         </Pressable>
       )}
+    </View>
     </View>
   );
 }

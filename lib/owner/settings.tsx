@@ -131,7 +131,7 @@ function Details({ st }: { st: St }) {
   );
 }
 
-/* Στο τέλος των Στοιχείων: αίτηση αφαίρεσης της επιχείρησης (app/remove-business.tsx, migration 020). Μόνο ο ιδιοκτήτης. */
+/* Στο τέλος των Στοιχείων: αίτηση αφαίρεσης της επιχείρησης (app/remove-business.tsx, migration 021). Μόνο ο ιδιοκτήτης. */
 function RemoveRow({ b }: { b: any }) {
   const router = useRouter();
   const pending = !!b.removal_requested_at;
@@ -270,6 +270,8 @@ function OnlinePay({ bizId }: { bizId: string }) {
   const [st, setSt] = useState<{ pay_online: boolean; viva_merchant_id: string | null; commission_pct: number } | null>(null);
   const [mid, setMid] = useState('');
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<string | null>(null);
+  useEffect(() => { rpc<string>('pay_mode').then(setMode).catch(() => setMode(null)); }, []);
   useEffect(() => {
     rpc<any>('owner_payment_settings', { p_business: bizId }).then((r) => { setSt(r); setMid(r?.viva_merchant_id ?? ''); }).catch(() => setSt(null));
   }, [bizId]);
@@ -284,6 +286,13 @@ function OnlinePay({ bizId }: { bizId: string }) {
     setBusy(false);
   };
   const pct = Number(st.commission_pct ?? 0).toLocaleString('el-GR');
+  // Δοκιμαστική πληρωμή (019): ισχύει για όλα τα καταστήματα, χωρίς Viva και χωρίς χρέωση.
+  if (mode === 'test') return (
+    <View style={{ gap: 10 }}>
+      <Text style={{ color: C.text, fontWeight: '800', fontSize: 15, marginTop: 6 }}>Πληρωμή στην εφαρμογή</Text>
+      <Card><T mute>Οι πελάτες πληρώνουν τα πακέτα μέσα στην εφαρμογή και ενεργοποιούνται αμέσως. Προς το παρόν οι πληρωμές είναι δοκιμαστικές, χωρίς χρέωση.</T></Card>
+    </View>
+  );
   return (
     <View style={{ gap: 10 }}>
       <Text style={{ color: C.text, fontWeight: '800', fontSize: 15, marginTop: 6 }}>Πληρωμή στην εφαρμογή</Text>

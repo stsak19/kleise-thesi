@@ -7,7 +7,7 @@ import { Box, Line, Loading, Page, Person, Small } from '../../lib/admin/parts';
 /* Λογαριασμοί που ζήτησαν διαγραφή και επιχειρήσεις που ζήτησαν αφαίρεση (και τα δύο αυτόματα 7 μέρες μετά την αίτηση). */
 export default function Deletions() {
   const router = useRouter();
-  const rem = useAdmin<any[]>('admin_business_removals'); // migration 020· χωρίς αυτήν η ενότητα δεν φαίνεται
+  const rem = useAdmin<any[]>('admin_business_removals'); // migration 021· χωρίς αυτήν η ενότητα δεν φαίνεται
   const { data, error, reload } = useAdmin<any[]>('admin_users', { p_q: null });
   const list = (data ?? []).filter((u) => u.delete_requested_at)
     .sort((a, z) => String(a.delete_requested_at).localeCompare(String(z.delete_requested_at)));
