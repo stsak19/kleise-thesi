@@ -51,7 +51,7 @@ export function StoreTopBar({ items, state, navigateToTab }: { items: Record<str
           <Text style={{ color: C.bg, fontWeight: '800', fontSize: 14 }}>Σύνδεση</Text>
         </Pressable>
       ) : (
-        <Pressable onPress={() => router.push(`/store/${S.id}/account`)} accessibilityLabel="Ο λογαριασμός μου" style={({ hovered }: any) => ({ opacity: hovered ? 0.8 : 1 })}>
+        <Pressable onPress={() => router.push(`/store/${S.path}/account`)} accessibilityLabel="Ο λογαριασμός μου" style={({ hovered }: any) => ({ opacity: hovered ? 0.8 : 1 })}>
           <Initials text={P.initials} size={38} />
         </Pressable>
       )}

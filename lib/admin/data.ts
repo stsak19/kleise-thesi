@@ -79,6 +79,8 @@ export const adminActions = {
     confirmAct('Ακύρωση κράτησης', 'Θα ενημερωθούν ο πελάτης και το κατάστημα.', 'Ακύρωση', () => rpc('admin_cancel_booking', { p_booking: b.id }), done),
   deleteReview: (r: { id: string }, done: () => void) =>
     confirmAct('Διαγραφή κριτικής', 'Η κριτική σβήνεται και ο μέσος όρος του καταστήματος ξαναϋπολογίζεται.', 'Διαγραφή', () => rpc('admin_delete_review', { p_id: r.id }), done),
+  cancelRemoval: (b: { id: string; name: string }, done: () => void) =>
+    confirmAct('Ακύρωση αίτησης αφαίρεσης', `Το «${b.name}» μένει στο SpotOn. Ο ιδιοκτήτης θα ενημερωθεί.`, 'Ακύρωση αίτησης', () => rpc('admin_cancel_business_removal', { p_id: b.id }), done),
   cancelDeletion: (u: { id: string; name?: string; email?: string }, done: () => void) =>
     confirmAct('Ακύρωση αίτησης', `Ο λογαριασμός ${u.name || u.email} δεν θα διαγραφεί.`, 'Ακύρωση αίτησης', () => rpc('admin_cancel_deletion', { p_user: u.id }), done),
 };

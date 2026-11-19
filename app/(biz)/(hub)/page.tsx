@@ -1,3 +1,4 @@
+import { storeHref } from '../../../lib/store/key';
 import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -68,7 +69,7 @@ export default function Page() {
           sub={biz.uses_credits ? 'Τι αγοράζουν οι πελάτες για να κλείνουν θέση' : 'Πακέτα, συνδρομές, δωροκάρτες'} onPress={() => router.push('/owner/plans')} />
         <Row icon="team" title={kindOf(biz.category).team} sub={staff.length > 1 ? `${staff.length} άτομα · ωράρια, υπηρεσίες, προσκλήσεις` : 'Πρόσθεσε άτομα που δουλεύουν μαζί σου'}
           onPress={() => router.push('/team')} />
-        <Row icon="store" title="Δες τη σελίδα σαν πελάτης" sub="Έτσι τη βλέπουν όσοι κλείνουν θέση" onPress={() => router.push(`/store/${biz.id}`)} last />
+        <Row icon="store" title="Δες τη σελίδα σαν πελάτης" sub="Έτσι τη βλέπουν όσοι κλείνουν θέση" onPress={() => router.push(storeHref(biz) as any)} last />
       </Group>
       <Text style={{ color: C.mute, fontSize: 13, textAlign: 'center', marginTop: 4 }}>Οι αλλαγές φαίνονται αμέσως στους πελάτες.</Text>
 

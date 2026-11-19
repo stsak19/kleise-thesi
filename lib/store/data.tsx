@@ -1,3 +1,4 @@
+import { rememberSlug } from './key';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { rpc, sb } from '../supabase';
 import { onPaid, payPackage } from '../pay';
@@ -37,7 +38,7 @@ export type Package = { id: string; name: string; kind: string; price_cents: num
 
 export const dayLabel = (d: string) => (d === iso(new Date()) ? 'Σήμερα' : fmtLong(d));
 
-function useStoreData(id: string) {
+function useStoreData(id: string, path: string) {
   const signedIn = !!useAuth().session;
   const [biz, setBiz] = useState<any>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -61,6 +62,7 @@ function useStoreData(id: string) {
       ]);
       sb.from('packages').select('*').eq('business_id', id).eq('active', true).then(({ data, error }) =>
         setPackages(error ? [] : (data ?? []).sort((a: any, z: any) => (a.price_cents ?? 0) - (z.price_cents ?? 0))));
+      if (b) rememberSlug(b);
       rpc<'test' | 'viva'>('pay_mode').then(setPayMode).catch(() => setPayMode(null));
       setBiz(b); setHours((h ?? []).filter((x: Hours) => !x.service_id)); setServices(sv ?? []);
     })();
@@ -150,7 +152,7 @@ function useStoreData(id: string) {
     setBusy(key);
     try {
       const r = await fn();
-      if (r && r.ok === false) r.no_credits ? askPack(id) : say(r.pending ? 'Σε αναμονή έγκρισης' : 'Δεν έγινε', r.error);
+      if (r && r.ok === false) r.no_credits ? askPack(path) : say(r.pending ? 'Σε αναμονή έγκρισης' : 'Δεν έγινε', r.error);
       else if (onOk) onOk();
       else say(okTitle, okMsg);
     } catch (e: any) { say('Κάτι πήγε στραβά', e.message); }
@@ -159,18 +161,18 @@ function useStoreData(id: string) {
 
   /* Κράτηση. Αν έχει δηλώσει ενδιαφέρον για άλλη ώρα της ίδιας μέρας, ρωτάμε αν αυτή είναι η εναλλακτική. */
   const book = (sl: Slot) => {
-    if (!signedIn) return askLogin(`/store/${id}`);
+    if (!signedIn) return askLogin(`/store/${path}`);
     const open = waits.find((w) => w.service_id === sl.sv.id && w.date === date && w.time !== sl.time);
     const go = (backup: string | null) => run(sl.sv.id + sl.time, () => rpc('create_booking', { p_service: sl.sv.id, p_date: date, p_time: sl.time, p_backup_for: backup }),
       'Κλείστηκε! 🎉', undefined,
-      () => showBooked({ biz: biz?.name ?? '', service: sl.sv.name, date, time: sl.time, color: st?.color, pending: !!biz?.requires_approval, store: id }));
+      () => showBooked({ biz: biz?.name ?? '', service: sl.sv.name, date, time: sl.time, color: st?.color, pending: !!biz?.requires_approval, store: path }));
     if (!open) return go(null);
     say('Είναι εναλλακτική;', `Έχεις δηλώσει ενδιαφέρον για τις ${open.time}. Αν ελευθερωθεί θέση εκεί, να ακυρωθεί αυτόματα η κράτηση των ${sl.time};`,
       [{ text: 'Ναι, εναλλακτική', onPress: () => go(open.id) }, { text: 'Όχι, θέλω και τις δύο', onPress: () => go(null) }]);
   };
   /* Δήλωση ενδιαφέροντος (αναμονή). Αν έχει ήδη κράτηση την ίδια μέρα, ρωτάμε αν να ακυρωθεί όταν βρεθεί θέση. */
   const wait = (sl: Slot) => {
-    if (!signedIn) return askLogin(`/store/${id}`);
+    if (!signedIn) return askLogin(`/store/${path}`);
     const same = all.find((b) => b.service_id === sl.sv.id && b.date === date && b.status === 'booked');
     const go = (backup: string | null) => run(sl.sv.id + sl.time, () => rpc('join_waitlist', { p_service: sl.sv.id, p_date: date, p_time: sl.time, p_backup_booking: backup }),
       'Δήλωσες ενδιαφέρον 🙋', `Αν ελευθερωθεί θέση στις ${sl.time}, σου κλείνεται αυτόματα.`);
@@ -192,7 +194,7 @@ function useStoreData(id: string) {
   // Viva (018): μόνο όσα έχουν βάλει κωδικό εμπόρου και άνοιξαν τον διακόπτη.
   const payOnline = payMode === 'test' || (payMode === 'viva' && !!biz?.pay_online);
   const choosePack = (pk: Package, where?: 'store') => {
-    if (!signedIn) return askLogin(`/store/${id}`);
+    if (!signedIn) return askLogin(`/store/${path}`);
     if (payOnline && pk.price_cents > 0 && where !== 'store') {
       // Η οθόνη πληρωμής (app/checkout.tsx): κάρτα / Apple Pay / Google Pay → «Πληρώθηκε» → το πακέτο ενεργοποιείται.
       if (payMode === 'test') return router.push({ pathname: '/checkout', params: { pkg: pk.id, store: id } } as any);
@@ -210,7 +212,7 @@ function useStoreData(id: string) {
   const unwait = (sl: Slot) => leave({ service_id: sl.sv.id, date, time: sl.time });
 
   return {
-    id, biz, st, layout, services, schedServices, packOnly, showAll, hasPack, preview, hours, days, date, setDate, service, setService, slots, note, busy,
+    id, path: (biz?.slug as string | undefined) || path, biz, st, layout, services, schedServices, packOnly, showAll, hasPack, preview, hours, days, date, setDate, service, setService, slots, note, busy,
     packages, pendingPack, choosePack, cancelPack, payOnline,
     upcoming, past, waits, pack, packInfo: packCard, membership, messages, state, waitAt, book, wait, cancel, unwait, cancelBooking, leave, reload,
   };
@@ -219,7 +221,8 @@ function useStoreData(id: string) {
 export type Store = ReturnType<typeof useStoreData>;
 const Ctx = createContext<Store | null>(null);
 export const useStore = () => useContext(Ctx)!;
-export function StoreProvider({ id, children }: { id: string; children: React.ReactNode }) {
-  const v = useStoreData(id);
+/* id: ο κωδικός του καταστήματος (για τη βάση). path: ό,τι γράφει η διεύθυνση (slug ή κωδικός), για τους συνδέσμους μέσα στο κατάστημα. */
+export function StoreProvider({ id, path, children }: { id: string; path?: string; children: React.ReactNode }) {
+  const v = useStoreData(id, path || id);
   return <Ctx.Provider value={v}>{children}</Ctx.Provider>;
 }

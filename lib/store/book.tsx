@@ -54,7 +54,7 @@ function useBookState() {
   const [page, setPageState] = useState(false);
   const pageRef = useRef(false);
   const setPage = (v: boolean) => { pageRef.current = v; setPageState(v); };
-  const toPage = () => { if (!wide && !pageRef.current) router.navigate(`/store/${S.id}/book` as any); };
+  const toPage = () => { if (!wide && !pageRef.current) router.navigate(`/store/${S.path}/book` as any); };
   const [staff, setStaffList] = useState<Staff[]>([]);
   const [favs, setFavs] = useState<Record<string, Fav>>(favCache ?? {});
   const [open, setOpen] = useState(false);
@@ -132,7 +132,7 @@ function useBookState() {
   /* Επισκέπτης: κρατάμε ό,τι διάλεξε (υπηρεσία, άτομο, μέρα, ώρα) και ζητάμε σύνδεση.
      Μόλις συνδεθεί, το παράθυρο ξανανοίγει στην επιβεβαίωση, χωρίς να ξαναδιαλέξει τίποτα. */
   const [resume, setResume] = useState(false);
-  const needLogin = () => { setOpen(false); setResume(true); askLogin(`/store/${S.id}${wide ? '' : '/book'}`, 'in', true); };
+  const needLogin = () => { setOpen(false); setResume(true); askLogin(`/store/${S.path}${wide ? '' : '/book'}`, 'in', true); };
   useEffect(() => { if (signedIn && resume) { setResume(false); setStep('confirm'); setOpen(true); } }, [signedIn, resume]);
   const close = () => { setOpen(false); setClassSlot(null); };
   /* Το κύριο κουμπί κράτησης (μέση της κάτω μπάρας στο κινητό, δεξιά κάρτα στον υπολογιστή):
@@ -159,11 +159,11 @@ function useBookState() {
       const args: any = { p_service: service.id, p_date: date, p_time: time };
       if (team.length && who && who !== ANY) args.p_staff = who;
       const r: any = await rpc('create_booking', args);
-      if (r && r.ok === false) { r.no_credits ? (close(), askPack(S.id)) : say(r.pending ? 'Σε αναμονή έγκρισης' : 'Δεν έγινε', r.error); setBusy(false); return; }
+      if (r && r.ok === false) { r.no_credits ? (close(), askPack(S.path)) : say(r.pending ? 'Σε αναμονή έγκρισης' : 'Δεν έγινε', r.error); setBusy(false); return; }
       if (person && team.length > 1) { if (keep) setFav({ staff: person.id, service: service.id }); else if (fav?.staff === person.id) setFav(null); }
       const withWho = r?.staff ? ` · με ${withArticle(r.staff)}` : person ? ` · με ${withArticle(person.name)}` : '';
       close(); setTime(null);
-      showBooked({ biz: S.biz?.name ?? '', service: `${service.name}${withWho}`, date, time, color: S.st?.color, pending: !!S.biz?.requires_approval, store: S.id });
+      showBooked({ biz: S.biz?.name ?? '', service: `${service.name}${withWho}`, date, time, color: S.st?.color, pending: !!S.biz?.requires_approval, store: S.path });
     } catch (e: any) { say('Κάτι πήγε στραβά', e.message); }
     setBusy(false); S.reload();
   };

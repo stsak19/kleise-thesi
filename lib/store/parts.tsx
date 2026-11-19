@@ -86,7 +86,7 @@ export function FavButton({ size = 34 }: { size?: number }) {
   if (!S.biz) return null;
   const on = isFavorite(favs, S.biz.id);
   const press = () => {
-    if (P.guest) return askLogin(`/store/${S.id}`);
+    if (P.guest) return askLogin(`/store/${S.path}`);
     if (timer.current) clearTimeout(timer.current);
     setFlash(!on);
     if (!on) timer.current = setTimeout(() => setFlash(false), 1600);
@@ -150,13 +150,13 @@ export function AccountButton({ size = 34 }: { size?: number }) {
   const P = usePerson();
   const router = useRouter();
   if (P.guest) return (
-    <Pressable onPress={() => askLogin(`/store/${S.id}`)} accessibilityRole="button" hitSlop={6}
+    <Pressable onPress={() => askLogin(`/store/${S.path}`)} accessibilityRole="button" hitSlop={6}
       style={({ pressed }) => ({ height: size, paddingHorizontal: 14, borderRadius: size / 2, backgroundColor: C.text, justifyContent: 'center', opacity: pressed ? 0.8 : 1 })}>
       <Text style={{ color: C.bg, fontWeight: '800', fontSize: 13 }}>Σύνδεση</Text>
     </Pressable>
   );
   return (
-    <Pressable onPress={() => router.push(`/store/${S.id}/account`)} accessibilityRole="button" accessibilityLabel="Ο λογαριασμός μου" hitSlop={6}
+    <Pressable onPress={() => router.push(`/store/${S.path}/account`)} accessibilityRole="button" accessibilityLabel="Ο λογαριασμός μου" hitSlop={6}
       style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
       <Initials text={P.initials} size={size} />
     </Pressable>

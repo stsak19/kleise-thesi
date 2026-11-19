@@ -58,7 +58,7 @@ export function ScheduleList({ bottom, onBook, onPacks }: { bottom: number; onBo
           : S.packages.length ? 'Δες τις ώρες και διάλεξε ένα πακέτο στο Κατάστημα.' : 'Το κατάστημα δεν έχει βάλει ακόμα πακέτα. Δες τις ώρες.'}
       </Text>
       {!!S.packages.length && <Btn size="sm" title={asked ? 'Τα πακέτα' : 'Δες τα πακέτα'} kind={asked ? 'ghost' : undefined} color={asked ? undefined : S.st?.color}
-        onPress={() => (onPacks ? onPacks() : router.navigate(`/store/${S.id}` as any))} style={{ alignSelf: 'flex-start', marginTop: 4 }} />}
+        onPress={() => (onPacks ? onPacks() : router.navigate(`/store/${S.path}` as any))} style={{ alignSelf: 'flex-start', marginTop: 4 }} />}
     </View>
   );
   const d = new Date(S.date + 'T00:00');
