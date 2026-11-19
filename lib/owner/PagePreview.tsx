@@ -21,16 +21,16 @@ export function PagePreview({ biz, bare }: { biz: any; bare?: boolean }) {
   const letter = name.slice(0, 1);
   const frame = [{ borderRadius: bare ? 0 : 22, overflow: 'hidden' as const, backgroundColor: night ? NIGHT.bg : C.bg }, !bare && shadow(2)];
   const logo = (size: number, round?: boolean) => (
-    <View style={{ width: size, height: size, borderRadius: round ? size / 2 : r + 2, backgroundColor: '#ffffff', padding: round ? 3 : 2, ...shadow(1) }}>
+    <View style={biz.logo_url ? { width: size, height: size } : { width: size, height: size, borderRadius: round ? size / 2 : r + 2, backgroundColor: '#ffffff', padding: round ? 3 : 2, ...shadow(1) }}>
       <Photo uri={biz.logo_url} color={brand} letter={letter} style={{ borderRadius: round ? size / 2 : r }} />
     </View>
   );
 
   if (scr.hero === 'profile') return (
     <View style={frame}>
-      <View style={{ height: 96, backgroundColor: brand }}><Photo uri={biz.cover_url} color={brand} /><Scrim strength={0.5} photo={biz.cover_url} /></View>
+      <View style={{ height: 96, backgroundColor: brand }}><Photo uri={biz.cover_url} color={brand} cat={biz.category} /><Scrim strength={0.5} photo={biz.cover_url} /></View>
       <View style={{ alignItems: 'center', marginTop: -44, gap: 4, padding: 16, paddingTop: 0 }}>
-        <View style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: C.bg, padding: 4 }}>
+        <View style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: biz.logo_url ? 'transparent' : C.bg, padding: 4 }}>
           <Photo uri={biz.logo_url} color={brand} letter={letter} style={{ borderRadius: 40 }} />
         </View>
         <Text style={{ color: brand, fontWeight: '800', fontSize: 12, letterSpacing: 0.6, marginTop: 2 }}>{upper(scr.kicker)}</Text>

@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { type StoreTabs } from '../../../../lib/store/parts';
 import { StoreBar } from '../../../../lib/store/StoreBar';
 import { StoreTopBar } from '../../../../lib/store/desk';
-import { useWide } from '../../../../lib/wide';
+import { SITE, useWide } from '../../../../lib/wide';
 import { useBook } from '../../../../lib/store/book';
 import { BookSheet } from '../../../../lib/store/BookUI';
 import { ScheduleSheet } from '../../../../lib/store/Schedule';
@@ -27,7 +27,7 @@ export default function StoreTabsLayout() {
       screenLayout={wide ? ({ children, route }) => (
         <View style={{ flex: 1, flexDirection: 'row', backgroundColor: C.bg }}>
           <View style={{ flex: 1, minWidth: 0, alignItems: 'center' }}>
-            <View style={{ flex: 1, width: '100%', maxWidth: route.name === 'index' ? 1120 : 820, paddingHorizontal: 12 }}>{children}</View>
+            <View style={{ flex: 1, width: '100%', maxWidth: route.name === 'index' ? SITE + 64 : 820, paddingHorizontal: 12 }}>{children}</View>
           </View>
         </View>
       ) : undefined}

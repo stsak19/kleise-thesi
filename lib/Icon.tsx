@@ -3,7 +3,7 @@ import { C } from './theme';
 
 /* Μικρά εικονίδια γραμμής, φτιαγμένα μόνο με View (χωρίς βιβλιοθήκη εικονιδίων).
    Παίρνουν το χρώμα τους από το θέμα, οπότε αλλάζουν μαζί με το 🎨. */
-export type IconName = 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack' | 'home' | 'chat' | 'team' | 'swap' | 'send';
+export type IconName = 'share' | 'search' | 'calendar' | 'user' | 'pin' | 'clock' | 'phone' | 'chevron' | 'bell' | 'check' | 'plus' | 'store' | 'close' | 'mail' | 'lock' | 'eye' | 'back' | 'gear' | 'pack' | 'home' | 'chat' | 'team' | 'swap' | 'send';
 
 export function Icon({ name, size = 22, color = C.text, style }: { name: IconName; size?: number; color?: string; style?: ViewStyle }) {
   const s = size, w = Math.max(1.6, Math.round(s * 0.09 * 10) / 10);
@@ -12,6 +12,14 @@ export function Icon({ name, size = 22, color = C.text, style }: { name: IconNam
     <View style={abs(cx - len / 2, cy - w / 2, { width: len, height: w, borderRadius: w, backgroundColor: color, transform: [{ rotate: `${deg}deg` }] })} />;
   let body: React.ReactNode = null;
   switch (name) {
+    case 'share':
+      // Κοινοποίηση: κουτί ανοιχτό από πάνω και βέλος που βγαίνει προς τα πάνω.
+      body = <>
+        <View style={abs(s * 0.18, s * 0.42, { width: s * 0.64, height: s * 0.5, borderRadius: s * 0.12, borderWidth: w, borderColor: color, borderTopWidth: 0 })} />
+        <View style={abs(s * 0.5 - w / 2, s * 0.08, { width: w, height: s * 0.52, borderRadius: w, backgroundColor: color })} />
+        {bar(s * 0.41, s * 0.17, s * 0.24, -45)}
+        {bar(s * 0.59, s * 0.17, s * 0.24, 45)}
+      </>; break;
     case 'search':
       body = <>
         <View style={abs(s * 0.08, s * 0.08, { width: s * 0.6, height: s * 0.6, borderRadius: s, borderWidth: w, borderColor: color })} />

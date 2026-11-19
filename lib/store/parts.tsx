@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Platform, Pressable, Share, View } from 'react-native';
+import { WEB_URL } from '../supabase';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type TabItems } from '../FloatBar';
@@ -32,11 +33,13 @@ export function ExitPill() {
   );
 }
 
-/* Λογότυπο του καταστήματος. */
+/* Λογότυπο του καταστήματος. Όταν υπάρχει ανεβασμένο λογότυπο δεν έχει φόντο ούτε περίγραμμα: ένα διαφανές PNG
+   φαίνεται όπως ανέβηκε, χωρίς λευκό ή χρωματιστό κουτί από πίσω. Χωρίς λογότυπο μένει το αρχικό γράμμα σε πλαίσιο. */
 export function StoreLogo({ size = 44 }: { size?: number }) {
   const S = useStore();
+  const has = !!S.biz?.logo_url;
   return (
-    <View style={{ width: size, height: size, borderRadius: size * 0.27, overflow: 'hidden', backgroundColor: '#ffffff', borderWidth: 1, borderColor: C.line }}>
+    <View style={{ width: size, height: size, borderRadius: size * 0.27, overflow: 'hidden', backgroundColor: has ? 'transparent' : C.bg, borderWidth: has ? 0 : 1, borderColor: C.line }}>
       <Photo uri={S.biz?.logo_url} color={S.st?.color ?? C.accent} letter={String(S.biz?.name ?? 'Κ').slice(0, 1)} style={{ borderRadius: size * 0.27 }} />
     </View>
   );
@@ -97,6 +100,46 @@ export function FavButton({ size = 34 }: { size?: number }) {
         gap: 6, paddingHorizontal: word ? 12 : 0, backgroundColor: C.card, opacity: pressed || hovered ? 0.8 : 1 })}>
       <Heart size={15} filled={on} color={on ? C.bad : C.text} bg={C.card} />
       {word && <Text style={{ color: C.text, fontWeight: '800', fontSize: 13 }}>Στα αγαπημένα</Text>}
+    </Pressable>
+  );
+}
+
+/* Δημόσιος σύνδεσμος του καταστήματος. Στο web κρατά τη διεύθυνση της σελίδας που είσαι (π.χ. και στις προεπισκοπήσεις PR). */
+export function storeLink(key: string) {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    const href = window.location.href.split('#')[0].split('?')[0];
+    const i = href.indexOf('/store/');
+    if (i >= 0) return `${href.slice(0, i)}/store/${encodeURIComponent(key)}`;
+  }
+  return `${WEB_URL}store/${encodeURIComponent(key)}`;
+}
+
+/* Κοινοποίηση της σελίδας του καταστήματος σε φίλους: στο κινητό ανοίγει το μενού κοινοποίησης του συστήματος
+   (Viber, Messenger, WhatsApp…), στον υπολογιστή αντιγράφει τον σύνδεσμο και γράφει «Αντιγράφηκε». */
+export function ShareButton({ size = 34 }: { size?: number }) {
+  const S = useStore();
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  if (!S.biz) return null;
+  const name = String(S.biz.name ?? '');
+  const url = storeLink(String(S.biz.slug || S.id)); // με το όνομα (slug), όταν υπάρχει
+  const flash = () => { if (timer.current) clearTimeout(timer.current); setCopied(true); timer.current = setTimeout(() => setCopied(false), 1800); };
+  const press = async () => {
+    const text = `${name} στο SpotOn · κλείσε ραντεβού online`;
+    if (Platform.OS !== 'web') { Share.share({ title: name, message: `${text}\n${url}`, url }).catch(() => {}); return; }
+    const nav: any = typeof navigator !== 'undefined' ? navigator : null;
+    const touch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
+    if (touch && nav?.share) { try { await nav.share({ title: name, text, url }); } catch {} return; }
+    try { await nav?.clipboard?.writeText(url); flash(); }
+    catch { if (nav?.share) nav.share({ title: name, text, url }).catch(() => {}); }
+  };
+  return (
+    <Pressable onPress={press} accessibilityRole="button" accessibilityLabel="Κοινοποίηση καταστήματος" hitSlop={6}
+      style={({ pressed, hovered }: any) => ({ height: size, minWidth: size, borderRadius: size / 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        gap: 6, paddingHorizontal: copied ? 12 : 0, backgroundColor: C.card, opacity: pressed || hovered ? 0.8 : 1 })}>
+      <Icon name={copied ? 'check' : 'share'} size={16} color={C.text} />
+      {copied && <Text style={{ color: C.text, fontWeight: '800', fontSize: 13 }}>Αντιγράφηκε</Text>}
     </Pressable>
   );
 }

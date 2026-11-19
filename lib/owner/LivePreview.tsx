@@ -48,7 +48,7 @@ export function DeskPreview({ biz, svcs, hours }: { biz: any; svcs: Svc[]; hours
           <Photo uri={biz.cover_url} color={brand} />
           <Scrim strength={0.7} photo={biz.cover_url} />
           <View style={{ position: 'absolute', left: 24, right: 24, bottom: 18, flexDirection: 'row', alignItems: 'flex-end', gap: 14 }}>
-            <View style={{ width: 66, height: 66, borderRadius: 16, backgroundColor: '#ffffff', padding: 3 }}>
+            <View style={{ width: 66, height: 66, borderRadius: 16, backgroundColor: biz.logo_url ? 'transparent' : '#ffffff', padding: 3 }}>
               <Photo uri={biz.logo_url} color={brand} letter={name.slice(0, 1)} style={{ borderRadius: 13 }} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
@@ -153,7 +153,7 @@ export function PreviewSheet({ biz, svcs, hours, rules, onClose }: { biz: any; s
       {!info ? (
         <>
           <View style={{ height: 170, backgroundColor: color }}>
-            <Photo uri={biz.cover_url} color={color} />
+            <Photo uri={biz.cover_url} color={color} cat={biz.category} />
             <View style={{ position: 'absolute', top: 12, right: 16 }}><InfoButton onPress={() => setInfo(true)} /></View>
           </View>
           <View style={{ paddingHorizontal: 20, paddingTop: 18, gap: 12 }}>
