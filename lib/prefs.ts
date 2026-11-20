@@ -10,7 +10,7 @@ export type Prefs = {
   nBizBookings: boolean; nBizDaily: boolean; nBizDailyAt: string;
 };
 const KEY = 'prefs.v1';
-const P: Prefs = { reduceMotion: false, nRemind: true, nRemindMin: 180, nWaitlist: true, nChanges: true, nPacks: true, nPromos: false,
+const P: Prefs = { reduceMotion: false, nRemind: true, nRemindMin: 1440, nWaitlist: true, nChanges: true, nPacks: true, nPromos: false,
   nBizBookings: true, nBizDaily: true, nBizDailyAt: '08:00' };
 const subs = new Set<() => void>();
 AsyncStorage.getItem(KEY).then((v) => { if (v) { Object.assign(P, JSON.parse(v)); subs.forEach((f) => f()); } }).catch(() => {});
