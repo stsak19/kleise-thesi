@@ -16,6 +16,7 @@ import { signOut, usePerson } from './data';
 import { useDeletion } from '../account/deletion';
 import { useIsAdmin } from '../admin/data';
 import { AmountPick, TimeBtn } from '../TimePick';
+import { useInstall } from '../pwa';
 
 /* Μικρογραφία οθόνης στα χρώματα μιας παλέτας (για την επιλογή εμφάνισης). */
 function Mini({ P }: { P: Theme }) {
@@ -178,6 +179,21 @@ export function AccountRows() {
   </>;
 }
 
+/* Ιστοσελίδα: «Εγκατάσταση» ως εφαρμογή (lib/pwa.ts). Chrome/Edge/Android: το παράθυρο του browser.
+   iPhone/iPad (Safari): οδηγία, γιατί η Apple δεν έχει κουμπί. Αν ανοίχτηκε ήδη ως εφαρμογή, δεν φαίνεται. */
+export function InstallRow() {
+  const pwa = useInstall();
+  if (!pwa.web || pwa.installed || (!pwa.can && !pwa.ios)) return null;
+  const go = () => (pwa.can ? pwa.install()
+    : say('Βάλε το SpotOn στην οθόνη σου', 'Στο Safari πάτα το κουμπί Κοινοποίηση (το τετράγωνο με το βελάκι) και μετά «Προσθήκη στην οθόνη Αφετηρίας».'));
+  return <>
+    <Section title="Εφαρμογή" />
+    <Group>
+      <Row icon="home" title="Εγκατάσταση στη συσκευή" sub="Εικονίδιο στην αρχική οθόνη, ανοίγει σαν εφαρμογή" onPress={go} last />
+    </Group>
+  </>;
+}
+
 /* Όλες οι ρυθμίσεις της εφαρμογής. Η εμφάνιση εφαρμόζεται αμέσως σε όλη την εφαρμογή. */
 export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
   const prefs = usePrefs();
@@ -192,6 +208,8 @@ export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
       </Group>
 
       <NotifyPrefs />
+
+      <InstallRow />
 
       <Section title="Βοήθεια" />
       <Group>

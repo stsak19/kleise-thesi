@@ -1,0 +1,22 @@
+name: Ιδέα / νέα λειτουργία
+description: Κάτι που θα ήταν καλό να κάνει το SpotOn
+title: "Ιδέα: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: ti
+    attributes:
+      label: Τι θέλουμε
+      description: Τι πρόβλημα λύνει και για ποιον (πελάτης, επιχείρηση, admin).
+    validations: { required: true }
+  - type: textarea
+    id: pos
+    attributes:
+      label: Πώς το φανταζόμαστε
+      description: "Οθόνες, κουμπιά, ροή. Για εμφάνιση: θέλουμε πρώτα εκδοχές να διαλέξουμε;"
+  - type: checkboxes
+    id: vasi
+    attributes:
+      label: Βάση
+      options:
+        - label: Χρειάζεται αλλαγή στη βάση (νέο migration)

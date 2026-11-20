@@ -13,6 +13,7 @@ import { signOut, usePerson, useProfileExtras } from './data';
 import { Initials, MeForm } from './parts';
 import { useMyWork } from '../staff';
 import { AdminRow, AppearancePicker, NotifyPrefs, PasswordForm } from './Settings';
+import { useInstall } from '../pwa';
 
 /* Το προφίλ σε υπολογιστή (εκδοχή Α): όνομα πάνω, ενότητες αριστερά και η φόρμα της επιλεγμένης δεξιά,
    όπως στις ρυθμίσεις λογαριασμού μιας ιστοσελίδας. Όλα αλλάζουν επιτόπου, χωρίς να ανοίγει άλλη οθόνη. */
@@ -45,6 +46,7 @@ export function DeskProfile() {
   const switchTo = useSwitchTo();
   const work = useMyWork().list ?? []; // υπάλληλος σε ομάδα (017)
   const prefs = usePrefs();
+  const pwa = useInstall();
   const [sel, setSelS] = useState<Key>(last);
   const [pass, setPass] = useState(false);
   const setSel = (k: Key) => { last = k; setSelS(k); };
@@ -82,6 +84,7 @@ export function DeskProfile() {
   </View>) : (
     <View>
       <Line title="Δες ξανά την ξενάγηση" sub="Τα 4 βήματα της πρώτης φοράς" right={<Btn size="sm" kind="ghost" title="Ξενάγηση" onPress={replayIntro} />} />
+      {pwa.web && pwa.can && !pwa.installed && <Line title="Εγκατάσταση στον υπολογιστή" sub="Ανοίγει σε δικό του παράθυρο, σαν εφαρμογή" right={<Btn size="sm" title="Εγκατάσταση" onPress={pwa.install} />} />}
     </View>
   );
 
