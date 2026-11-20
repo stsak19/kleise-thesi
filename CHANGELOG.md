@@ -3,6 +3,7 @@
 Κάθε αλλαγή που φαίνεται (λειτουργία, βάση, εμφάνιση, CI) γράφεται εδώ, **η πιο πρόσφατη πάνω**, με ποιος την έκανε: **[Στάθης]** ή **[Λεωνίδας]**. Μία γραμμή, απλά ελληνικά, και το migration ή το PR αν υπάρχει. Δες [docs/synergasia.md](docs/synergasia.md).
 
 ## 2026-11-20
+- [Λεωνίδας] QR καταστήματος για εκτύπωση: Κατάστημα → «QR για τον πάγκο» (τύπωμα σε A4 ή εικόνα SVG από την ιστοσελίδα, κοινοποίηση συνδέσμου από το κινητό). Νέα βιβλιοθήκη `qrcode-generator` (MIT, χωρίς εξαρτήσεις).
 - [Λεωνίδας] Έλεγχος SQL σε κάθε PR (όλα τα migrations σε άδειο Postgres), αυτόματο σβήσιμο branch μετά το Merge, Release με APK από tag `v*`, badges στο README, Dependabot για τα Actions.
 - [Λεωνίδας] README, `CLAUDE.md` ως σύντομο index, οδηγίες ανά λειτουργία στο `docs/features/`, κανόνες συνεργασίας (`docs/synergasia.md`), `scripts/allages.mjs` που δείχνει τι άλλαξε και από ποιον (τρέχει μόνο του στην αρχή κάθε session του Claude), PR/issue templates, CODEOWNERS. Το `ODIGIES.md` μοιράστηκε στα `README.md` και `docs/`.
 
