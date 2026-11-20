@@ -13,6 +13,7 @@ import { SwitchOverlay } from '../lib/SwitchMode';
 import { BACK, GUEST_OK, WEB, askLogin, openToGuests, setReturnTo, getReturnTo } from '../lib/guest';
 import { LoginModal } from '../lib/login/LoginModal';
 import { PrivacyModal } from '../lib/privacy';
+import { loadLang, onLang } from '../lib/i18n';
 
 // Η εφαρμογή ξεκινά πάντα από τον πελάτη· η λειτουργία επιχείρησης (biz) ανοίγει μόνο όταν την επιλέξεις.
 export const unstable_settings = { initialRouteName: '(tabs)' };
@@ -76,7 +77,10 @@ export default function Root() {
   const [v, setV] = useState(0);
   const [fonts] = useFonts(FONTS);
   useEffect(() => { const off = onTheme(() => { restore = here; setV((x) => x + 1); }); loadTheme(); return off; }, []);
-  if (!fonts) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
+  // Η αλλαγή γλώσσας (lib/i18n) ξαναστήνει την εφαρμογή όπως η εμφάνιση, για να μεταφραστούν και οι τίτλοι.
+  const [langReady, setLangReady] = useState(false);
+  useEffect(() => { const off = onLang(() => { restore = here; setV((x) => x + 1); }); loadLang().finally(() => setLangReady(true)); return off; }, []);
+  if (!fonts || !langReady) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
   return (
     <AuthProvider>
       <StatusBar style={isDark() ? 'light' : 'dark'} />

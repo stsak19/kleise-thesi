@@ -10,6 +10,7 @@ import { Initials } from '../profile/parts';
 import type { IconName } from '../Icon';
 import { askLogin } from '../guest';
 import { MyBizTopButton } from '../MyBiz';
+import { LangPill } from '../i18n/LangPicker';
 
 /* Ο πελάτης σε υπολογιστή: πάνω μπάρα όπως σε κάθε site πελατών (λογότυπο, αναζήτηση στη μέση, Αρχική · Κρατήσεις · Πακέτα,
    «Σύνδεση» ή το προφίλ δεξιά). Στο κινητό δεν χρησιμοποιείται τίποτα από εδώ. */
@@ -83,6 +84,7 @@ export function TopBar({ items, state, navigateToTab }: Nav) {
           );
         })}
       </View>
+      <LangPill size={38} />
       {!person.guest && <MyBizTopButton />}
       {person.guest ? (
         <Pressable onPress={() => askLogin()} accessibilityRole="button"
