@@ -13,6 +13,7 @@ import { signOut, usePerson, useProfileExtras } from './data';
 import { Initials, MeForm } from './parts';
 import { useMyWork } from '../staff';
 import { AdminRow, AppearancePicker, NotifyPrefs, PasswordForm } from './Settings';
+import { LangPicker } from '../i18n/LangPicker';
 
 /* Το προφίλ σε υπολογιστή (εκδοχή Α): όνομα πάνω, ενότητες αριστερά και η φόρμα της επιλεγμένης δεξιά,
    όπως στις ρυθμίσεις λογαριασμού μιας ιστοσελίδας. Όλα αλλάζουν επιτόπου, χωρίς να ανοίγει άλλη οθόνη. */
@@ -69,6 +70,9 @@ export function DeskProfile() {
   ) : sel === 'look' ? (
     <View style={{ gap: 8 }}>
       <AppearancePicker />
+      <View style={{ height: 14 }} />
+      <Text style={{ color: C.text, fontWeight: '800', fontSize: 16 }}>Γλώσσα · Language</Text>
+      <LangPicker />
       <View style={{ height: 14 }} />
       <Line title="Λιγότερη κίνηση" sub="Σταματά τα κινούμενα εφέ στις οθόνες" right={<Toggle value={prefs.reduceMotion} onChange={(v) => setPref('reduceMotion', v)} />} />
     </View>

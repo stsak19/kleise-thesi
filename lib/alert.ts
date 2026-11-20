@@ -1,4 +1,5 @@
 import { Alert, Platform } from 'react-native';
+import { tr } from './i18n';
 
 type Btn = { text: string; onPress?: () => void; style?: 'cancel' | 'destructive' | 'default' };
 
@@ -6,13 +7,17 @@ type Btn = { text: string; onPress?: () => void; style?: 'cancel' | 'destructive
    Στο web: ένα κουμπί → window.alert, δύο κουμπιά → window.confirm (OK = πρώτη επιλογή
    που δεν είναι «Όχι»/cancel, Άκυρο = η άλλη). */
 export function say(title: string, msg?: string, buttons?: Btn[]) {
+  // Αγγλικά (lib/i18n): μεταφράζονται τίτλος, μήνυμα και κουμπιά· ο έλεγχος για «Όχι» γίνεται πριν τη μετάφραση.
+  const cancelBtn = buttons?.find((b) => b.style === 'cancel' || b.text === 'Όχι');
+  title = tr(title); msg = msg && tr(msg);
+  buttons = buttons?.map((b) => ({ ...b, text: tr(b.text), style: b === cancelBtn && !b.style ? 'cancel' as const : b.style }));
   if (Platform.OS !== 'web') return Alert.alert(title, msg, buttons);
   const text = msg ? `${title}\n\n${msg}` : title;
   if (!buttons || buttons.length <= 1) { window.alert(text); buttons?.[0]?.onPress?.(); return; }
-  const cancel = buttons.find((b) => b.style === 'cancel' || b.text === 'Όχι');
+  const cancel = buttons.find((b) => b.style === 'cancel');
   const yes = buttons.find((b) => b !== cancel) ?? buttons[0];
   const no = buttons.find((b) => b !== yes);
-  const label = `${text}\n\nOK = ${yes.text}${no ? `\nΆκυρο = ${no.text}` : ''}`;
+  const label = `${text}\n\nOK = ${yes.text}${no ? `\n${tr('Άκυρο = {0}').replace('{0}', no.text)}` : ''}`;
   if (window.confirm(label)) yes.onPress?.(); else no?.onPress?.();
 }
 
