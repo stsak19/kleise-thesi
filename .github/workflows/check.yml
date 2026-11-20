@@ -27,3 +27,13 @@ jobs:
         run: npx tsc --noEmit
       - name: Build για web
         run: npx expo export --platform web --output-dir web
+      - name: Ενημερώθηκαν CHANGELOG και docs;
+        # Μόνο προειδοποίηση (κίτρινο), δεν μπλοκάρει το Merge.
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --depth=1 origin ${{ github.base_ref }}
+          changed=$(git diff --name-only FETCH_HEAD HEAD)
+          if echo "$changed" | grep -qE '^(app|lib|supabase)/'; then
+            echo "$changed" | grep -q '^CHANGELOG.md$' || echo "::warning::Άλλαξε κώδικας αλλά όχι το CHANGELOG.md (γράψε τι άλλαξε με [Στάθης]/[Λεωνίδας])."
+            echo "$changed" | grep -qE '^(docs/|README.md)' || echo "::warning::Άλλαξε κώδικας αλλά κανένα αρχείο στο docs/ ή το README.md. Χρειάζεται ενημέρωση;"
+          fi

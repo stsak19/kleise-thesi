@@ -13,6 +13,7 @@ export default function BizStack() {
       <Stack.Screen name="owner/plans" options={{ title: 'Πακέτα' }} />
       <Stack.Screen name="owner/client" options={{ title: '' }} />
       <Stack.Screen name="owner/recipients" options={{ title: 'Σε ποιους' }} />
+      <Stack.Screen name="owner/stats" options={{ title: 'Στατιστικά' }} />
       <Stack.Screen name="account" options={{ title: 'Τα στοιχεία μου' }} />
       <Stack.Screen name="app-settings" options={{ title: 'Ρυθμίσεις' }} />
     </Stack>
