@@ -231,7 +231,7 @@ function HoursSec({ st }: { st: St }) {
                   <View style={{ flex: 1 }}><TimeBtn value={h.opens} title={`${DAYNAME[d]} · ανοίγει`} onChange={(v) => setRow(i, { opens: v })} /></View>
                   <Text style={{ color: C.mute }}>–</Text>
                   <View style={{ flex: 1 }}><TimeBtn value={h.closes} title={`${DAYNAME[d]} · κλείνει`} onChange={(v) => setRow(i, { closes: v })} /></View>
-                  {rows.length > 1 && <Pressable onPress={() => setHours(hours.filter((_, j) => j !== i))} hitSlop={6}
+                  {rows.length > 1 && <Pressable onPress={() => setHours(hours.filter((_, j) => j !== i))} hitSlop={6} accessibilityRole="button" accessibilityLabel="Αφαίρεση ωραρίου"
                     style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: alpha(C.bad, 0.1), alignItems: 'center', justifyContent: 'center' }}>
                     <Icon name="close" size={14} color={C.bad} /></Pressable>}
                 </View>
