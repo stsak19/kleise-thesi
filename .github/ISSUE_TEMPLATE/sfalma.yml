@@ -1,0 +1,32 @@
+name: Σφάλμα
+description: Κάτι δεν δουλεύει όπως πρέπει
+title: "Σφάλμα: "
+labels: [bug]
+body:
+  - type: textarea
+    id: ti
+    attributes:
+      label: Τι έγινε
+      description: Τι πάτησες, τι περίμενες και τι είδες.
+    validations: { required: true }
+  - type: dropdown
+    id: pou
+    attributes:
+      label: Πού
+      options: [Ιστοσελίδα σε υπολογιστή, Ιστοσελίδα σε κινητό, APK Android, iOS, Admin]
+    validations: { required: true }
+  - type: dropdown
+    id: rolos
+    attributes:
+      label: Ως ποιος
+      options: [Επισκέπτης, Πελάτης, Ιδιοκτήτης επιχείρησης, Υπάλληλος, Super admin]
+  - type: input
+    id: syndesmos
+    attributes:
+      label: Σύνδεσμος (αν υπάρχει)
+      placeholder: https://stsak19.github.io/kleise-thesi/store/...
+  - type: textarea
+    id: eikones
+    attributes:
+      label: Εικόνες
+      description: Σύρε εδώ screenshots. Μη βάζεις κωδικούς, email ή στοιχεία πελατών.
