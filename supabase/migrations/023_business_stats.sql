@@ -62,3 +62,8 @@ begin
 end $$;
 revoke all on function business_stats(uuid, int) from public, anon;
 grant execute on function business_stats(uuid, int) to authenticated;
+
+-- Αν υπάρχει ήδη ο πίνακας applied_migrations (025), γράψου εκεί.
+do $$ begin
+  if to_regprocedure('public.mark_migration(integer, text)') is not null then perform mark_migration(23, '023_business_stats'); end if;
+end $$;
