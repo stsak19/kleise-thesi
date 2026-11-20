@@ -19,3 +19,5 @@ for f in supabase/migrations/*.sql; do run "$f"; done
 echo "— δεύτερη φορά (πρέπει να ξανατρέχουν χωρίς λάθος) —"
 for f in supabase/migrations/*.sql; do run "$f"; done
 echo "Όλα τα migrations τρέχουν."
+echo "— tests (supabase/ci/tests.sql) —"
+run supabase/ci/tests.sql

@@ -18,6 +18,7 @@ export const NAV: { path: string; label: string; icon: IconName; badge?: 'review
   { path: '/admin/reviews', label: 'Βαθμολογίες', icon: 'chat', badge: 'reviews' },
   { path: '/admin/deletions', label: 'Αιτήσεις διαγραφής', icon: 'close', badge: 'deletions' },
   { path: '/admin/payments', label: 'Πληρωμές', icon: 'pack' },
+  { path: '/admin/errors', label: 'Σφάλματα', icon: 'bell' },
 ].filter((n) => RATINGS || n.path !== '/admin/reviews') as any;
 const sectionOf = (p: string) => (p.startsWith('/admin/shop') ? '/admin/shops' : p.startsWith('/admin/person') ? '/admin/people' : p.replace(/\/$/, '') || '/admin');
 
