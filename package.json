@@ -8,7 +8,11 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "build:android": "eas build -p android",
-    "build:ios": "eas build -p ios"
+    "build:ios": "eas build -p ios",
+    "typecheck": "tsc --noEmit",
+    "build:web": "expo export --platform web --output-dir web",
+    "allages": "node scripts/allages.mjs",
+    "elegxos:sql": "bash scripts/elegxos-sql.sh"
   },
   "dependencies": {
     "@expo-google-fonts/manrope": "^0.4.3",
@@ -23,6 +27,7 @@
     "expo-linking": "~58.0.15",
     "expo-router": "~58.0.29",
     "expo-status-bar": "~58.0.4",
+    "qrcode-generator": "^2.0.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.1",

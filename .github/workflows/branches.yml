@@ -1,0 +1,51 @@
+name: Καθάρισμα branches
+
+# 1) Μόλις γίνει Merge ένα PR, σβήνει το branch του, αν το PR το άνοιξε κάποιος από τη λίστα στο «if» του job merged
+#    (ο καθένας σβήνει μόνο τα δικά του· ο Στάθης μπορεί να προσθέσει «|| … == 'stsak19'» ή να ανοίξει το
+#    Settings → General → «Automatically delete head branches»).
+# 2) Με το χέρι (Actions → «Καθάρισμα branches» → Run workflow): σβήνει τα branches που αρχίζουν από το «prefix»
+#    και των οποίων το PR έχει γίνει Merge χωρίς νέα commits μετά. Δεν πειράζει ποτέ main, gh-pages ή branch χωρίς PR.
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      prefix:
+        description: Ποια branches (π.χ. leonidas/ για του Λεωνίδα)
+        default: leonidas/
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  merged:
+    if: >-
+      github.event_name == 'pull_request' && github.event.pull_request.merged &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login == 'LeoTheGreat777'
+    runs-on: ubuntu-latest
+    steps:
+      - env: { GH_TOKEN: '${{ github.token }}', BRANCH: '${{ github.event.pull_request.head.ref }}' }
+        run: |
+          case "$BRANCH" in main|gh-pages) exit 0;; esac
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/$BRANCH" && echo "Σβήστηκε: $BRANCH" || echo "Δεν υπάρχει πια: $BRANCH"
+
+  manual:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - env: { GH_TOKEN: '${{ github.token }}', PREFIX: '${{ inputs.prefix }}', R: '${{ github.repository }}' }
+        run: |
+          [ -n "$PREFIX" ] || { echo "Χρειάζεται prefix"; exit 1; }
+          gh api "repos/$R/branches" --paginate -q '.[] | "\(.name) \(.commit.sha)"' | while read -r name sha; do
+            case "$name" in main|gh-pages) continue;; esac
+            [[ "$name" == "$PREFIX"* ]] || continue
+            merged=$(gh api "repos/$R/pulls?state=closed&head=${R%%/*}:$name" -q "[.[] | select(.merged_at != null and .head.sha == \"$sha\")] | length")
+            if [ "$merged" -gt 0 ]; then
+              gh api -X DELETE "repos/$R/git/refs/heads/$name" && echo "Σβήστηκε: $name"
+            else
+              echo "Μένει (χωρίς PR που έγινε Merge ή με νέα commits): $name"
+            fi
+          done
