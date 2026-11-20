@@ -1,9 +1,11 @@
 # SpotOn
 
+[![Web](https://github.com/stsak19/kleise-thesi/actions/workflows/web.yml/badge.svg)](https://github.com/stsak19/kleise-thesi/actions/workflows/web.yml) [![Android APK](https://github.com/stsak19/kleise-thesi/actions/workflows/android.yml/badge.svg)](https://github.com/stsak19/kleise-thesi/actions/workflows/android.yml) [![Έλεγχος PR](https://github.com/stsak19/kleise-thesi/actions/workflows/check.yml/badge.svg)](https://github.com/stsak19/kleise-thesi/actions/workflows/check.yml)
+
 Εφαρμογή κρατήσεων για κινητό (iOS/Android) και browser. Οι πελάτες βρίσκουν καταστήματα (γυμναστήρια, κομμωτήρια, νυχάδικα, κουρεία, pilates, ιατρεία κ.λπ.) και κλείνουν θέση σε μέρα και ώρα. Οι ιδιοκτήτες στήνουν το κατάστημά τους, βλέπουν το πρόγραμμα, τους πελάτες και τα πακέτα τους. Όλα στα ελληνικά.
 
 - **Ιστοσελίδα:** https://stsak19.github.io/kleise-thesi/
-- **APK Android:** Actions → «Android APK» → artifact `kleise-thesi-apk`
+- **APK Android:** [Releases](https://github.com/stsak19/kleise-thesi/releases) (από κάθε tag `v*`), ή Actions → «Android APK» → artifact `kleise-thesi-apk`
 - **Προεπισκόπηση κάθε PR:** `https://stsak19.github.io/kleise-thesi/pr-preview/pr-<αριθμός>/`
 
 ## Τι κάνει
@@ -23,6 +25,7 @@ npx expo start          # κινητό (Expo Go) ή browser
 npm run typecheck       # έλεγχος τύπων, πριν από κάθε commit
 npm run build:web       # build ιστοσελίδας στον φάκελο web/
 npm run allages         # τι άλλαξε πρόσφατα και από ποιον
+npm run elegxos:sql     # schema + migrations σε τοπικό Postgres (PGHOST/PGPORT/PGUSER)
 ```
 Η εφαρμογή συνδέεται στην κανονική βάση Supabase (στοιχεία στο `app.json` → `extra`). Δεν υπάρχει demo ή δοκιμαστικά δεδομένα.
 

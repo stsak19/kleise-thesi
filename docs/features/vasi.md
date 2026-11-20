@@ -4,6 +4,7 @@
 - Αρχικό σχήμα: `supabase/schema.sql`. Κάθε νέο χαρακτηριστικό = **νέο αρχείο** `supabase/migrations/NNN_<όνομα>.sql`, που μπορεί να ξανατρέξει (`if not exists`, `create or replace`).
 - Τρέχουν με τη σειρά στο SQL Editor της Supabase **μετά το Merge**. Η εφαρμογή αντέχει όσα δεν έχουν τρέξει ακόμα: δείχνει προειδοποίηση αντί να σπάσει.
 - Επόμενος ελεύθερος αριθμός: **022**. Πριν τον πάρεις, κοίτα και τα ανοιχτά PR.
+- Πριν το Merge: το workflow «Έλεγχος SQL» τρέχει όλα τα migrations σε άδεια βάση. Τοπικά: `npm run elegxos:sql`. Αν ένα migration χρειάζεται κάτι της Supabase που λείπει, πρόσθεσέ το στο `supabase/ci/stubs.sql` (ποτέ στην πραγματική βάση).
 - Ασφάλεια: RLS σε κάθε πίνακα, ενέργειες με `security definer` συναρτήσεις που ελέγχουν `auth.uid()`. Κανένα service key στην εφαρμογή.
 
 ## Migrations
