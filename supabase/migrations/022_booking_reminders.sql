@@ -57,3 +57,8 @@ drop trigger if exists bookings_reset_reminder on bookings;
 create trigger bookings_reset_reminder before update on bookings for each row execute function reset_booking_reminder();
 
 select cron.schedule('booking-reminders', '*/15 * * * *', 'select send_booking_reminders()');
+
+-- Αν υπάρχει ήδη ο πίνακας applied_migrations (025), γράψου εκεί.
+do $$ begin
+  if to_regprocedure('public.mark_migration(integer, text)') is not null then perform mark_migration(22, '022_booking_reminders'); end if;
+end $$;
