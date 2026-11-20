@@ -69,3 +69,8 @@ revoke all on function cleanup_client_errors() from public, anon, authenticated;
 revoke all on function admin_errors(int), admin_clear_errors() from public, anon;
 grant execute on function admin_errors(int), admin_clear_errors() to authenticated;
 select cron.schedule('client-errors-cleanup', '40 1 * * *', 'select cleanup_client_errors()');
+
+-- Αν υπάρχει ήδη ο πίνακας applied_migrations (025), γράψου εκεί.
+do $$ begin
+  if to_regprocedure('public.mark_migration(integer, text)') is not null then perform mark_migration(24, '024_client_errors'); end if;
+end $$;
