@@ -15,3 +15,9 @@
 - Νέα έκδοση: άλλαξε το `version` στο `app.json`, και μετά GitHub → Releases → «Draft a new release» → tag `v1.2.0` (ή `git tag v1.2.0 && git push origin v1.2.0`).
 - Dependabot (`.github/dependabot.yml`) ανοίγει μία φορά τον μήνα PR μόνο για τις εκδόσεις των Actions.
 - iOS / Play Store: υπάρχει `eas.json` (`npm run build:android`, `build:ios`), δεν έχει στηθεί ακόμα.
+
+## Εγκατάσταση ως εφαρμογή (PWA)
+- `public/manifest.webmanifest` και `public/icons/` (από το `assets/icon.png`, και «maskable» με περιθώριο) βγαίνουν δίπλα στο `index.html` με το `expo export`. Όλα σχετικά (`./`), άρα δουλεύουν και στο `pr-preview/pr-N`.
+- `lib/pwa.ts` (`setupPwa()` στο `app/_layout.tsx`, μόνο web): βάζει `<link rel=manifest>`, apple-touch-icon, `theme-color` από το θέμα (αλλάζει με την εμφάνιση), `lang=el`, και κρατά το `beforeinstallprompt`.
+- Κουμπί «Εγκατάσταση στη συσκευή» στις Ρυθμίσεις (κινητό web) και «Εγκατάσταση στον υπολογιστή» στη Βοήθεια του Προφίλ (υπολογιστής). Στο iPhone (Safari) δείχνει οδηγία «Κοινοποίηση → Προσθήκη στην οθόνη Αφετηρίας». Κρύβεται όταν είναι ήδη εγκατεστημένη.
+- Χωρίς service worker (δεν χρειάζεται για εγκατάσταση και δεν κρατά παλιές εκδόσεις στην cache).
