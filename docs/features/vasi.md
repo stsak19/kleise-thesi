@@ -3,7 +3,7 @@
 - Project Supabase **`tfuuleuzsahipzgtbuuo`** (του Στάθη). URL και publishable key στο `app.json` → `extra` (δημόσια, προστατεύονται από RLS).
 - Αρχικό σχήμα: `supabase/schema.sql`. Κάθε νέο χαρακτηριστικό = **νέο αρχείο** `supabase/migrations/NNN_<όνομα>.sql`, που μπορεί να ξανατρέξει (`if not exists`, `create or replace`).
 - Τρέχουν με τη σειρά στο SQL Editor της Supabase **μετά το Merge**. Η εφαρμογή αντέχει όσα δεν έχουν τρέξει ακόμα: δείχνει προειδοποίηση αντί να σπάσει.
-- Επόμενος ελεύθερος αριθμός: **022**. Πριν τον πάρεις, κοίτα και τα ανοιχτά PR.
+- Επόμενος ελεύθερος αριθμός: **026** (τα 022–025 τα έχουν πάρει τα PR του Λεωνίδα της 2026-11-20). Πριν τον πάρεις, κοίτα και τα ανοιχτά PR.
 - Πριν το Merge: το workflow «Έλεγχος SQL» τρέχει όλα τα migrations σε άδεια βάση. Τοπικά: `npm run elegxos:sql`. Αν ένα migration χρειάζεται κάτι της Supabase που λείπει, πρόσθεσέ το στο `supabase/ci/stubs.sql` (ποτέ στην πραγματική βάση).
 - Ασφάλεια: RLS σε κάθε πίνακα, ενέργειες με `security definer` συναρτήσεις που ελέγχουν `auth.uid()`. Κανένα service key στην εφαρμογή.
 
@@ -33,6 +33,7 @@
 | 019 | Δοκιμαστική πληρωμή | μετά το 018 |
 | 020 | Σύνδεσμος με όνομα (slug) | |
 | 021 | Αίτηση αφαίρεσης επιχείρησης | |
+| 022 | Υπενθύμιση ραντεβού (profiles.remind_min, bookings.reminded_at, cron κάθε 15') |  |
 
 ## Edge Functions
 `supabase/functions/viva-pay`, `viva-webhook`: ανεβαίνουν με επικόλληση στο Supabase → Edge Functions. Secrets μόνο εκεί. Δες paketa-pliromes.md.
