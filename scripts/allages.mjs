@@ -8,7 +8,7 @@
 //   3. οτιδήποτε άλλο στο main → Στάθης
 // Χωρίς εξαρτήσεις· αν δεν υπάρχει δίκτυο, δείχνει ό,τι ξέρει το τοπικό git.
 import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const REPO = 'stsak19/kleise-thesi';
 const args = process.argv.slice(2);
@@ -80,6 +80,25 @@ if (prs) {
   const branches = sh(`git branch -r --no-merged ${main}`).split('\n').map((s) => s.trim()).filter((b) => /origin\/leonidas\//.test(b));
   out.push('- (δεν βρέθηκε GitHub· branches leonidas/* που δεν έχουν μπει στο main — μπορεί κάποια να έγιναν ήδη squash merge)');
   for (const b of branches) out.push(`- ${b}`);
+}
+
+// Migrations: ποια αρχεία του main δεν έχουν τρέξει ακόμα στη βάση (πίνακας applied_migrations, migration 025).
+// Διαβάζει με το δημόσιο κλειδί του app.json. Χωρίς δίκτυο προς τη Supabase, απλώς το λέει.
+out.push('', '## Migrations στη βάση Supabase');
+const files = sh(`git ls-tree --name-only ${main} supabase/migrations/`).split('\n').map((f) => f.split('/').pop()).filter((f) => /^\d+_.*\.sql$/.test(f));
+const local = files.length ? files : (() => { try { return readdirSync(new URL('../supabase/migrations/', import.meta.url)).filter((f) => /^\d+_.*\.sql$/.test(f)); } catch { return []; } })();
+let applied = null;
+try {
+  const extra = JSON.parse(readFileSync(new URL('../app.json', import.meta.url), 'utf8')).expo.extra;
+  const res = sh(`curl -sf --max-time 8 -X POST "${extra.supabaseUrl}/rest/v1/rpc/applied_migrations_list" -H "apikey: ${extra.supabaseAnonKey}" -H "Content-Type: application/json" -d "{}"`, 12000);
+  if (res) applied = JSON.parse(res);
+} catch {}
+if (!Array.isArray(applied)) {
+  out.push('- Δεν μπόρεσα να ρωτήσω τη βάση (χωρίς δίκτυο ή δεν έχει τρέξει ακόμα το 025). Κοίτα τη λίστα στο docs/features/vasi.md.');
+} else {
+  const done = new Set(applied.map((a) => a.num));
+  const todo = local.filter((f) => !done.has(Number(f.split('_')[0])));
+  out.push(todo.length ? `- **Δεν έχουν τρέξει ακόμα** (${main}): ${todo.join(', ')} — να τρέξουν με τη σειρά στο SQL Editor.` : `- Όλα τα migrations του ${main} έχουν τρέξει (τελευταίο: ${applied.at(-1)?.name ?? '—'}).`);
 }
 
 out.push('', 'Κανόνας (CLAUDE.md): πες στον άνθρωπό σου τι έκανε ο άλλος από το τελευταίο «seen», και για κάθε ανοιχτό PR του άλλου ρώτα αν θέλει να το δει / κάνει Merge. Μετά ενημέρωσε το seen στο docs/synergasia.md.');

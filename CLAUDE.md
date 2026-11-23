@@ -17,9 +17,9 @@
 - Κάθε commit τελειώνει με `Από: Στάθης` ή `Από: Λεωνίδας`.
 - Σε κάθε αλλαγή ενημερώνεις στο ίδιο commit: το `docs/features/<λειτουργία>.md`, το `CHANGELOG.md` (με [Στάθης]/[Λεωνίδας]) και το `README.md` αν χρειάζεται.
 - Χρώματα (minimal μαύρο · λευκό, ανοιχτή και σκούρα εμφάνιση) μόνο στο `lib/theme.ts`.
-- Κείμενο μόνο από `lib/Txt.tsx` (Manrope), όχι `Text` του `react-native`. Χωρίς βιβλιοθήκες UI, animation μόνο με `Animated`.
+- Κείμενο μόνο από `lib/Txt.tsx` (Manrope), όχι `Text` του `react-native`. Νέο κείμενο στην πλευρά του πελάτη → και στο λεξικό `lib/i18n/en.ts` (glossa.md). Χωρίς βιβλιοθήκες UI, animation μόνο με `Animated`.
 - **Δεν υπάρχει demo**: από 2026-11-16 σβήστηκε οριστικά και δεν ξαναεμφανίζεται ποτέ. Μόνο δεδομένα από τη Supabase. Όχι δοκιμαστικά δεδομένα, demo λειτουργία ή κρυφοί σύνδεσμοι.
-- Νέα χαρακτηριστικά βάσης = νέο αρχείο στο `supabase/migrations/` με τον επόμενο ελεύθερο αριθμό (κοίτα και τα ανοιχτά PR).
+- Νέα χαρακτηριστικά βάσης = νέο αρχείο στο `supabase/migrations/` με τον επόμενο ελεύθερο αριθμό (κοίτα και τα ανοιχτά PR), που τελειώνει με `select mark_migration(N, 'NNN_όνομα');` (025· το ελέγχει το CI).
 - Πριν από κάθε commit: `npm run typecheck`. Για αλλαγές στην εμφάνιση ο Στάθης θέλει πρώτα να βλέπει εκδοχές.
 
 ## Index λειτουργιών (`docs/features/`)
@@ -35,6 +35,7 @@
 | [`ypalliloi.md`](docs/features/ypalliloi.md) | Ομάδα, προσκλήσεις, «Το πρόγραμμά μου» |
 | [`logariasmoi.md`](docs/features/logariasmoi.md) | Σύνδεση, επισκέπτης, διαγραφή λογαριασμού, αφαίρεση επιχείρησης |
 | [`admin.md`](docs/features/admin.md) | Super admin |
+| [`glossa.md`](docs/features/glossa.md) | Ελληνικά/Αγγλικά: πώς μεταφράζεται, λεξικό `lib/i18n/en.ts` |
 | [`vasi.md`](docs/features/vasi.md) | Supabase, λίστα migrations, σειρά, πώς τρέχουν |
 | [`ekdosi.md`](docs/features/ekdosi.md) | GitHub Pages, προεπισκόπηση PR, APK, έλεγχος PR |
 

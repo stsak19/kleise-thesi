@@ -129,7 +129,7 @@ export function DayDetail({ detail, day, slots, onClose }: { detail: string | nu
     <View style={{ borderWidth: 1.5, borderColor: C.text, borderRadius: 18, overflow: 'hidden' }}>
       <View style={[s.row, { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1.5, borderBottomColor: C.text }]}>
         <Text style={{ flex: 1, color: C.text, fontWeight: '800', fontSize: 14, letterSpacing: 0.3, textTransform: 'uppercase' }}>{title}</Text>
-        <Pressable onPress={onClose} hitSlop={10}><Icon name="close" size={16} color={C.mute} /></Pressable>
+        <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="Κλείσιμο"><Icon name="close" size={16} color={C.mute} /></Pressable>
       </View>
       {detail === 'fill' ? slots.map((g, i) => (
         <View key={g.key} style={[s.row, { paddingHorizontal: 16, paddingVertical: 10 }, i > 0 && { borderTopWidth: 1, borderTopColor: C.line }]}>
@@ -295,7 +295,7 @@ export function HourList({ biz, date, slots, onChange, closed }: { biz: any; dat
                       {past
                         ? <Btn size="sm" kind="ghost" title="Δεν ήρθε" style={{ flex: 1 }} onPress={() => setStatus(b, 'no_show')} />
                         : <Btn size="sm" kind="danger" title="Ακύρωση" style={{ flex: 1 }} onPress={() => setStatus(b, 'cancelled')} />}
-                      <Pressable onPress={() => router.navigate({ pathname: '/inbox', params: { to: b.user_id } })} hitSlop={6}
+                      <Pressable onPress={() => router.navigate({ pathname: '/inbox', params: { to: b.user_id } })} hitSlop={6} accessibilityRole="button" accessibilityLabel="Μήνυμα στον πελάτη"
                         style={({ pressed }) => ({ width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.line, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? C.soft : C.bg })}>
                         <Icon name="chat" size={16} color={C.text} />
                       </Pressable>

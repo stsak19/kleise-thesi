@@ -18,6 +18,7 @@ export const NAV: { path: string; label: string; icon: IconName; badge?: 'review
   { path: '/admin/reviews', label: 'Βαθμολογίες', icon: 'chat', badge: 'reviews' },
   { path: '/admin/deletions', label: 'Αιτήσεις διαγραφής', icon: 'close', badge: 'deletions' },
   { path: '/admin/payments', label: 'Πληρωμές', icon: 'pack' },
+  { path: '/admin/errors', label: 'Σφάλματα', icon: 'bell' },
 ].filter((n) => RATINGS || n.path !== '/admin/reviews') as any;
 const sectionOf = (p: string) => (p.startsWith('/admin/shop') ? '/admin/shops' : p.startsWith('/admin/person') ? '/admin/people' : p.replace(/\/$/, '') || '/admin');
 
@@ -203,7 +204,7 @@ export function Search({ value, onChange, placeholder }: { value: string; onChan
       <Icon name="search" size={17} color={C.mute} />
       <TextInput value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={C.mute}
         style={[{ flex: 1, color: C.text, fontSize: 14.5, fontWeight: '600', paddingVertical: 10 }, { outlineStyle: 'none' } as any]} />
-      {!!value && <Pressable onPress={() => onChange('')} hitSlop={8}><Icon name="close" size={15} color={C.mute} /></Pressable>}
+      {!!value && <Pressable onPress={() => onChange('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="Καθαρισμός αναζήτησης"><Icon name="close" size={15} color={C.mute} /></Pressable>}
     </View>
   );
 }

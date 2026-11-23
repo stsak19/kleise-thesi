@@ -4,9 +4,11 @@ import { Stack, useLocalSearchParams, useRouter, type ErrorBoundaryProps } from 
 import { Text } from '../../../lib/Txt';
 import { C } from '../../../lib/ui';
 import { stackOptions } from '../../../lib/stack';
+import { tr } from '../../../lib/i18n';
 import { StoreProvider, useStore } from '../../../lib/store/data';
 import { BookProvider } from '../../../lib/store/book';
 import { knownId, resolveStore } from '../../../lib/store/key';
+import { report } from '../../../lib/errors';
 
 /* Το κατάστημα σαν ξεχωριστή εφαρμογή: δικές του καρτέλες (Κατάστημα · Οι κρατήσεις μου)
    χωρίς την κάτω μπάρα του SpotOn. Από πάνω ανοίγουν οι Ρυθμίσεις και τα στοιχεία του SpotOn, όπως είναι. */
@@ -33,9 +35,9 @@ export default function StoreStack() {
       <BookProvider>
       <Stack screenOptions={stackOptions()}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="account" options={{ title: 'Ο λογαριασμός μου' }} />
-        <Stack.Screen name="settings" options={{ title: 'Ρυθμίσεις' }} />
-        <Stack.Screen name="me" options={{ title: 'Τα στοιχεία μου' }} />
+        <Stack.Screen name="account" options={{ title: tr('Ο λογαριασμός μου') }} />
+        <Stack.Screen name="settings" options={{ title: tr('Ρυθμίσεις') }} />
+        <Stack.Screen name="me" options={{ title: tr('Τα στοιχεία μου') }} />
       </Stack>
       </BookProvider>
     </StoreProvider>
@@ -69,6 +71,7 @@ function NotFound() {
 
 /* Αν κάτι σπάσει μέσα στο κατάστημα, να μη μένει άσπρη σελίδα: μήνυμα + «Ξαναδοκίμασε». */
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  useEffect(() => { report(error, 'store ErrorBoundary'); }, [error]);
   return (
     <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', padding: 28, gap: 12 }}>
       <Text style={{ color: C.text, fontWeight: '800', fontSize: 20, textAlign: 'center' }}>Η σελίδα δεν άνοιξε</Text>

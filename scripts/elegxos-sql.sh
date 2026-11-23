@@ -16,6 +16,17 @@ run() { # $1 = αρχείο· το pg_cron δεν υπάρχει σε σκέτο
 run supabase/ci/stubs.sql
 run supabase/schema.sql
 for f in supabase/migrations/*.sql; do run "$f"; done
+# Από το 025 και μετά κάθε migration γράφει τον εαυτό του στο applied_migrations (mark_migration).
+for f in supabase/migrations/*.sql; do
+  n=$(basename "$f" | grep -oE '^[0-9]+' | sed 's/^0*//'); [ "${n:-0}" -ge 25 ] || continue
+  name=$(basename "$f" .sql)
+  grep -qE "mark_migration\(\s*$n\s*,\s*'$name'\s*\)" "$f" || { echo "::error file=$f::Λείπει στο τέλος: select mark_migration($n, '$name');"; exit 1; }
+done
+missing=$(psql -X -At -d "$DB" -c "select string_agg(n::text, ',') from unnest(array[$(ls supabase/migrations/*.sql | xargs -n1 basename | grep -oE '^[0-9]+' | sed 's/^0*//' | paste -sd,)]) n where not exists (select 1 from applied_migrations a where a.num = n)")
+[ -z "$missing" ] || { echo "::error::Δεν γράφτηκαν στο applied_migrations: $missing"; exit 1; }
+echo "✓ applied_migrations: όλα γραμμένα"
 echo "— δεύτερη φορά (πρέπει να ξανατρέχουν χωρίς λάθος) —"
 for f in supabase/migrations/*.sql; do run "$f"; done
 echo "Όλα τα migrations τρέχουν."
+echo "— tests (supabase/ci/tests.sql) —"
+run supabase/ci/tests.sql

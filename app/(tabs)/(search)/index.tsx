@@ -1,6 +1,6 @@
 import { storeHref } from '../../../lib/store/key';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Image, Keyboard, LayoutAnimation, Pressable, ScrollView, View } from 'react-native';
+import { Animated, Image, Keyboard, LayoutAnimation, Platform, Pressable, ScrollView, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Text, TextInput } from '../../../lib/Txt';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -18,6 +18,8 @@ import { useHomeQuery } from '../../../lib/client/desk';
 import { FavRow } from '../../../lib/client/FavRow';
 import { searchFilters } from '../../../lib/client/search';
 import { Rating, fmtAvg } from '../../../lib/reviews';
+import { LangPill } from '../../../lib/i18n/LangPicker';
+import { tr } from '../../../lib/i18n';
 type Biz = { slug?: string | null; theme?: string | null; layout?: string | null; id: string; name: string; category: string; city: string; address: string | null; brand_color?: string | null; logo_url?: string | null; cover_url?: string | null; rating_avg?: number | string | null; rating_count?: number | null };
 
 
@@ -183,6 +185,8 @@ export default function Home() {
   /* Η μπάρα μένει στην ίδια θέση του δέντρου και στις δύο καταστάσεις, για να μη χάνεται το πληκτρολόγιο όταν αρχίζεις να γράφεις. */
   return (
     <View style={[s.screen, { paddingTop: top + 10 }]}>
+      {/* Ιστοσελίδα: «EN»/«ΕΛ» πάνω δεξιά για τουρίστες (lib/i18n). Στην εφαρμογή η γλώσσα είναι στις Ρυθμίσεις. */}
+      {!results && Platform.OS === 'web' && <View style={{ position: 'absolute', top: top + 12, right: 16, zIndex: 5 }}><LangPill /></View>}
       {!results && <View style={{ flex: 1 }} />}
       {!results && <Text style={{ color: C.text, fontSize: 30, fontWeight: '800', letterSpacing: -0.8, textAlign: 'center', marginBottom: 22 }}>Τι ψάχνεις;</Text>}
       <View style={{ paddingHorizontal: results ? 16 : 20, paddingBottom: results ? 12 : 0, zIndex: 2 }}>{bar}</View>
@@ -235,7 +239,7 @@ function useTypewriter(on: boolean) {
     if (!on) return;
     let w = 0, n = 0, dir = 1, t: ReturnType<typeof setTimeout>;
     const step = () => {
-      const word = HINTS[w];
+      const word = tr(HINTS[w]); // στα αγγλικά η λέξη μεταφράζεται πριν «γραφτεί»
       n += dir; setTxt(word.slice(0, n));
       if (dir === 1 && n === word.length) { dir = -1; t = setTimeout(step, 1300); return; }
       if (dir === -1 && n === 0) { dir = 1; w = (w + 1) % HINTS.length; t = setTimeout(step, 300); return; }

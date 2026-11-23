@@ -163,7 +163,8 @@ function useBookState() {
       if (person && team.length > 1) { if (keep) setFav({ staff: person.id, service: service.id }); else if (fav?.staff === person.id) setFav(null); }
       const withWho = r?.staff ? ` · με ${withArticle(r.staff)}` : person ? ` · με ${withArticle(person.name)}` : '';
       close(); setTime(null);
-      showBooked({ biz: S.biz?.name ?? '', service: `${service.name}${withWho}`, date, time, color: S.st?.color, pending: !!S.biz?.requires_approval, store: S.path });
+      showBooked({ biz: S.biz?.name ?? '', service: `${service.name}${withWho}`, date, time, color: S.st?.color, pending: !!S.biz?.requires_approval, store: S.path,
+        dur: service.duration_min, addr: [S.biz?.address, S.biz?.city].filter(Boolean).join(', ') });
     } catch (e: any) { say('Κάτι πήγε στραβά', e.message); }
     setBusy(false); S.reload();
   };

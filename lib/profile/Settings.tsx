@@ -1,6 +1,6 @@
 import { openPrivacy } from '../privacy';
 import { PassInput, PassRules, passProblem } from '../password';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Text } from '../Txt';
 import Constants from 'expo-constants';
@@ -16,6 +16,8 @@ import { signOut, usePerson } from './data';
 import { useDeletion } from '../account/deletion';
 import { useIsAdmin } from '../admin/data';
 import { AmountPick, TimeBtn } from '../TimePick';
+import { useInstall } from '../pwa';
+import { LangPicker } from '../i18n/LangPicker';
 
 /* Μικρογραφία οθόνης στα χρώματα μιας παλέτας (για την επιλογή εμφάνισης). */
 function Mini({ P }: { P: Theme }) {
@@ -106,10 +108,29 @@ export function Password({ last }: { last?: boolean }) {
 
 const REMIND = [60, 180, 1440];
 
+/* Η υπενθύμιση ραντεβού στέλνεται από τη βάση (022_booking_reminders.sql), άρα η επιλογή γράφεται και στο προφίλ
+   (profiles.remind_min, null = όχι) και διαβάζεται από εκεί όταν ανοίγουν οι Ρυθμίσεις. Χωρίς το 022 απλώς δεν γράφεται. */
+function useRemindSync() {
+  const uid = usePerson().uid;
+  useEffect(() => {
+    if (!uid) return;
+    sb.from('profiles').select('remind_min').eq('id', uid).maybeSingle().then(({ data, error }) => {
+      if (error || !data) return;
+      const m = (data as any).remind_min as number | null;
+      if (m == null) setPref('nRemind', false); else { setPref('nRemind', true); setPref('nRemindMin', m); }
+    });
+  }, [uid]);
+  return (on: boolean, min: number) => {
+    if (on) setPref('nRemindMin', min); setPref('nRemind', on);
+    if (uid) sb.from('profiles').update({ remind_min: on ? Math.min(10080, Math.max(15, min)) : null }).eq('id', uid).then(() => {});
+  };
+}
+
 /* Ειδοποιήσεις στο κινητό: ποιες θέλει ο πελάτης (και η επιχείρηση, όταν είναι σε λειτουργία επιχείρησης). */
 export function NotifyPrefs({ bare }: { bare?: boolean } = {}) {
   const p = usePrefs();
   const biz = appMode() === 'biz';
+  const remind = useRemindSync();
   return (
     <>
       {!bare && <Section title="Ειδοποιήσεις" sub="Έρχονται στο κινητό, ακόμα κι όταν η εφαρμογή είναι κλειστή." />}
@@ -126,10 +147,10 @@ export function NotifyPrefs({ bare }: { bare?: boolean } = {}) {
         </Group>
       )}
       <Group>
-        <SwitchRow label="Υπενθύμιση ραντεβού" sub="Πριν από κάθε κράτηση" value={p.nRemind} onChange={(v) => setPref('nRemind', v)} last={!p.nRemind} />
+        <SwitchRow label="Υπενθύμιση ραντεβού" sub="Στις Κρατήσεις σου, πριν από κάθε ραντεβού (προεπιλογή: την προηγούμενη μέρα)" value={p.nRemind} onChange={(v) => remind(v, p.nRemindMin)} last={!p.nRemind} />
         {p.nRemind && (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: C.line }}>
-            <AmountPick bare options={REMIND} value={p.nRemindMin} onPick={(v) => setPref('nRemindMin', v)} max={7 * 1440}
+            <AmountPick bare options={REMIND} value={p.nRemindMin} onPick={(v) => remind(true, v)} max={7 * 1440}
               sheetTitle="Υπενθύμιση" sheetSub="Πόση ώρα πριν από το ραντεβού;" />
           </View>
         )}
@@ -178,6 +199,21 @@ export function AccountRows() {
   </>;
 }
 
+/* Ιστοσελίδα: «Εγκατάσταση» ως εφαρμογή (lib/pwa.ts). Chrome/Edge/Android: το παράθυρο του browser.
+   iPhone/iPad (Safari): οδηγία, γιατί η Apple δεν έχει κουμπί. Αν ανοίχτηκε ήδη ως εφαρμογή, δεν φαίνεται. */
+export function InstallRow() {
+  const pwa = useInstall();
+  if (!pwa.web || pwa.installed || (!pwa.can && !pwa.ios)) return null;
+  const go = () => (pwa.can ? pwa.install()
+    : say('Βάλε το SpotOn στην οθόνη σου', 'Στο Safari πάτα το κουμπί Κοινοποίηση (το τετράγωνο με το βελάκι) και μετά «Προσθήκη στην οθόνη Αφετηρίας».'));
+  return <>
+    <Section title="Εφαρμογή" />
+    <Group>
+      <Row icon="home" title="Εγκατάσταση στη συσκευή" sub="Εικονίδιο στην αρχική οθόνη, ανοίγει σαν εφαρμογή" onPress={go} last />
+    </Group>
+  </>;
+}
+
 /* Όλες οι ρυθμίσεις της εφαρμογής. Η εμφάνιση εφαρμόζεται αμέσως σε όλη την εφαρμογή. */
 export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
   const prefs = usePrefs();
@@ -191,7 +227,12 @@ export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
         <SwitchRow label="Λιγότερη κίνηση" sub="Σταματά τα κινούμενα εφέ στις οθόνες" value={prefs.reduceMotion} onChange={(v) => setPref('reduceMotion', v)} last />
       </Group>
 
+      <Section title="Γλώσσα" sub="Language" />
+      <LangPicker />
+
       <NotifyPrefs />
+
+      <InstallRow />
 
       <Section title="Βοήθεια" />
       <Group>

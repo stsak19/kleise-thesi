@@ -2,13 +2,13 @@
 
 - Project Supabase **`tfuuleuzsahipzgtbuuo`** (του Στάθη). URL και publishable key στο `app.json` → `extra` (δημόσια, προστατεύονται από RLS).
 - Αρχικό σχήμα: `supabase/schema.sql`. Κάθε νέο χαρακτηριστικό = **νέο αρχείο** `supabase/migrations/NNN_<όνομα>.sql`, που μπορεί να ξανατρέξει (`if not exists`, `create or replace`).
-- Τρέχουν με τη σειρά στο SQL Editor της Supabase **μετά το Merge**. Η εφαρμογή αντέχει όσα δεν έχουν τρέξει ακόμα: δείχνει προειδοποίηση αντί να σπάσει.
-- Επόμενος ελεύθερος αριθμός: **022**. Πριν τον πάρεις, κοίτα και τα ανοιχτά PR.
+- Τρέχουν με τη σειρά στο SQL Editor της Supabase **μετά το Merge**. Από το 025 κάθε migration τελειώνει με `select mark_migration(N, 'NNN_όνομα');` και γράφεται στον πίνακα `applied_migrations`· το `npm run allages` ρωτά τη βάση (`applied_migrations_list`, δημόσιο κλειδί) και λέει ποια αρχεία του `main` δεν έχουν τρέξει ακόμα. Το CI (`scripts/elegxos-sql.sh`) αποτυγχάνει αν λείπει η γραμμή. Η εφαρμογή αντέχει όσα δεν έχουν τρέξει ακόμα: δείχνει προειδοποίηση αντί να σπάσει.
+- Επόμενος ελεύθερος αριθμός: **026** (τα 022–025 τα έχουν πάρει τα PR του Λεωνίδα της 2026-11-20). Πριν τον πάρεις, κοίτα και τα ανοιχτά PR.
 - Πριν το Merge: το workflow «Έλεγχος SQL» τρέχει όλα τα migrations σε άδεια βάση. Τοπικά: `npm run elegxos:sql`. Αν ένα migration χρειάζεται κάτι της Supabase που λείπει, πρόσθεσέ το στο `supabase/ci/stubs.sql` (ποτέ στην πραγματική βάση).
 - Ασφάλεια: RLS σε κάθε πίνακα, ενέργειες με `security definer` συναρτήσεις που ελέγχουν `auth.uid()`. Κανένα service key στην εφαρμογή.
 
 ## Migrations
-Όλα έως και το 021 έχουν τρέξει στη βάση (2026-11-19). Όταν τρέξει ένα νέο, γράψ' το εδώ.
+Όλα έως και το 025 έχουν τρέξει στη βάση (022–025 στις 2026-11-23). Από το 025 τα βλέπεις και στον πίνακα `applied_migrations` (`npm run allages`). Όταν τρέξει ένα νέο, γράψ' το εδώ.
 
 | # | Τι | Σειρά |
 |---|---|---|
@@ -33,6 +33,10 @@
 | 019 | Δοκιμαστική πληρωμή | μετά το 018 |
 | 020 | Σύνδεσμος με όνομα (slug) | |
 | 021 | Αίτηση αφαίρεσης επιχείρησης | |
+| 022 | Υπενθύμιση ραντεβού (profiles.remind_min, bookings.reminded_at, cron κάθε 15') |  |
+| 023 | Στατιστικά επιχείρησης (business_stats, μόνο ανάγνωση) | μετά το 019 |
+| 024 | Σφάλματα από τις συσκευές (client_errors, log_client_error, admin_errors, cron καθαρισμού) | μετά το 010 |
+| 025 | Ποια migrations έχουν τρέξει (applied_migrations, mark_migration, applied_migrations_list) | μετά τα 001–021 |
 
 ## Edge Functions
 `supabase/functions/viva-pay`, `viva-webhook`: ανεβαίνουν με επικόλληση στο Supabase → Edge Functions. Secrets μόνο εκεί. Δες paketa-pliromes.md.
