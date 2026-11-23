@@ -4,6 +4,7 @@
 
 ## 2026-11-20
 - [Λεωνίδας] Η βάση θυμάται ποια migrations έχουν τρέξει (πίνακας `applied_migrations`, κάθε νέο migration τελειώνει με `mark_migration`), και το `npm run allages` λέει ποια δεν έχουν τρέξει ακόμα — migration 025.
+- [Λεωνίδας] «Πρόσθεσε στο ημερολόγιο» στο «Κλείστηκε!»: Google Calendar, ή αρχείο .ics για Apple/Outlook στην ιστοσελίδα (`lib/calendar.ts`, χωρίς βάση).
 - [Λεωνίδας] Υπενθύμιση ραντεβού: ειδοποίηση στις Κρατήσεις την προηγούμενη μέρα (ή όσο νωρίτερα διαλέξει ο πελάτης στις Ρυθμίσεις, ή καθόλου) — migration 022.
 - [Λεωνίδας] Έλεγχος SQL σε κάθε PR (όλα τα migrations σε άδειο Postgres), αυτόματο σβήσιμο branch μετά το Merge, Release με APK από tag `v*`, badges στο README, Dependabot για τα Actions.
 - [Λεωνίδας] README, `CLAUDE.md` ως σύντομο index, οδηγίες ανά λειτουργία στο `docs/features/`, κανόνες συνεργασίας (`docs/synergasia.md`), `scripts/allages.mjs` που δείχνει τι άλλαξε και από ποιον (τρέχει μόνο του στην αρχή κάθε session του Claude), PR/issue templates, CODEOWNERS. Το `ODIGIES.md` μοιράστηκε στα `README.md` και `docs/`.
