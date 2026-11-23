@@ -34,6 +34,7 @@ export function useIntroSeen(): [boolean | null, () => void, boolean] {
 
 export default function Intro({ onDone }: { onDone: () => void }) {
   const { width: W } = useWindowDimensions();
+  const wide = W >= 1000; // Υπολογιστής: όλα σε στήλη στη μέση, όχι απλωμένα σε όλο το πλάτος.
   const [i, setI] = useState(0);
   const x = useRef(new Animated.Value(0)).current;         // θέση του swipe (σε px)
   const txt = useRef(new Animated.Value(1)).current;       // είσοδος κειμένου
@@ -79,7 +80,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
                   </View>
                 </View>
               </Animated.View>
-              <Animated.View style={{ alignItems: 'center', gap: 10,
+              <Animated.View style={{ alignItems: 'center', gap: 10, width: '100%', maxWidth: 560,
                 opacity: k === i ? txt : 0,
                 transform: [{ translateY: txt.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }] }}>
                 <Text style={{ color: C.text, fontSize: 26, fontWeight: '800', textAlign: 'center' }}>{st.title}</Text>
@@ -90,7 +91,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
         })}
       </Animated.ScrollView>
 
-      <View style={{ gap: 18, padding: 24 }}>
+      <View style={{ gap: 18, padding: 24, width: '100%', maxWidth: wide ? 460 : undefined, alignSelf: 'center' }}>
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
           {STEPS.map((_, k) => {
             const r = [(k - 1) * W, k * W, (k + 1) * W];
