@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, View } from 'react-native';
+import { canDownloadIcs, downloadIcs, openGoogle, type CalEvent } from '../lib/calendar';
 import { Text } from '../lib/Txt';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Btn, C, Icon, alpha, fmtLong, onColor, shadow } from '../lib/ui';
@@ -9,7 +10,7 @@ import { Btn, C, Icon, alpha, fmtLong, onColor, shadow } from '../lib/ui';
    pending=1: το κατάστημα εγκρίνει τις κρατήσεις, άρα «Το αίτημα στάλθηκε». */
 export default function Booked() {
   const router = useRouter();
-  const p = useLocalSearchParams<{ biz: string; service: string; date: string; time: string; color?: string; pending?: string; store?: string }>();
+  const p = useLocalSearchParams<{ biz: string; service: string; date: string; time: string; color?: string; pending?: string; store?: string; dur?: string; addr?: string }>();
   // Μέσα σε κατάστημα: κλείνει αυτή η οθόνη και ανοίγει η καρτέλα Κρατήσεις του καταστήματος (έλεγχος 2026-11-18).
   const mine = () => {
     if (!p.store) return router.replace('/bookings');
@@ -18,6 +19,10 @@ export default function Booked() {
   };
   const color = p.color || C.tint;
   const pending = p.pending === '1';
+  /* Πρόσθεσε στο ημερολόγιο (lib/calendar.ts). Στο web δύο επιλογές (Google ή αρχείο για Apple/Outlook), στο κινητό Google. */
+  const [cal, setCal] = useState(false);
+  const ev: CalEvent = { title: `${p.service} · ${p.biz}`, date: p.date, time: p.time, minutes: Number(p.dur) || 30, place: p.addr || undefined, details: 'Κράτηση από το SpotOn' };
+  const addCal = () => (canDownloadIcs ? setCal(!cal) : openGoogle(ev));
   const a = useRef(new Animated.Value(0)).current;
   useEffect(() => { Animated.spring(a, { toValue: 1, friction: 4, tension: 60, useNativeDriver: false }).start(); }, []);
   const easeIn = (d: number) => { const v = new Animated.Value(0);
@@ -56,6 +61,13 @@ export default function Booked() {
       </View>
       <View style={{ gap: 12 }}>
         <Btn title="Δες τις κρατήσεις μου" color={color} onPress={mine} />
+        {!!p.date && !!p.time && <Btn kind="ghost" icon="calendar" title="Πρόσθεσε στο ημερολόγιο" onPress={addCal} />}
+        {cal && (
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Btn size="sm" kind="tint" color={color} title="Google Calendar" onPress={() => { setCal(false); openGoogle(ev); }} style={{ flex: 1 }} />
+            <Btn size="sm" kind="tint" color={color} title="Apple · Outlook" onPress={() => { setCal(false); downloadIcs(ev); }} style={{ flex: 1 }} />
+          </View>
+        )}
         <Btn kind="ghost" title="Πίσω στο κατάστημα" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
       </View>
     </View>
