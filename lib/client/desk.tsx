@@ -1,6 +1,7 @@
 import { SITE } from '../wide';
 import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
+import { router } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { Text, TextInput } from '../Txt';
 import { isLight } from '../theme';
@@ -100,4 +101,13 @@ export function TopBar({ items, state, navigateToTab }: Nav) {
     </View>
     </View>
   );
+}
+
+/* Η ίδια πάνω μπάρα για σελίδες έξω από τις καρτέλες (απόρρητο, πληρωμή, διαγραφή, πρόσκληση…):
+   καμία καρτέλα επιλεγμένη, τα κουμπιά ανοίγουν την Αρχική / τις Κρατήσεις / το Προφίλ. */
+const STATIC_TOP: TopItems = { '(search)': { icon: 'home', label: 'Αρχική' }, bookings: { icon: 'calendar', label: 'Κρατήσεις' } };
+const STATIC_PATH: Record<string, string> = { '(search)': '/', bookings: '/bookings', '(profile)': '/profile' };
+export function StaticTopBar() {
+  const routes = ['(search)', 'bookings', '(profile)'].map((name) => ({ key: name, name }));
+  return <TopBar items={STATIC_TOP} state={{ index: -1, routes }} navigateToTab={(key) => router.navigate(STATIC_PATH[key] as any)} />;
 }
