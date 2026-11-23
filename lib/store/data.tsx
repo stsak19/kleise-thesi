@@ -29,8 +29,8 @@ export const endOf = (t: string, min: number) => {
 };
 /* Η οθόνη «Κλείστηκε!» μετά από κάθε κράτηση (app/booked).
    store: το κατάστημα όπου έγινε η κράτηση· το «Δες τις κρατήσεις μου» ανοίγει τις Κρατήσεις του, όχι όλες. */
-export const showBooked = (o: { biz: string; service: string; date: string; time: string; color?: string; pending?: boolean; store?: string }) =>
-  router.push({ pathname: '/booked', params: { ...o, color: o.color ?? '', pending: o.pending ? '1' : '', store: o.store ?? '' } } as any);
+export const showBooked = (o: { biz: string; service: string; date: string; time: string; color?: string; pending?: boolean; store?: string; dur?: number; addr?: string | null }) =>
+  router.push({ pathname: '/booked', params: { ...o, color: o.color ?? '', pending: o.pending ? '1' : '', store: o.store ?? '', dur: String(o.dur ?? ''), addr: o.addr ?? '' } } as any);
 /* Κράτηση χωρίς διαθέσιμες επισκέψεις: πάμε τον πελάτη στα πακέτα του καταστήματος. */
 export const askPack = (id: string, msg?: string) => say('Χρειάζεσαι πακέτο', msg ?? 'Δεν σου έμειναν κρατήσεις. Διάλεξε ένα πακέτο από το κατάστημα.', [
   { text: 'Όχι τώρα', style: 'cancel' }, { text: 'Δες τα πακέτα', onPress: () => router.navigate(`/store/${id}` as any) }]);
@@ -165,7 +165,7 @@ function useStoreData(id: string, path: string) {
     const open = waits.find((w) => w.service_id === sl.sv.id && w.date === date && w.time !== sl.time);
     const go = (backup: string | null) => run(sl.sv.id + sl.time, () => rpc('create_booking', { p_service: sl.sv.id, p_date: date, p_time: sl.time, p_backup_for: backup }),
       'Κλείστηκε! 🎉', undefined,
-      () => showBooked({ biz: biz?.name ?? '', service: sl.sv.name, date, time: sl.time, color: st?.color, pending: !!biz?.requires_approval, store: path }));
+      () => showBooked({ biz: biz?.name ?? '', service: sl.sv.name, date, time: sl.time, color: st?.color, pending: !!biz?.requires_approval, store: path, dur: sl.sv.duration_min, addr: [biz?.address, biz?.city].filter(Boolean).join(', ') }));
     if (!open) return go(null);
     say('Είναι εναλλακτική;', `Έχεις δηλώσει ενδιαφέρον για τις ${open.time}. Αν ελευθερωθεί θέση εκεί, να ακυρωθεί αυτόματα η κράτηση των ${sl.time};`,
       [{ text: 'Ναι, εναλλακτική', onPress: () => go(open.id) }, { text: 'Όχι, θέλω και τις δύο', onPress: () => go(null) }]);
