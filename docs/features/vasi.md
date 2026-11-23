@@ -34,6 +34,7 @@
 | 020 | Σύνδεσμος με όνομα (slug) | |
 | 021 | Αίτηση αφαίρεσης επιχείρησης | |
 | 022 | Υπενθύμιση ραντεβού (profiles.remind_min, bookings.reminded_at, cron κάθε 15') |  |
+| 023 | Στατιστικά επιχείρησης (business_stats, μόνο ανάγνωση) | μετά το 019 |
 
 ## Edge Functions
 `supabase/functions/viva-pay`, `viva-webhook`: ανεβαίνουν με επικόλληση στο Supabase → Edge Functions. Secrets μόνο εκεί. Δες paketa-pliromes.md.
