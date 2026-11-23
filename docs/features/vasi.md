@@ -33,6 +33,7 @@
 | 019 | Δοκιμαστική πληρωμή | μετά το 018 |
 | 020 | Σύνδεσμος με όνομα (slug) | |
 | 021 | Αίτηση αφαίρεσης επιχείρησης | |
+| 022 | Υπενθύμιση ραντεβού (profiles.remind_min, bookings.reminded_at, cron κάθε 15') |  |
 | 025 | Ποια migrations έχουν τρέξει (applied_migrations, mark_migration, applied_migrations_list) | μετά τα 001–021 |
 
 ## Edge Functions
