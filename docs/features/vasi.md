@@ -33,6 +33,7 @@
 | 019 | Δοκιμαστική πληρωμή | μετά το 018 |
 | 020 | Σύνδεσμος με όνομα (slug) | |
 | 021 | Αίτηση αφαίρεσης επιχείρησης | |
+| 022 | Υπενθύμιση ραντεβού (profiles.remind_min, bookings.reminded_at, cron κάθε 15') |  |
 | 024 | Σφάλματα από τις συσκευές (client_errors, log_client_error, admin_errors, cron καθαρισμού) | μετά το 010 |
 
 ## Edge Functions
