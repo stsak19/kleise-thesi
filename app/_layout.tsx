@@ -16,6 +16,7 @@ import { PrivacyModal } from '../lib/privacy';
 import { setThemeColor, setupPwa } from '../lib/pwa';
 
 setupPwa(); // μόνο στο web: manifest και εικονίδια για «Εγκατάσταση» (lib/pwa.ts)
+import { loadLang, onLang } from '../lib/i18n';
 
 // Η εφαρμογή ξεκινά πάντα από τον πελάτη· η λειτουργία επιχείρησης (biz) ανοίγει μόνο όταν την επιλέξεις.
 export const unstable_settings = { initialRouteName: '(tabs)' };
@@ -80,6 +81,11 @@ export default function Root() {
   const [fonts] = useFonts(FONTS);
   useEffect(() => { const off = onTheme(() => { restore = here; setV((x) => x + 1); setThemeColor(); }); loadTheme(); return off; }, []);
   if (!fonts) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
+  useEffect(() => { const off = onTheme(() => { restore = here; setV((x) => x + 1); }); loadTheme(); return off; }, []);
+  // Η αλλαγή γλώσσας (lib/i18n) ξαναστήνει την εφαρμογή όπως η εμφάνιση, για να μεταφραστούν και οι τίτλοι.
+  const [langReady, setLangReady] = useState(false);
+  useEffect(() => { const off = onLang(() => { restore = here; setV((x) => x + 1); }); loadLang().finally(() => setLangReady(true)); return off; }, []);
+  if (!fonts || !langReady) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
   return (
     <AuthProvider>
       <StatusBar style={isDark() ? 'light' : 'dark'} />

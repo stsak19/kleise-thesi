@@ -17,6 +17,7 @@ import { useDeletion } from '../account/deletion';
 import { useIsAdmin } from '../admin/data';
 import { AmountPick, TimeBtn } from '../TimePick';
 import { useInstall } from '../pwa';
+import { LangPicker } from '../i18n/LangPicker';
 
 /* Μικρογραφία οθόνης στα χρώματα μιας παλέτας (για την επιλογή εμφάνισης). */
 function Mini({ P }: { P: Theme }) {
@@ -225,6 +226,9 @@ export function SettingsBody({ onEdit }: { onEdit?: () => void }) {
       <Group>
         <SwitchRow label="Λιγότερη κίνηση" sub="Σταματά τα κινούμενα εφέ στις οθόνες" value={prefs.reduceMotion} onChange={(v) => setPref('reduceMotion', v)} last />
       </Group>
+
+      <Section title="Γλώσσα" sub="Language" />
+      <LangPicker />
 
       <NotifyPrefs />
 

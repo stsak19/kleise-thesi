@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { C, INK, alpha, isLight, onTheme } from './theme';
 import { Icon, IconName } from './Icon';
+import { tr } from './i18n';
 export { C, alpha, Icon };
 
 export const CATEGORIES: { key: string; label: string; emoji: string }[] = [
@@ -28,8 +29,9 @@ export const catEmoji = (k: string) => CATEGORIES.find((c) => c.key === k)?.emoj
 export const DAYS = ['Κυρ', 'Δευ', 'Τρι', 'Τετ', 'Πεμ', 'Παρ', 'Σαβ'];
 export const MONTHS = ['Ιαν', 'Φεβ', 'Μαρ', 'Απρ', 'Μαΐ', 'Ιουν', 'Ιουλ', 'Αυγ', 'Σεπ', 'Οκτ', 'Νοε', 'Δεκ'];
 export const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-export const fmtDay = (s: string) => { const d = new Date(s + 'T00:00'); return `${DAYS[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`; };
-export const fmtLong = (s: string) => { const d = new Date(s + 'T00:00'); return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+// Στα αγγλικά (lib/i18n): Mon 21/11, Mon 21 Nov.
+export const fmtDay = (s: string) => { const d = new Date(s + 'T00:00'); return `${tr(DAYS[d.getDay()])} ${d.getDate()}/${d.getMonth() + 1}`; };
+export const fmtLong = (s: string) => { const d = new Date(s + 'T00:00'); return `${tr(DAYS[d.getDay()])} ${d.getDate()} ${tr(MONTHS[d.getMonth()])}`; };
 export const price = (cents: number | null | undefined) => (cents == null ? '' : `${(cents / 100).toFixed(cents % 100 ? 2 : 0)}€`);
 
 /* ---------- μεγέθη ---------- */

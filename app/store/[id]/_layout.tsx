@@ -4,6 +4,7 @@ import { Stack, useLocalSearchParams, useRouter, type ErrorBoundaryProps } from 
 import { Text } from '../../../lib/Txt';
 import { C } from '../../../lib/ui';
 import { stackOptions } from '../../../lib/stack';
+import { tr } from '../../../lib/i18n';
 import { StoreProvider, useStore } from '../../../lib/store/data';
 import { BookProvider } from '../../../lib/store/book';
 import { knownId, resolveStore } from '../../../lib/store/key';
@@ -33,9 +34,9 @@ export default function StoreStack() {
       <BookProvider>
       <Stack screenOptions={stackOptions()}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="account" options={{ title: 'Ο λογαριασμός μου' }} />
-        <Stack.Screen name="settings" options={{ title: 'Ρυθμίσεις' }} />
-        <Stack.Screen name="me" options={{ title: 'Τα στοιχεία μου' }} />
+        <Stack.Screen name="account" options={{ title: tr('Ο λογαριασμός μου') }} />
+        <Stack.Screen name="settings" options={{ title: tr('Ρυθμίσεις') }} />
+        <Stack.Screen name="me" options={{ title: tr('Τα στοιχεία μου') }} />
       </Stack>
       </BookProvider>
     </StoreProvider>

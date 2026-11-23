@@ -3,6 +3,7 @@ import { Animated, StyleSheet, Text as RNText, TextInput as RNTextInput, TextInp
 import {
   Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold,
 } from '@expo-google-fonts/manrope';
+import { tr, trNode } from './i18n';
 
 /* Η γραμματοσειρά της εφαρμογής (Manrope). Κάθε βάρος είναι ξεχωριστό αρχείο, οπότε
    το fontWeight ενός στυλ γίνεται το αντίστοιχο fontFamily. Όλη η εφαρμογή εισάγει
@@ -19,9 +20,14 @@ const font = (style: any) => {
   return [style, { fontFamily: family(f.fontWeight), fontWeight: 'normal' as const }];
 };
 
-export const Text = forwardRef<any, TextProps>((p, ref) => <RNText ref={ref} {...p} style={font(p.style)} />);
+/* Στα αγγλικά (lib/i18n) το κείμενο μεταφράζεται εδώ, πριν ζωγραφιστεί. Στα ελληνικά δεν αλλάζει τίποτα. */
+export const Text = forwardRef<any, TextProps>((p, ref) => (
+  <RNText ref={ref} {...p} accessibilityLabel={p.accessibilityLabel && tr(p.accessibilityLabel)} style={font(p.style)}>{trNode(p.children)}</RNText>
+));
 Text.displayName = 'Text';
-export const TextInput = forwardRef<any, TextInputProps>((p, ref) => <RNTextInput ref={ref} {...p} style={font(p.style)} />);
+export const TextInput = forwardRef<any, TextInputProps>((p, ref) => (
+  <RNTextInput ref={ref} {...p} placeholder={p.placeholder && tr(p.placeholder)} accessibilityLabel={p.accessibilityLabel && tr(p.accessibilityLabel)} style={font(p.style)} />
+));
 TextInput.displayName = 'TextInput';
 
 /* Animated.Text με τη γραμματοσειρά της εφαρμογής. */
