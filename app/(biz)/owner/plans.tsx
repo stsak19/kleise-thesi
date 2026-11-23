@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Stack, useFocusEffect } from 'expo-router';
 import { Text } from '../../../lib/Txt';
+import { deskCol, useWide } from '../../../lib/wide';
 import { say } from '../../../lib/alert';
 import { rpc, sb } from '../../../lib/supabase';
 import { PLAN_KIND, kindOf } from '../../../lib/owner/kinds';
@@ -13,6 +14,7 @@ import { PackFields, blankPack, packMissing, savePack, toForm, type PackForm } f
    Ανοίγει από το Κατάστημα και από τους Πελάτες. Κάθε πακέτο αλλάζει («Αλλαγή») ή αφαιρείται. */
 export default function Plans() {
   const biz = useMyBiz();
+  const wide = useWide();
   const [list, setList] = useState<any[] | null>(null);
   const { list: clients } = useClients(biz);
   const [adding, setAdding] = useState(false); // νέο πακέτο ή αλλαγή υπάρχοντος (f.id)
@@ -63,7 +65,7 @@ export default function Plans() {
   );
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingBottom: 40 }]}>
+    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingBottom: 40 }, deskCol(wide)]}>
       <Stack.Screen options={{ title: k.plans }} />
       <T mute>{k.plansText}</T>
       <T mute style={{ fontSize: 13 }}>Οι πελάτες βλέπουν τα πακέτα στη σελίδα του καταστήματος και πατούν «Το θέλω». Εσύ το ενεργοποιείς από το Πρόγραμμα όταν πληρωθεί.</T>

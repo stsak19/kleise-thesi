@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, View } from 'react-native';
+import { Animated, Easing, View, useWindowDimensions } from 'react-native';
 import { canDownloadIcs, downloadIcs, openGoogle, type CalEvent } from '../lib/calendar';
 import { Text } from '../lib/Txt';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -9,6 +9,8 @@ import { Btn, C, Icon, alpha, fmtLong, onColor, shadow } from '../lib/ui';
    και «Δες τις κρατήσεις μου» / «Πίσω στο κατάστημα». Ανοίγει από το showBooked (lib/store/data).
    pending=1: το κατάστημα εγκρίνει τις κρατήσεις, άρα «Το αίτημα στάλθηκε». */
 export default function Booked() {
+  // Υπολογιστής: κάρτα και κουμπιά σε στήλη 480 στη μέση, όχι σε όλο το πλάτος (στο κινητό ίδιο με πριν).
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const p = useLocalSearchParams<{ biz: string; service: string; date: string; time: string; color?: string; pending?: string; store?: string; dur?: string; addr?: string }>();
   // Μέσα σε κατάστημα: κλείνει αυτή η οθόνη και ανοίγει η καρτέλα Κρατήσεις του καταστήματος (έλεγχος 2026-11-18).
@@ -30,7 +32,7 @@ export default function Booked() {
   const t1 = useRef(easeIn(250)).current, t2 = useRef(easeIn(450)).current;
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg, padding: 24, justifyContent: 'center', gap: 28 }}>
+    <View style={{ flex: 1, backgroundColor: C.bg, padding: 24, paddingHorizontal: Math.max(24, (width - 480) / 2), justifyContent: 'center', gap: 28 }}>
       <View style={{ alignItems: 'center', gap: 16 }}>
         <View style={{ width: 168, height: 168, borderRadius: 84, backgroundColor: alpha(color, 0.1), alignItems: 'center', justifyContent: 'center' }}>
           <Animated.View style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: color, alignItems: 'center', justifyContent: 'center',

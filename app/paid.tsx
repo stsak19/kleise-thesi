@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Text } from '../lib/Txt';
 import { Btn, C, Icon, alpha, onColor } from '../lib/ui';
@@ -9,6 +9,8 @@ import { confirmPayment } from '../lib/pay';
    Επιβεβαιώνει την πληρωμή (viva-pay confirm) και δείχνει ότι το πακέτο ενεργοποιήθηκε.
    Χωρίς t (ο πελάτης ακύρωσε ή η κάρτα απορρίφθηκε) δείχνει «Η πληρωμή δεν ολοκληρώθηκε». */
 export default function Paid() {
+  // Υπολογιστής: κάρτα και κουμπιά σε στήλη 480 στη μέση, όχι σε όλο το πλάτος (στο κινητό ίδιο με πριν).
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const p = useLocalSearchParams<{ s?: string; t?: string; done?: string; store?: string; pkg?: string }>();
   const [res, setRes] = useState<{ ok: boolean; error?: string; business_id?: string; package?: string } | null>(null);
@@ -22,7 +24,7 @@ export default function Paid() {
   const color = res?.ok ? C.tint : C.mute;
   const toStore = () => (res?.business_id ? router.replace(`/store/${res.business_id}` as any) : router.replace('/'));
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg, padding: 24, justifyContent: 'center', gap: 28 }}>
+    <View style={{ flex: 1, backgroundColor: C.bg, padding: 24, paddingHorizontal: Math.max(24, (width - 480) / 2), justifyContent: 'center', gap: 28 }}>
       {!res ? (
         <View style={{ alignItems: 'center', gap: 16 }}>
           <ActivityIndicator color={C.text} />

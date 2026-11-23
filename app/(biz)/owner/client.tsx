@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Linking, ScrollView, View } from 'react-native';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Text } from '../../../lib/Txt';
+import { deskCol, useWide } from '../../../lib/wide';
 import { promptText, say } from '../../../lib/alert';
 import { rpc, sb } from '../../../lib/supabase';
 import { styleOf } from '../../../lib/presets';
@@ -19,6 +20,7 @@ export default function Client() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const biz = useMyBiz();
+  const wide = useWide();
   const { list, reload } = useClients(biz);
   const [hist, setHist] = useState<any[]>([]);
   const [note, setNote] = useState('');
@@ -69,7 +71,7 @@ export default function Client() {
   const pk = c.pack;
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingBottom: 40 }]}>
+    <ScrollView style={s.screen} contentContainerStyle={[s.pad, { paddingBottom: 40 }, deskCol(wide)]}>
       <Stack.Screen options={{ title: '' }} />
       <View style={{ alignItems: 'center', gap: 6 }}>
         <Avatar name={c.name} color={brand} size={76} />

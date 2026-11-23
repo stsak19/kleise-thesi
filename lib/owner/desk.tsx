@@ -22,6 +22,13 @@ export { WIDE, useWide, deskCol } from '../wide';
 
 /* ---------- Πλαϊνό μενού ---------- */
 export type SideItems = Record<string, { icon: IconName; label: string }>;
+/* Οι καρτέλες της επιχείρησης (κάτω μπάρα στο κινητό, πλαϊνό μενού στον υπολογιστή). */
+export const BIZ_TABS: SideItems = {
+  today: { icon: 'calendar', label: 'Πρόγραμμα' },
+  inbox: { icon: 'mail', label: 'Μηνύματα' },
+  clients: { icon: 'user', label: 'Πελάτες' },
+  page: { icon: 'store', label: 'Κατάστημα' },
+};
 export function Sidebar({ items, state, navigateToTab }: { items: SideItems; state: { index: number; routes: { key: string; name: string }[] }; navigateToTab: (key: string) => void }) {
   const router = useRouter();
   const { session } = useAuth();
@@ -117,6 +124,16 @@ export function Sidebar({ items, state, navigateToTab }: { items: SideItems; sta
       </Modal>
     </View>
   );
+}
+
+/* Το ίδιο πλαϊνό μενού για τις οθόνες που ανοίγουν πάνω από τις καρτέλες (Πακέτα, καρτέλα πελάτη, Στατιστικά, QR,
+   «Σε ποιους», Τα στοιχεία μου, Ρυθμίσεις): στον υπολογιστή δεν χάνεται το μενού όταν ανοίγει μία από αυτές.
+   `under` = η καρτέλα στην οποία ανήκει η οθόνη, για να φαίνεται επιλεγμένη. */
+export function StaticSidebar({ items, under }: { items: SideItems; under?: string }) {
+  const router = useRouter();
+  const routes = Object.keys(items).map((name) => ({ key: name, name }));
+  const state = { index: Math.max(-1, routes.findIndex((r) => r.name === under)), routes };
+  return <Sidebar items={items} state={state} navigateToTab={(key) => router.navigate(`/${key}` as any)} />;
 }
 
 /* ---------- Πρόγραμμα: μία γραμμή για κάθε ραντεβού ---------- */
