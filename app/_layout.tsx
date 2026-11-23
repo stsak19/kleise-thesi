@@ -98,9 +98,8 @@ export default function Root() {
   // Κάθε αλλαγή χρώματος ξαναζωγραφίζει την εφαρμογή.
   const [v, setV] = useState(0);
   const [fonts] = useFonts(FONTS);
+  // Μία φορά μόνο, και πριν από κάθε return: αλλιώς αλλάζει ο αριθμός των hooks όταν φορτώσουν οι γραμματοσειρές και η εφαρμογή σκάει.
   useEffect(() => { const off = onTheme(() => { restore = here; setV((x) => x + 1); setThemeColor(); }); loadTheme(); return off; }, []);
-  if (!fonts) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
-  useEffect(() => { const off = onTheme(() => { restore = here; setV((x) => x + 1); }); loadTheme(); return off; }, []);
   // Η αλλαγή γλώσσας (lib/i18n) ξαναστήνει την εφαρμογή όπως η εμφάνιση, για να μεταφραστούν και οι τίτλοι.
   const [langReady, setLangReady] = useState(false);
   useEffect(() => { const off = onLang(() => { restore = here; setV((x) => x + 1); }); loadLang().finally(() => setLangReady(true)); return off; }, []);
