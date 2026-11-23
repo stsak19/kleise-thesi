@@ -2,7 +2,7 @@ import { Stack, Redirect, usePathname, useRouter, useSegments } from 'expo-route
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../lib/auth';
 import { useEffect, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { C } from '../lib/ui';
 import { isDark, loadTheme, onTheme } from '../lib/theme';
 import Intro, { useIntroSeen } from '../lib/Intro';
@@ -17,6 +17,25 @@ import { setThemeColor, setupPwa } from '../lib/pwa';
 
 setupPwa(); // μόνο στο web: manifest και εικονίδια για «Εγκατάσταση» (lib/pwa.ts)
 import { loadLang, onLang } from '../lib/i18n';
+import { installErrorHandlers, report, setErrorPath } from '../lib/errors';
+import { Text } from '../lib/Txt';
+import type { ErrorBoundaryProps } from 'expo-router';
+
+installErrorHandlers(); // σφάλματα από τις συσκευές → super admin «Σφάλματα» (lib/errors.ts, migration 024)
+
+/* Αν σπάσει κάτι σε οποιαδήποτε οθόνη: μήνυμα αντί για άσπρη σελίδα, και αναφορά στη βάση. */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  useEffect(() => { report(error, 'root ErrorBoundary'); }, [error]);
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', padding: 28, gap: 12 }}>
+      <Text style={{ color: C.text, fontWeight: '800', fontSize: 20, textAlign: 'center' }}>Κάτι πήγε στραβά</Text>
+      <Text style={{ color: C.mute, fontSize: 14, textAlign: 'center', maxWidth: 340 }}>Το σφάλμα καταγράφηκε για να διορθωθεί. Δοκίμασε ξανά.</Text>
+      <Pressable onPress={retry} accessibilityRole="button" style={{ paddingVertical: 12, paddingHorizontal: 20, borderRadius: 14, backgroundColor: C.accent }}>
+        <Text style={{ color: C.onAccent, fontWeight: '800' }}>Ξαναδοκίμασε</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 // Η εφαρμογή ξεκινά πάντα από τον πελάτη· η λειτουργία επιχείρησης (biz) ανοίγει μόνο όταν την επιλέξεις.
 export const unstable_settings = { initialRouteName: '(tabs)' };
@@ -32,7 +51,7 @@ function Gate() {
   const seg = useSegments();
   const path = usePathname();
   const router = useRouter();
-  here = path;
+  here = path; setErrorPath(path);
   useEffect(() => {
     if (!restore || !session) return;
     const to = restore; restore = null;

@@ -8,6 +8,7 @@ import { tr } from '../../../lib/i18n';
 import { StoreProvider, useStore } from '../../../lib/store/data';
 import { BookProvider } from '../../../lib/store/book';
 import { knownId, resolveStore } from '../../../lib/store/key';
+import { report } from '../../../lib/errors';
 
 /* Το κατάστημα σαν ξεχωριστή εφαρμογή: δικές του καρτέλες (Κατάστημα · Οι κρατήσεις μου)
    χωρίς την κάτω μπάρα του SpotOn. Από πάνω ανοίγουν οι Ρυθμίσεις και τα στοιχεία του SpotOn, όπως είναι. */
@@ -70,6 +71,7 @@ function NotFound() {
 
 /* Αν κάτι σπάσει μέσα στο κατάστημα, να μη μένει άσπρη σελίδα: μήνυμα + «Ξαναδοκίμασε». */
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  useEffect(() => { report(error, 'store ErrorBoundary'); }, [error]);
   return (
     <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', padding: 28, gap: 12 }}>
       <Text style={{ color: C.text, fontWeight: '800', fontSize: 20, textAlign: 'center' }}>Η σελίδα δεν άνοιξε</Text>
